@@ -1,0 +1,110 @@
+
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+	    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	    <meta name="description" content="">
+	    <meta name="robots" content="noodp, noydir" />
+	    <meta name="author" content="">
+	    <link rel=" stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css"> 
+	    <link href="https://netdna.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.css" rel="stylesheet">
+	    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script> 
+	
+	</head>
+	<body id="body" ng-controller="OZMainController">
+		<div style="width:750px;border: 1px solid #EEE8E8;padding:10px;border-radius:6px;" id="invoice" class="invoice-container">
+			<div style="margin:0px;" class="row">
+				<div style="padding:1px;" class="col-md-2">
+					<img style="width:90%;height:40px;" alt="" src="{{sellerlogo}}">
+				</div>
+				<div style="padding:1px;" class="col-md-10">
+					<div style="margin:0px;" class="row">
+						<div style="padding:1px;" class="col-md-8">
+							<p style="padding: 1px; margin:0px;margin-top:10px;">Contact Us:&nbsp;&nbsp;{{sellercontact}}&nbsp;||&nbsp;{{selleremail}}</p>
+						</div>
+						<div style="padding:1px;" class="col-md-4">
+							<div style="padding: 5px;">
+								<p style="margin:0px;"><strong>Tax Invoice #</strong>&nbsp;&nbsp;{{invoiceno}}</p>
+							</div>
+						</div>
+					</div>
+					<div style="margin:0px;" class="row">
+						<div style="padding:1px;" class="col-md-12">
+							<p style="font-size:13px;font-weight:bold;">{{sellername}},&nbsp;&nbsp;
+								<span style="font-size:10px;font-weight:normal;">{{selleraddress}}</span>
+							</p>
+						</div>
+					</div>
+				</div>
+			</div>
+			<hr size=5 style="height:2px; color:gray;margin-top:0px; margin-bottom:0px;" noshade>
+			<div style="margin:0px; margin-top:10px;margin-bottom:10px;" class="row">
+				<div class="col-md-4">
+					<p><strong>Order ID:</strong>&nbsp;{{orderid}}</p>
+					<p><strong>Order Date:</strong>&nbsp;{{orderdate}}</p>
+					<p><strong>Invoice Date:</strong>&nbsp;{{invoicedate}}</p>
+					<p><strong>VAT/TIN:</strong>&nbsp;{{tino}}</p>
+					<p><strong>Service tax #:</strong>&nbsp; {{servicetaxno}}</p>
+				</div>
+				<div class="col-md-4">
+					<p><strong>Billing Address</strong></p>
+
+					<p>{{buyername}}</p>
+
+					<p>{{billingaddress}}</p>
+				</div>
+				<div class="col-md-4">
+					<p><strong>Shipping Address</strong></p>
+
+					<p>{{buyername}}</p>
+
+					<p>{{deliveryaddress}}</p>
+				</div>
+			</div>
+			<hr size=5 style="height:2px; color:gray;margin-top:0px; margin-bottom:0px;" noshade>
+			<div style="margin:0px;margin-top:10px;margin-bottom:10px;" class="row">
+				<div class="col-md-12">
+					<table class="table table-condensed">
+					 	<thead>
+							<tr>
+							    <th width="10%"><span>No</span></th>
+							 	<th width="30%"><span>Product Name</span></th>
+								<th width="15%"><span>Quantity</span></th>
+								<th width="15%"><span>Price(<i class="fa fa-inr"></i>)</span></th>
+								<th width="15%"><span>Tax(<i class="fa fa-inr"></i>)</span></th>
+								<th width="15%"><span>Total(<i class="fa fa-inr"></i>)</span></th>
+							</tr>
+						</thead>
+						<tbody>
+							{{products}}		
+						</tbody>
+					</table>
+				</div>
+			</div>
+			<hr size=5 style="height:2px; color:gray;margin-top:0px; margin-bottom:0px;" noshade>
+			<div style="margin:0px;margin-top:10px;margin-bottom:10px;" class="row">
+				<div class="col-md-12">
+					<table class="table table-condensed">			 	
+						<tr>
+							<th style="border: 0px;" width="40%"></th>
+							<th style="border: 0px;" width="15%"></th>
+							<th style="border: 0px;" width="15%"></th>
+							<th style="border: 0px;" width="15%"><span>Grand Total:</span></th>
+							<th style="border: 0px;" width="15%"><span style='float:right'>{{totalprice}}</span></th>
+						</tr>				
+					</table>
+				</div>
+			</div>
+			<hr size=5 style="height:2px; color:gray;margin-top:0px; margin-bottom:0px;" noshade>
+			<div style="margin:0px;" class="row">
+				<div style="padding:1px;" class="col-md-12">
+					<p class="text-center" style="font-size:9px; font-weight:bold;letter-spacing:1px;"><em>This is a computer generated invoice. No signature required.</em></p> 
+				</div>
+			</div>
+		</div>
+
+		<script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
+
+	</body>
+</html>
