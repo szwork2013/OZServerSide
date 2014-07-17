@@ -2258,3 +2258,186 @@ var _GetBranchDeliveryCharges=function(self,sessionuserid,branchid,zipcode,city)
 var _successfullGetBranchDeliveryCharges=function(self,branchdeliverycharges){
 	self.emit("successfulGetBranchDeliveryCharges",{success:{message:"Gettin Branch Delivery Charges Successfully",branchdeliverycharges:branchdeliverycharges}})
 }
+
+ProductProvider.prototype.addPickupAddresses = function(user,providerid) {
+	var self=this;
+	var location=self.productprovider;
+	console.log("Loation "+JSON.stringify(location));
+	///////////////////////////////////////////////////////////
+	_validateAddPickupAddresses(self,location,user,providerid);
+	///////////////////////////////////////////////////////////
+}
+
+var _validateAddPickupAddresses=function(self,location,user,providerid){
+	if(location==undefined){
+		self.emit("failedAddPickupAddress",{"error":{"code":"AV001","message":"Please enter location"}});	
+	}else if(location.address1 == undefined || location.address1 == ""){
+	    self.emit("failedAddPickupAddress",{"error":{"code":"ED002","message":"Please enter address1"}});
+	}else if(location.address2 == undefined || location.address2 == ""){
+	    self.emit("failedAddPickupAddress",{"error":{"code":"ED002","message":"Please enter address2"}});
+	}else if(location.address3 == undefined || location.address3 == ""){
+	    self.emit("failedAddPickupAddress",{"error":{"code":"ED002","message":"Please enter address3"}});
+	}else if(location.area == undefined || location.area == ""){
+	    self.emit("failedAddPickupAddress",{"error":{"code":"ED002","message":"Please enter area"}});
+	}else if(location.zipcode == undefined || location.zipcode == ""){
+	    self.emit("failedAddPickupAddress",{"error":{"code":"ED002","message":"Please enter zipcode"}});
+	}else if(location.city == undefined || location.city == ""){
+	    self.emit("failedAddPickupAddress",{"error":{"code":"ED002","message":"Please enter city"}});
+	}else if(location.state == undefined || location.state == ""){
+	    self.emit("failedAddPickupAddress",{"error":{"code":"ED002","message":"Please enter state"}});
+	}else{
+		////////////////////////////////////////////////////////////////////
+		_isProivderAdminToAddPickupAddresses(self,location,user,providerid);
+		////////////////////////////////////////////////////////////////////		
+	}
+}
+
+var _isProivderAdminToAddPickupAddresses = function(self,location,user,providerid){
+	UserModel.findOne({userid:user.userid,"provider.providerid":providerid,"provider.isOwner":true},function(err,usersp){
+		if(err){
+			logger.emit('error',"Database Issue  _isProivderAdminToAddPickupAddresses"+err,user.userid)
+			self.emit("failedAddPickupAddress",{"error":{"code":"ED001","message":"Database Issue"}});
+		}else if(!usersp){
+			self.emit("failedAddPickupAddress",{"error":{"message":"You are not authorized to add pickup address"}});
+		}else{
+			///////////////////////////////////////////////////
+	     	_isProvideTrueOrFalse(self,location,user,providerid);
+		    ///////////////////////////////////////////////////
+		}
+	})
+}
+
+var _isProvideTrueOrFalse = function(self,location,user,providerid){
+	ProductProviderModel.findOne({providerid:providerid},{pickupaddresses:1,_id:0},function(err,userpp){
+		if(err){
+			logger.emit('error',"Database Issue  _isProvideTrueOrFalse"+err,user.userid)
+			self.emit("failedAddPickupAddress",{"error":{"code":"ED001","message":"Database Issue"}});
+		}else if(!userpp){
+			self.emit("failedAddPickupAddress",{"error":{"message":"You are not authorized to add pickup address"}});
+		}else{
+			if(userpp.pickupaddresses.provide == true){
+				_pushPickupAddresses(self,location,user,providerid);
+			}else{
+				///////////////////////////////////////////////////
+		     	_addPickupAddresses(self,location,user,providerid);
+			    ///////////////////////////////////////////////////
+			}			
+		}
+	})
+}
+
+var _addPickupAddresses=function(self,location,user,providerid){
+	console.log("location : "+JSON.stringify(location));
+	location.addressid = "pa"+generateId();
+	var pickupaddresses = {provide:true,addresses:[location]}
+	ProductProviderModel.update({providerid:providerid},{$set:{pickupaddresses:pickupaddresses}},function(err,ppupdatestatus){
+		if(err){
+			logger.emit('error',"Database Issue ,function:_addPickupAddresses"+err,user.userid);
+			self.emit("failedAddPickupAddress",{"error":{"code":"ED001","message":"Database Issue"}});
+		}else if(ppupdatestatus==0){
+		    self.emit("failedAddPickupAddress",{"error":{"message":"providerid is wrong"}});
+		}else{
+			//////////////////////////////////
+			_successfulAddPickupAddress(self);
+			//////////////////////////////////
+		}
+	})
+}
+
+var _pushPickupAddresses=function(self,location,user,providerid){
+	location.addressid = "pa"+generateId();
+	ProductProviderModel.update({providerid:providerid},{$push:{"pickupaddresses.addresses":location}},function(err,ppupdatestatus){
+		if(err){
+			logger.emit('error',"Database Issue ,function:_pushPickupAddresses"+err,user.userid)
+			self.emit("failedAddPickupAddress",{"error":{"code":"ED001","message":"Database Issue"}});
+		}else if(ppupdatestatus==0){
+		    self.emit("failedAddPickupAddress",{"error":{"message":"providerid is wrong"}});
+		}else{
+			//////////////////////////////////
+			_successfulAddPickupAddress(self);
+			//////////////////////////////////
+		}
+	})
+}
+
+var _successfulAddPickupAddress=function(self,ProductProviderdata,user,providerid){
+	self.emit("successfulAddPickupAddress",{"success":{"message":"Pickup Address Added Successfully"}});
+}
+
+ProductProvider.prototype.getPickupAddresses = function(user,providerid) {
+	var self=this;
+	///////////////////////////////////////////////////////////
+	_isProivderAdminToGetPickupAddresses(self,user,providerid);
+	///////////////////////////////////////////////////////////
+}
+var _isProivderAdminToGetPickupAddresses = function(self,user,providerid){
+	UserModel.findOne({userid:user.userid,"provider.providerid":providerid,"provider.isOwner":true},function(err,usersp){
+		if(err){
+			logger.emit('error',"Database Issue  _isProivderAdminToGetPickupAddresses"+err,user.userid)
+			self.emit("failedGetPickupAddress",{"error":{"code":"ED001","message":"Database Issue"}});
+		}else if(!usersp){
+			self.emit("failedGetPickupAddress",{"error":{"message":"You are not authorized to get pickup address"}});
+		}else{
+			//////////////////////////////////////////
+	     	_getPickupAddresses(self,user,providerid);
+		    //////////////////////////////////////////
+		}
+	})
+}
+var _getPickupAddresses = function(self,user,providerid){
+	ProductProviderModel.findOne({providerid:providerid},{pickupaddresses:1,_id:0},function(err,doc){
+		if(err){
+			logger.emit('error',"Database Issue  _getPickupAddresses"+err,user.userid)
+			self.emit("failedGetPickupAddress",{"error":{"code":"ED001","message":"Database Issue"}});
+		}else if(!doc){
+			self.emit("failedGetPickupAddress",{"error":{"message":"You are not authorized to get pickup address"}});
+		}else{
+			//////////////////////////////////////
+		    _successfulGetPickupAddress(self,doc.pickupaddresses.addresses);
+			//////////////////////////////////////
+		}
+	})
+}
+var _successfulGetPickupAddress=function(self,doc){
+	self.emit("successfulGetPickupAddress",{"success":{"message":"Getting Pickup Address Successfully","addresses":doc}});
+}
+
+ProductProvider.prototype.deletePickupAddresses = function(user,providerid,addressid) {
+	var self=this;
+	////////////////////////////////////////////////////////////////////////
+	_isProivderAdminToDeletePickupAddresses(self,user,providerid,addressid);
+	////////////////////////////////////////////////////////////////////////
+}
+var _isProivderAdminToDeletePickupAddresses = function(self,user,providerid,addressid){
+	UserModel.findOne({userid:user.userid,"provider.providerid":providerid,"provider.isOwner":true},function(err,usersp){
+		if(err){
+			logger.emit('error',"Database Issue  _isProivderAdminToDeletePickupAddresses"+err,user.userid)
+			self.emit("failedDeletePickupAddress",{"error":{"code":"ED001","message":"Database Issue"}});
+		}else if(!usersp){
+			self.emit("failedDeletePickupAddress",{"error":{"message":"You are not authorized to delete pickup address"}});
+		}else{
+			///////////////////////////////////////////////////////
+	     	_deletePickupAddresses(self,user,providerid,addressid);
+		    ///////////////////////////////////////////////////////
+		}
+	})
+}
+var _deletePickupAddresses=function(self,user,providerid,addressid){
+	console.log("providerid : "+providerid+" addressid : "+addressid);
+
+	ProductProviderModel.update({providerid:providerid,"pickupaddresses.addresses.addressid":addressid},{$pull:{"pickupaddresses.addresses":{addressid:addressid}}},function(err,addressupdatestatus){
+		if(err){
+			logger.emit('error',"Database Issue ,function:_deletePickupAddresses"+err,user.userid)
+			self.emit("failedDeletePickupAddress",{"error":{"code":"ED001","message":"Database Issue"}});
+		}else if(addressupdatestatus==0){
+		    self.emit("failedDeletePickupAddress",{"error":{"message":"Provided addressid is not belongs with this provider"}});
+		}else{
+			/////////////////////////////////////
+			_successfulDeletePickupAddress(self);
+			/////////////////////////////////////
+		}
+	})
+}
+var _successfulDeletePickupAddress=function(self){
+	self.emit("successfulDeletePickupAddress",{"success":{"message":"Pickup Address Deleted Successfully"}});
+}

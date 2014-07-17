@@ -84,7 +84,25 @@ var productProviderSchema = mongoose.Schema(
     branch:[branchSchema],
     deliverytimingsinstructions:{type:String,default:null},
     paymentmode:{cod:{type:Boolean,default:false},online:{type:Boolean,default:true}},
-    orderprocess_configuration:[{index:Number,order_status:String}]
+
+    orderprocess_configuration:[{index:Number,order_status:String}],
+
+    pickupaddresses:{
+      provide:{type:Boolean,default:false},
+      addresses:[
+        {
+          addressid:{type:String,unique:true},
+          address1:{type:String},
+          address2:{type:String},
+          address3:{type:String},
+          area:{type:String},
+          zipcode:{type:String},
+          city:{type:String},
+          state:{type:String},
+        }
+      ]
+    }
+>>>>>>> 08908cb2cb1f37a8b58c40b845043774146423a1
 
         //membership handling
         //loyal customer
