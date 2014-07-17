@@ -20,6 +20,7 @@ var exec = require('child_process').exec;
 AWS.config.update({accessKeyId:'AKIAJOGXRBMWHVXPSC7Q', secretAccessKey:'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'});
 AWS.config.update({region:'ap-southeast-1'});
 var s3bucket = new AWS.S3();
+var OrderStatusRefModel=require('./orderstatus-reff-model');
 var ProductProvider = function(productproviderdata) {
   this.productprovider=productproviderdata;
 };
@@ -227,7 +228,13 @@ var _validateProductProviderData=function(self,productproviderdata,user,provider
 	// }else if(productproviderdata.branch.length==0){
 	// 	self.emit("failedProductProviderRegistration",{"error":{"code":"AV001","message":"Please add atleast one branch details"}});
 	// 
-    }else if(productproviderdata.providercode==undefined || productproviderdata.providercode==""){
+    }else if(productproviderdata.orderorderprocess_configuration==undefined && productproviderdata.orderprocess_configuration==""){
+		self.emit("failedProductProviderRegistration",{"error":{"code":"AV001","message":"please pass orderprocess_configuration details"}})
+	}else  if(!isArray(productproviderdata.orderprocess_configuration)){
+		self.emit("failedProductProviderRegistration",{"error":{"code":"AV001","message":"Process Configuration should be an array"}})
+	}else  if(productproviderdata.orderprocess_configuration.length==0){
+		self.emit("failedProductProviderRegistration",{"error":{"code":"AV001","message":"Process Configuration should not be empty"}})
+	}else if(productproviderdata.providercode==undefined || productproviderdata.providercode==""){
 		self.emit("failedProductProviderRegistration",{"error":{"code":"AV001","message":"Please enter sellercode"}})
 	}else if(productproviderdata.tax==undefined || productproviderdata.tax==""){
 		self.emit("failedProductProviderRegistration",{"error":{"code":"AV001","message":"Please pass tax information"}})
@@ -277,9 +284,47 @@ var _checkProviderCodeAlreadyExist=function(self,productproviderdata,user,provid
 		}else if(providercodedata.length!=0){
 			self.emit("failedProductProviderRegistration",{"error":{"message":"Provider code already used"}});
 		}else{
-			//////////////////////////////////////////////////////////////
+				//////////////////////////////////////////////////////////////
+			_checkOrderProcessConfiguration(self,productproviderdata,user,providerlogo)
+			//////////////////////////////////////////////////////////
+		}
+	})
+}
+var _checkOrderProcessConfiguration=function(self,productproviderdata,user,providerlogo){
+	OrderStatusRefModel.find({},function(err,orderrefstatus){
+		if(err){
+			logger.emit("error","Database Issue,fun:_checkOrderProcessConfiguration"+err,user.userid);
+			self.emit("failedProductProviderRegistration",{"error":{"code":"ED001","message":"Database Issue"}});		
+		}else if(orderrefstatus.length==0){
+			self.emit("failedProductProviderRegistration",{"error":{"message":"No Order Reference status exist"}});		
+		}else{
+			var requireorderdstatus=[];
+			var allorderstatus=[];
+			for(var i=0;i<orderrefstatus.length;i++){
+				allorderstatus.push(orderrefstatus[i].order_status)
+				if(orderrefstatus[i].require){
+					requireorderdstatus.push(orderrefstatus[i].order_status)
+				}
+			}
+			//check provide process configuration status exist in reforder status
+			var validorderprocess_configurationstatus=[];
+			var orderprocess_configurationstatus=[];
+			for(var i=0;i<productproviderdata.orderprocess_configuration.length;i++){
+				if(allorderstatus.indexOf(productproviderdata.orderprocess_configuration[i].order_stauts)>=0 && productproviderdata.orderprocess_configuration[i].index!=undefined){
+					validorderprocess_configurationstatus.push(productproviderdata.orderprocess_configuration[i])
+				}
+				validorderprocess_configurationstatus.push(productproviderdata.orderprocess_configuration[i].order_stauts)
+			}
+			logger.emit("log","validorderprocess_configurationstatus:"+JSON.stringify(validorderprocess_configurationstatus));
+			var missingrequirestatus=__.difference(requireorderdstatus,validorderprocess_configurationstatus);
+			if(missingrequirestatus.length!=0){
+					self.emit("failedProductProviderRegistration",{"error":{"message":"You have to compulsorty select"+requireorderdstatus+"these status"}});		
+			}else{
+				productproviderdata.orderprocess_configuration=validorderprocess_configurationstatus
+				//////////////////////////////////////////////////////////////
 			_addProductProvider(self,productproviderdata,user,providerlogo)
-			//////////////////////////////////////////////////////////	
+			//////////////////////////////////////////////////////////
+			}
 		}
 	})
 }

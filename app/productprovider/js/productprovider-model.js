@@ -83,7 +83,8 @@ var productProviderSchema = mongoose.Schema(
         ],
     branch:[branchSchema],
     deliverytimingsinstructions:{type:String,default:null},
-    paymentmode:{cod:{type:Boolean,default:false},online:{type:Boolean,default:true}}
+    paymentmode:{cod:{type:Boolean,default:false},online:{type:Boolean,default:true}},
+    orderprocess_configuration:[{index:Number,order_status:String}]
 
         //membership handling
         //loyal customer
