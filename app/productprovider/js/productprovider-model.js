@@ -102,7 +102,7 @@ var productProviderSchema = mongoose.Schema(
         }
       ]
     }
->>>>>>> 08908cb2cb1f37a8b58c40b845043774146423a1
+
 
         //membership handling
         //loyal customer
