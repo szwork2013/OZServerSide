@@ -11,6 +11,10 @@ exports.init = function (app) {
  	app.get("/api/newproviders",auth,api.productproviderapi.getAllNewProductProviders);
  	app.get("/api/acceptreject/:providerid",auth,api.productproviderapi.acceptrejectProductProvider);
 
+ 	app.post('/api/pickupaddress/:providerid',auth,api.productproviderapi.addPickupAddresses);
+ 	app.get('/api/pickupaddress/:providerid',auth,api.productproviderapi.getPickupAddresses);
+ 	app.delete('/api/pickupaddress/:providerid/:addressid',auth,api.productproviderapi.deletePickupAddresses);
+
  	app.post("/api/branchpolicy/:providerid/:branchid",auth,api.productproviderapi.addProviderPolicy);
  	app.get("/api/branchpolicy/:providerid/:branchid",api.productproviderapi.getProviderPolicy);
 	app.put("/api/branchpolicy/:providerid/:branchid",auth,api.productproviderapi.updateProviderPolicy);
@@ -23,4 +27,5 @@ exports.init = function (app) {
 
  	app.post('/api/orderstatus',auth,api.orderstatus.addOrderProcessingStatus);
  	app.get('/api/orderstatus',auth,api.orderstatus.getOrderProcessingStatus);
+ 	app.delete('/api/orderstatus/:index',auth,api.orderstatus.deleteOrderProcessingStatus);
 }

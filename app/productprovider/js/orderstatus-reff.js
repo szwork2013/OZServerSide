@@ -106,3 +106,27 @@ var _getOrderProcessingStatus = function(self,user){
 var _successfulGetOrderProcessingStatus = function(self,orderstatus){
 	self.emit("successfulGetOrderProcessingStatus",{"success":{"message":"Getting Order Status Information Successfuly","orderprocess":orderstatus}});
 }
+
+OrderStatusReff.prototype.deleteOrderProcessingStatus = function(user,index) {
+	var self = this;
+	//////////////////////////////////////////////
+	_deleteOrderProcessingStatus(self,user,index);
+	//////////////////////////////////////////////
+};
+var _deleteOrderProcessingStatus = function(self,user,index){
+	OrderStatusReffModel.remove({index:index},function(err,deletestatus){
+		if(err){
+			logger.emit('error',"Database Issue ,function:_deleteOrderProcessingStatus"+err,user.userid);
+			self.emit("failedDeleteOrderProcessingStatus",{"error":{"code":"ED001","message":"Database Issue"}});
+		}else if(deletestatus==0){
+		    self.emit("failedDeleteOrderProcessingStatus",{"error":{"message":"Provided index is wrong"}});
+		}else{
+			/////////////////////////////////////////////
+			_successfulDeleteOrderProcessingStatus(self);
+			/////////////////////////////////////////////
+		}
+	})
+}
+var _successfulDeleteOrderProcessingStatus = function(self){
+	self.emit("successfulDeleteOrderProcessingStatus",{"success":{"message":"Order Status Deleted Successfuly"}});
+}

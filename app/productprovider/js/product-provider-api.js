@@ -873,3 +873,63 @@ exports.getBranchDeliveryCharges=function(req,res){
    productprovider.GetBranchDeliveryCharges(sessionuserid,branchid,zipcode,city);
   ///////////////////////////////////////////////////////////////////////////////
 }
+
+exports.addPickupAddresses=function(req,res){
+ var providerid=req.params.providerid;
+ var ProductProviderdata = req.body.location;
+ logger.emit("info","req addPickupAddresses data"+JSON.stringify(req.body));
+ var productprovider = new ProductProvider(ProductProviderdata);
+ productprovider.removeAllListeners("failedAddPickupAddress");
+  productprovider.on("failedAddPickupAddress",function(err){
+    if(err.error.code!="ED001"){
+     logger.emit("error", err.error.message); 
+    }
+    
+    // //user.removeAllListeners();
+    res.send(err);
+  });
+  productprovider.removeAllListeners("successfulAddPickupAddress");
+  productprovider.on("successfulAddPickupAddress",function(result){
+    res.send(result);
+  });
+  productprovider.addPickupAddresses(req.user,providerid);
+}
+
+exports.getPickupAddresses=function(req,res){
+ var providerid=req.params.providerid;
+ var productprovider = new ProductProvider();
+ productprovider.removeAllListeners("failedGetPickupAddress");
+  productprovider.on("failedGetPickupAddress",function(err){
+    if(err.error.code!="ED001"){
+     logger.emit("error", err.error.message); 
+    }
+    
+    // //user.removeAllListeners();
+    res.send(err);
+  });
+  productprovider.removeAllListeners("successfulGetPickupAddress");
+  productprovider.on("successfulGetPickupAddress",function(result){
+    res.send(result);
+  });
+  productprovider.getPickupAddresses(req.user,providerid);
+}
+
+exports.deletePickupAddresses=function(req,res){
+ var providerid=req.params.providerid;
+ var addressid=req.params.addressid;
+ var productprovider = new ProductProvider();
+ productprovider.removeAllListeners("failedDeletePickupAddress");
+  productprovider.on("failedDeletePickupAddress",function(err){
+    if(err.error.code!="ED001"){
+     logger.emit("error", err.error.message); 
+    }
+    
+    // //user.removeAllListeners();
+    res.send(err);
+  });
+  productprovider.removeAllListeners("successfulDeletePickupAddress");
+  productprovider.on("successfulDeletePickupAddress",function(result){
+    res.send(result);
+  });
+  productprovider.deletePickupAddresses(req.user,providerid,addressid);
+}

@@ -56,3 +56,29 @@ exports.getOrderProcessingStatus = function(req,res){
   } 
 }
 
+exports.deleteOrderProcessingStatus = function(req,res){
+  var index = req.params.index;
+  var orderstatusreff = new OrderStatusReff();
+  orderstatusreff.removeAllListeners("failedDeleteOrderProcessingStatus");
+  orderstatusreff.on("failedDeleteOrderProcessingStatus",function(err){
+    if(err.error.code!="ED001"){
+      logger.emit("error", err.error.message); 
+    }      
+      // user.removeAllListeners();
+    res.send(err);
+  });
+  orderstatusreff.removeAllListeners("successfulDeleteOrderProcessingStatus");
+  orderstatusreff.on("successfulDeleteOrderProcessingStatus",function(result){
+    // if(err.error.code!="ED001"){
+      //  logger.emit("error", err.error.message); 
+      // }
+      
+     //user.removeAllListeners();
+    res.send(result);
+  });
+  if(req.user.isAdmin == "false"){
+    orderstatusreff.emit("failedDeleteOrderProcessingStatus",{error:{message:"You are not an admin user to do this action"}});
+  }else{
+    orderstatusreff.deleteOrderProcessingStatus(req.user,index);
+  }
+}
