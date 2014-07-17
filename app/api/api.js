@@ -31,6 +31,7 @@ var providergroupapi=require("../providergroup/js/provider-group-api");
 var invoiceapi=require("../invoice/js/invoice-api");
 var productconfigapi = require("../productcatalog/js/product-config-api");
 var locationapi = require("../location/js/location-api");
+var orderstatus = require("../productprovider/js/orderstatus-reff-api");
 
 //exporting all api to main hhapp
 // exports.smsproviderapi = smsproviderapi;
@@ -53,3 +54,4 @@ exports.providergroupapi=providergroupapi;
 exports.invoiceapi=invoiceapi;
 exports.productconfigapi=productconfigapi;
 exports.locationapi = locationapi;
+exports.orderstatus = orderstatus;

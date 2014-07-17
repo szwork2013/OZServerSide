@@ -671,7 +671,7 @@ var _getAllOrdersForBranch=function(self,branchid,userid){
 
 var _getAllProductOrdersForBranch=function(self,branchid,userid){
 	console.log("_getAllProductOrdersForBranch");
-	OrderModel.aggregate([{$unwind:"$suborder"},{$match:{"suborder.status":"accepted","suborder.productprovider.branchid":branchid}},{$project:{deliverydate:"$suborder.deliverydate",products:"$suborder.products"}},{$unwind:"$products"},{$group:{_id:{deliverydate:"$deliverydate"},products:{$addToSet:{productname:"$products.productname",productcode:"$products.productcode",qty:"$products.qty",uom:"$products.uom",orderprice:"$products.orderprice",currency:"$products.currency"}}}},{$project:{deliverydate:"$_id.deliverydate",products:"$products",_id:0}}]).exec(function(err,products){
+	OrderModel.aggregate([{$unwind:"$suborder"},{$match:{"suborder.status":"accepted","suborder.productprovider.branchid":branchid}},{$project:{deliverydate:"$suborder.deliverydate",products:"$suborder.products"}},{$unwind:"$products"},{$group:{_id:{deliverydate:"$deliverydate"},products:{$addToSet:{productname:"$products.productname",productcode:"$products.productcode",qty:"$products.qty",uom:"$products.uom",orderprice:"$products.orderprice",currency:"$products.currency"}}}},{$project:{deliverydate:"$_id.deliverydate",products:"$products",_id:0}},{$sort:{deliverydate:1}}]).exec(function(err,products){
 		if(err){
 			self.emit("failedGetAllOrdersForAllProviders",{"error":{"code":"ED001","message":"Database Issue : "+err}});
 		}else if(products.length==0){

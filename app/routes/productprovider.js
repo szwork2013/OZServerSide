@@ -20,4 +20,7 @@ exports.init = function (app) {
  	app.post('/api/sellersagreement/:providerid',auth,api.productproviderapi.sellersAgreementUpload);
  	app.get('/api/sellersagreement/:providerid',auth,api.productproviderapi.getSellersAgreement);
  	app.post('/api/sellersagreement/file/:providerid',auth,api.productproviderapi.changeSellersAgreementFile);
+
+ 	app.post('/api/orderstatus',auth,api.orderstatus.addOrderProcessingStatus);
+ 	app.get('/api/orderstatus',auth,api.orderstatus.getOrderProcessingStatus);
 }
