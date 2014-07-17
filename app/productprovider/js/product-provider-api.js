@@ -18,7 +18,7 @@ function IsJsonString(str) {
 }
 exports.addProductProvider=function(req,res){
 var  ProductProviderdata = req.body.data;
-
+console.log("req body"+JSON.stringify(req.body));
  var productprovider = new ProductProvider(ProductProviderdata);
  
  var providerlogo=req.files.logo;

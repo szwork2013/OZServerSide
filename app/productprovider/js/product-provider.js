@@ -228,7 +228,7 @@ var _validateProductProviderData=function(self,productproviderdata,user,provider
 	// }else if(productproviderdata.branch.length==0){
 	// 	self.emit("failedProductProviderRegistration",{"error":{"code":"AV001","message":"Please add atleast one branch details"}});
 	// 
-    }else if(productproviderdata.orderorderprocess_configuration==undefined && productproviderdata.orderprocess_configuration==""){
+    }else if(productproviderdata.orderprocess_configuration==undefined || productproviderdata.orderprocess_configuration==""){
 		self.emit("failedProductProviderRegistration",{"error":{"code":"AV001","message":"please pass orderprocess_configuration details"}})
 	}else  if(!isArray(productproviderdata.orderprocess_configuration)){
 		self.emit("failedProductProviderRegistration",{"error":{"code":"AV001","message":"Process Configuration should be an array"}})
@@ -309,14 +309,18 @@ var _checkOrderProcessConfiguration=function(self,productproviderdata,user,provi
 			//check provide process configuration status exist in reforder status
 			var validorderprocess_configurationstatus=[];
 			var orderprocess_configurationstatus=[];
+			logger.emit("log","allorderstatus"+JSON.stringify(allorderstatus));
+			logger.emit("log","requireorderdstatus"+JSON.stringify(requireorderdstatus));
+			logger.emit("log","productproviderdata"+JSON.stringify(productproviderdata.orderprocess_configuration));
 			for(var i=0;i<productproviderdata.orderprocess_configuration.length;i++){
-				if(allorderstatus.indexOf(productproviderdata.orderprocess_configuration[i].order_stauts)>=0 && productproviderdata.orderprocess_configuration[i].index!=undefined){
+				if(allorderstatus.indexOf(productproviderdata.orderprocess_configuration[i].order_status)>=0){
 					validorderprocess_configurationstatus.push(productproviderdata.orderprocess_configuration[i])
 				}
-				validorderprocess_configurationstatus.push(productproviderdata.orderprocess_configuration[i].order_stauts)
+				orderprocess_configurationstatus.push(productproviderdata.orderprocess_configuration[i].order_status)
 			}
 			logger.emit("log","validorderprocess_configurationstatus:"+JSON.stringify(validorderprocess_configurationstatus));
-			var missingrequirestatus=__.difference(requireorderdstatus,validorderprocess_configurationstatus);
+			var missingrequirestatus=__.difference(requireorderdstatus,orderprocess_configurationstatus);
+			logger.emit("log","missingrequirestatus"+JSON.stringify(missingrequirestatus))
 			if(missingrequirestatus.length!=0){
 					self.emit("failedProductProviderRegistration",{"error":{"message":"You have to compulsorty select"+requireorderdstatus+"these status"}});		
 			}else{
@@ -1112,15 +1116,63 @@ var _checkUserHaveProvider=function(self,user){
 }
 var _getAllMyProviders=function(self,providerarray){
     console.log("providerarray"+providerarray)
-	ProductProviderModel.find({providerid:{$in:providerarray}},{_id:0,providerid:1,providerlogo:1,providername:1,providercode:1,status:1,providerdescription:1,category:1,deliverytimingsinstructions:1,tax:1,paymentmode:1},function(err,providers){
+	ProductProviderModel.find({providerid:{$in:providerarray}},{_id:0,providerid:1,providerlogo:1,providername:1,providercode:1,status:1,providerdescription:1,category:1,deliverytimingsinstructions:1,tax:1,paymentmode:1,orderprocess_configuration:1},function(err,providers){
 		if(err){
 			logger.emit('error',"Database Issue fun:_getAllMyProviders"+err)
 		  self.emit("failedGetAllMyProviders",{"error":{"code":"ED001","message":"Database Issue"}});			
 		}else if(providers.length==0){
 			self.emit("failedGetAllMyProviders",{"error":{"code":"PP001","message":"No provider associated with your account,please add atleast one provider"}});		
 		}else{
+			providers=JSON.stringify(providers);
+				providers=JSON.parse(providers);
 			// console.log("tssss55555555555555sesddddddddtdd")
+			var actionstatus={accepted:"accept",cancelled:"cancel",rejected:"reject",inproduction:"production",factorytostore:"shiiptostore",packing:"pack",homedelivery:"delivertohome",storepickup:"pickfromstore",ordercomplete:"done"};
+			for(var i=0;i<providers.length;i++){
+				var orderprocess_configuration=providers[i].orderprocess_configuration;
+				var indexvalues=[];
+				var givenindexvalues=[];
+				var all_config_status=[];
+				var sequenceprocessconfiguration=[];
+				var nosequencedorderstatus=[];
+				for(var j=0;j<orderprocess_configuration.length;j++){
+				  if(orderprocess_configuration[j].index>0){
+				  		indexvalues.push(orderprocess_configuration[j].index);
+				  		sequenceprocessconfiguration.push(orderprocess_configuration[j])
+				  }else{
+				  	nosequencedorderstatus.push(orderprocess_configuration[j])
+				  }
+				  givenindexvalues.push(orderprocess_configuration[j].index);
+				  all_config_status.push(orderprocess_configuration[j].order_status)
+				}
+				
+				var sortedindexvalues=__.sortBy(indexvalues);
+				var valid_order_process_configuration=[];
+				console.log("givenindexvalues"+givenindexvalues)
+				console.log("sortedindexvalues"+sortedindexvalues)
+				for(var k=0;k<sortedindexvalues.length;k++){
+					// console.log("testing");
+					if(givenindexvalues.indexOf(sortedindexvalues[k])>=0){
+						console.log("testing");
+						var index=givenindexvalues.indexOf(sortedindexvalues[k]);
+						var temp=k+1;
+						var valid_procesdata={index:temp,order_status:orderprocess_configuration[index].order_status};
+						console.log("index"+index)
 
+						valid_procesdata.action=actionstatus[orderprocess_configuration[index+1].order_status]
+						if(valid_procesdata.order_status=="ordercomplete"){
+								valid_procesdata.action=null;
+						}
+						console.log("status"+orderprocess_configuration[index].order_status+" next action"+actionstatus[orderprocess_configuration[index+1].order_status])
+						valid_order_process_configuration.push(valid_procesdata)
+					}
+				}
+				for(var l=0;l<nosequencedorderstatus.length;l++){
+						valid_order_process_configuration.push({index:nosequencedorderstatus[l].index,order_status:nosequencedorderstatus[l].order_status,action:null})
+				}
+				console.log("valid_order_process_configuration"+JSON.stringify(valid_order_process_configuration))
+				providers[i].orderprocess_configuration=valid_order_process_configuration	
+			}
+			
 			///////////////////////////////////////
 			_successfullGetAllMyProvider(self,providers);
 			/////////////////////////////////////
