@@ -1158,9 +1158,11 @@ var _getAllMyProviders=function(self,providerarray){
 						var valid_procesdata={index:temp,order_status:orderprocess_configuration[index].order_status};
 						console.log("index"+index)
 
-						valid_procesdata.action=actionstatus[orderprocess_configuration[index+1].order_status]
+						
 						if(valid_procesdata.order_status=="ordercomplete"){
 								valid_procesdata.action=null;
+						}else{
+							valid_procesdata.action=actionstatus[orderprocess_configuration[index+1].order_status]
 						}
 						console.log("status"+orderprocess_configuration[index].order_status+" next action"+actionstatus[orderprocess_configuration[index+1].order_status])
 						valid_order_process_configuration.push(valid_procesdata)
