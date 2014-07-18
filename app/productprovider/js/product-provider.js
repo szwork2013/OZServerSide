@@ -1126,7 +1126,7 @@ var _getAllMyProviders=function(self,providerarray){
 			providers=JSON.stringify(providers);
 				providers=JSON.parse(providers);
 			// console.log("tssss55555555555555sesddddddddtdd")
-			var actionstatus={accepted:"accept",cancelled:"cancel",rejected:"reject",inproduction:"production",factorytostore:"shiiptostore",packing:"pack",deliver:"indelivery",storepickup:"pickfromstore",ordercomplete:"done"};
+			var actionstatus={accepted:"accept",cancelled:"cancel",rejected:"reject",inproduction:"production",factorytostore:"shiiptostore",packing:"pack",indelivery:"deliver",storepickup:"pickfromstore",ordercomplete:"done"};
 			for(var i=0;i<providers.length;i++){
 				var orderprocess_configuration=providers[i].orderprocess_configuration;
 				var indexvalues=[];
@@ -2395,7 +2395,7 @@ var _getPickupAddresses = function(self,user,providerid){
 			logger.emit('error',"Database Issue  _getPickupAddresses"+err)
 			self.emit("failedGetPickupAddress",{"error":{"code":"ED001","message":"Database Issue"}});
 		}else if(!doc){
-			self.emit("failedGetPickupAddress",{"error":{"message":"You are not authorized to get pickup address"}});
+			self.emit("failedGetPickupAddress",{"error":{"message":"Provider id is wrong"}});
 		}else{
 			//////////////////////////////////////
 		    _successfulGetPickupAddress(self,doc.pickupaddresses.addresses);
