@@ -7,7 +7,7 @@ module.exports = {
       SMSLongCode:"7738062873",
       gtranslatekey:"AIzaSyBd6VpfinXfXMKKlEUbU6IWsDZ9eOmB9Dc",
       amazonbucket:'orderzapp/products/production',
-      merchantKey:"kzAVMuQG8xKIiaVl",
+      merchantKey:"T5n43ZNnszBBO0v3",
       smtp_general:{
         host: "smtp.giantleapsystems.com", // hostname
         secureConnection: true, // use SSL

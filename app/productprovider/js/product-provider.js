@@ -242,7 +242,7 @@ var _validateProductProviderData=function(self,productproviderdata,user,provider
 		self.emit("failedProductProviderRegistration",{"error":{"code":"AV001","message":"Please enter tino"}})
 	}else if(productproviderdata.tax.servicetaxno==undefined || productproviderdata.tax.servicetaxno==""){
 		self.emit("failedProductProviderRegistration",{"error":{"code":"AV001","message":"Please enter servicetaxno"}})
-	}else if(productproviderdata.paymentmode==undefined || productproviderdata.paymentmode==""){
+	}else if(productproviderdata.paymentmode==undefined){
 		self.emit("failedProductProviderRegistration",{"error":{"code":"AV001","message":"Please pass paymentmode"}})
 	}else if(providerlogo==undefined){
 		self.emit("failedProductProviderRegistration",{"error":{"code":"AV001","message":"Please upload providerlogo"}})
