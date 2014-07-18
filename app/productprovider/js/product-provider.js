@@ -2369,8 +2369,11 @@ var _successfulAddPickupAddress=function(self,ProductProviderdata,user,provideri
 ProductProvider.prototype.getPickupAddresses = function(user,providerid) {
 	var self=this;
 	///////////////////////////////////////////////////////////
-	_isProivderAdminToGetPickupAddresses(self,user,providerid);
+	// _isProivderAdminToGetPickupAddresses(self,user,providerid);
 	///////////////////////////////////////////////////////////
+	//////////////////////////////////////////
+	     	_getPickupAddresses(self,user,providerid);
+		    //////////////////////////////////////////
 }
 var _isProivderAdminToGetPickupAddresses = function(self,user,providerid){
 	UserModel.findOne({userid:user.userid,"provider.providerid":providerid,"provider.isOwner":true},function(err,usersp){
@@ -2389,7 +2392,7 @@ var _isProivderAdminToGetPickupAddresses = function(self,user,providerid){
 var _getPickupAddresses = function(self,user,providerid){
 	ProductProviderModel.findOne({providerid:providerid},{pickupaddresses:1,_id:0},function(err,doc){
 		if(err){
-			logger.emit('error',"Database Issue  _getPickupAddresses"+err,user.userid)
+			logger.emit('error',"Database Issue  _getPickupAddresses"+err)
 			self.emit("failedGetPickupAddress",{"error":{"code":"ED001","message":"Database Issue"}});
 		}else if(!doc){
 			self.emit("failedGetPickupAddress",{"error":{"message":"You are not authorized to get pickup address"}});
