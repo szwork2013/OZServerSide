@@ -1128,63 +1128,43 @@ var _getAllMyProviders=function(self,providerarray){
 			// console.log("tssss55555555555555sesddddddddtdd")
 			var actionstatus={accepted:"accept",cancelled:"cancel",rejected:"reject",inproduction:"production",factorytostore:"shiiptostore",packing:"pack",indelivery:"deliver",storepickup:"pickfromstore",ordercomplete:"done"};
 			for(var i=0;i<providers.length;i++){
-				var orderprocess_configuration=providers[i].orderprocess_configuration;
-				var indexvalues=[];
-				var givenindexvalues=[];
-				var all_config_status=[];
-				var sequenceprocessconfiguration=[];
-				var nosequencedorderstatus=[];
-				for(var j=0;j<orderprocess_configuration.length;j++){
-				  if(orderprocess_configuration[j].index>0){
-				  		indexvalues.push(orderprocess_configuration[j].index);
-				  		sequenceprocessconfiguration.push(orderprocess_configuration[j])
-				  }else{
-				  	nosequencedorderstatus.push(orderprocess_configuration[j])
-				  }
-				  givenindexvalues.push(orderprocess_configuration[j].index);
-				  all_config_status.push(orderprocess_configuration[j].order_status)
-				}
-				
-				var sortedindexvalues=__.sortBy(indexvalues);
-				var orderprocess_configuration1=[]
-				var givenindexsortedvalues=__.sortBy(givenindexvalues);
-				for(var a=0;a<givenindexsortedvalues.length;a++){
-					if(givenindexvalues.indexOf(givenindexsortedvalues[a])>=0){
-							orderprocess_configuration1.push(orderprocess_configuration[givenindexvalues.indexOf(givenindexsortedvalues[a])])
-					}
-				}
-				orderprocess_configuration=orderprocess_configuration1;
-				var valid_order_process_configuration=[];
-				console.log("givenindexvalues"+givenindexvalues)
-				console.log("sortedindexvalues"+sortedindexvalues)
-				for(var k=0;k<sortedindexvalues.length;k++){
-					// console.log("testing");
-					if(givenindexvalues.indexOf(sortedindexvalues[k])>=0){
-						console.log("testing");
-						var index=givenindexvalues.indexOf(sortedindexvalues[k]);
-						var temp=k+1;
-						var valid_procesdata={index:temp,order_status:orderprocess_configuration[index].order_status};
-						console.log("index"+index)
-
-						if((index+1)>=givenindexvalues.length){
-							valid_procesdata.action=null;
-						}else{
-							if(valid_procesdata.order_status=="ordercomplete" || orderprocess_configuration[index+1].order_status==undefined){
-								valid_procesdata.action=null;
-							}else{
-								valid_procesdata.action=actionstatus[orderprocess_configuration[index+1].order_status]
-							}	
+					var orderprocess_configuration=providers[i].orderprocess_configuration;
+					var givenindexes=[];
+					var sequenceorderprocess_configuration=[];
+					var negetive_order_process_configuration=[];
+          for(var j=0;j<orderprocess_configuration.length;j++){
+          	if(orderprocess_configuration[j].index>0){
+          		givenindexes.push(orderprocess_configuration[j].index);
+          		sequenceorderprocess_configuration.push(orderprocess_configuration[j])
+          	}else{
+          		negetive_order_process_configuration.push(orderprocess_configuration[j])
+          	}
+          }
+          var positiveindex_orderprocess=[];
+          var sortedindex=__.sortBy(givenindexes);
+					for(var k=0;k<sortedindex.length;k++){
+						if(givenindexes.indexOf(sortedindex[k])>=0){
+							positiveindex_orderprocess.push(sequenceorderprocess_configuration[givenindexes.indexOf(sortedindex[k])])
 						}
-						
-						// console.log("status"+orderprocess_configuration[index].order_status+" next action"+actionstatus[orderprocess_configuration[index+1].order_status])
-						valid_order_process_configuration.push(valid_procesdata)
 					}
-				}
-				for(var l=0;l<nosequencedorderstatus.length;l++){
-						valid_order_process_configuration.push({index:nosequencedorderstatus[l].index,order_status:nosequencedorderstatus[l].order_status,action:null})
-				}
-				console.log("valid_order_process_configuration"+JSON.stringify(valid_order_process_configuration))
-				providers[i].orderprocess_configuration=valid_order_process_configuration	
+					var final_order_processconfiguration=[]
+					for(var k=0;k<positiveindex_orderprocess.length;k++){
+		  			var indexvalue=k+1;
+						var order_configprocess={index:indexvalue,order_status:positiveindex_orderprocess[k].order_status};
+						if(k==(positiveindex_orderprocess.length-1)){
+							order_configprocess.action=null;
+						}else{
+							order_configprocess.action=actionstatus[positiveindex_orderprocess[indexvalue].order_status]
+						}
+						final_order_processconfiguration.push(order_configprocess)
+					}
+					for(var l=0;l<negetive_order_process_configuration.length;l++){
+						final_order_processconfiguration.push({index:negetive_order_process_configuration[l].index,order_status:negetive_order_process_configuration[l].order_status,action:null})
+					}
+			
+			
+				// console.log("valid_order_process_configuration"+JSON.stringify(valid_order_process_configuration))
+				providers[i].orderprocess_configuration=final_order_processconfiguration;	
 			}
 			
 			///////////////////////////////////////
