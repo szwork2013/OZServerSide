@@ -1126,7 +1126,7 @@ var _getAllMyProviders=function(self,providerarray){
 			providers=JSON.stringify(providers);
 				providers=JSON.parse(providers);
 			// console.log("tssss55555555555555sesddddddddtdd")
-			var actionstatus={accepted:"accept",cancelled:"cancel",rejected:"reject",inproduction:"production",factorytostore:"shiiptostore",packing:"pack",homedelivery:"delivertohome",storepickup:"pickfromstore",ordercomplete:"done"};
+			var actionstatus={accepted:"accept",cancelled:"cancel",rejected:"reject",inproduction:"production",factorytostore:"shiiptostore",packing:"pack",deliver:"indelivery",storepickup:"pickfromstore",ordercomplete:"done"};
 			for(var i=0;i<providers.length;i++){
 				var orderprocess_configuration=providers[i].orderprocess_configuration;
 				var indexvalues=[];
