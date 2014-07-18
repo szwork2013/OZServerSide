@@ -103,11 +103,9 @@ exports.getLocationDetails=function(req,res){
       res.send(result);
     });
   
-    if(req.user.isAdmin ==true ||  req.user.usertype == "provider"){
-    	location.getLocationDetails(req.user,key,value); 	
-    }else{
-    	location.emit("failedGetLocationDetails",{error:{message:"You are not an authorized to do this action"}});	
-    }   
+ 
+    	location.getLocationDetails("test",key,value); 	
+    
 }
 
 exports.getAllAreasByCity=function(req,res){
