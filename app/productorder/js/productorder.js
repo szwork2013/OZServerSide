@@ -2010,7 +2010,7 @@ var _getSubOrderStatusWiseCount=function(self,userid,branchid){
 	 		logger.emit("error","Database Issue _getSubOrderStatusWiseCount"+err)
 			self.emit("failedgetOrderStatusWiseCount",{"error":{"code":"ED001","message":"Database Issue"}});
 	 	}else{
-	 		var statusarray={recieved:["orderreceived"],past:["ordercomplete","cancelled","rejected"],approved:["accepted"],packing:["inproduction","packing","factorytostore"],delivery:["storepickup","homedelivery"]};
+	 		var statusarray={recieved:["orderreceived"],past:["ordercomplete","cancelled","rejected"],approved:["accepted"],packing:["inproduction","packing","factorytostore"],delivery:["indelivery"]};
 	 		var statuswisecountarray=[];
 	 		console.log("teset"+JSON.stringify(statuswisecount))
 	 		for(var i in statusarray){
@@ -2060,7 +2060,7 @@ var _getProviderSubOrderStatusWiseCount=function(self,userid,providerid){
 	 		logger.emit("error","Database Issue _getSubOrderStatusWiseCount"+err)
 			self.emit("failedgetPrviderOrderStatusWiseCount",{"error":{"code":"ED001","message":"Database Issue"}});
 	 	}else{
-	 		var statusarray={past:["ordercomplete","cancelled","rejected"],recieved:["orderreceived"],approved:["accepted"],packing:["inproduction","packing","factorytostore"],delivery:["storepickup","homedelivery"]};
+	 		var statusarray={past:["ordercomplete","cancelled","rejected"],recieved:["orderreceived"],approved:["accepted"],packing:["inproduction","packing","factorytostore"],delivery:["indelivery"]};
 	 		var statuswisecountarray=[];
 	 		console.log("teset"+JSON.stringify(statuswisecount))
 	 		for(var i in statusarray){
