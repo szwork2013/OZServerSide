@@ -1147,9 +1147,10 @@ var _getAllMyProviders=function(self,providerarray){
 				
 				var sortedindexvalues=__.sortBy(indexvalues);
 				var orderprocess_configuration1=[]
-				for(var a=0;a<sortedindexvalues.length;a++){
-					if(givenindexvalues.indexOf(sortedindexvalues[a])>=0){
-							orderprocess_configuration1.push(valid_order_process_configuration1[givenindexvalues.indexOf(sortedindexvalues[a])])
+				var givenindexsortedvalues=__.sortBy(givenindexvalues);
+				for(var a=0;a<givenindexsortedvalues.length;a++){
+					if(givenindexvalues.indexOf(givenindexsortedvalues[a])>=0){
+							orderprocess_configuration1.push(orderprocess_configuration[givenindexvalues.indexOf(givenindexsortedvalues[a])])
 					}
 				}
 				orderprocess_configuration=orderprocess_configuration1;
