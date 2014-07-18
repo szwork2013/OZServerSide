@@ -46,7 +46,7 @@ var branchSchema = mongoose.Schema(
     delivery:
     {
       isprovidehomedelivery:{type:Boolean,default:false},
-      isprovidepickup:{type:Boolean,default:true},
+      isprovidepickup:{type:Boolean,default:false},
       isdeliverychargeinpercent:{type:Boolean,default:false},
       
     },//in this case charge or percent any of this

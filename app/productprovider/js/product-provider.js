@@ -242,7 +242,7 @@ var _validateProductProviderData=function(self,productproviderdata,user,provider
 		self.emit("failedProductProviderRegistration",{"error":{"code":"AV001","message":"Please enter tino"}})
 	}else if(productproviderdata.tax.servicetaxno==undefined || productproviderdata.tax.servicetaxno==""){
 		self.emit("failedProductProviderRegistration",{"error":{"code":"AV001","message":"Please enter servicetaxno"}})
-	}else if(productproviderdata.paymentmode==undefined){
+	}else if(productproviderdata.paymentmode==undefined || productproviderdata.paymentmode==""){
 		self.emit("failedProductProviderRegistration",{"error":{"code":"AV001","message":"Please pass paymentmode"}})
 	}else if(providerlogo==undefined){
 		self.emit("failedProductProviderRegistration",{"error":{"code":"AV001","message":"Please upload providerlogo"}})
@@ -1146,6 +1146,13 @@ var _getAllMyProviders=function(self,providerarray){
 				}
 				
 				var sortedindexvalues=__.sortBy(indexvalues);
+				var orderprocess_configuration1=[]
+				for(var a=0;a<sortedindexvalues.length;a++){
+					if(givenindexvalues.indexOf(sortedindexvalues[a])>=0){
+							orderprocess_configuration1.push(valid_order_process_configuration1[givenindexvalues.indexOf(sortedindexvalues[a])])
+					}
+				}
+				orderprocess_configuration=orderprocess_configuration1;
 				var valid_order_process_configuration=[];
 				console.log("givenindexvalues"+givenindexvalues)
 				console.log("sortedindexvalues"+sortedindexvalues)
