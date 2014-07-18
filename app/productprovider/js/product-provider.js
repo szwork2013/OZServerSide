@@ -1159,7 +1159,7 @@ var _getAllMyProviders=function(self,providerarray){
 						console.log("index"+index)
 
 						
-						if(valid_procesdata.order_status=="ordercomplete"){
+						if(valid_procesdata.order_status=="ordercomplete" || orderprocess_configuration[index+1].order_status==undefined){
 								valid_procesdata.action=null;
 						}else{
 							valid_procesdata.action=actionstatus[orderprocess_configuration[index+1].order_status]
