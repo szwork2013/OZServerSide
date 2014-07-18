@@ -766,7 +766,7 @@ var _criteriawiseSuborders=function(self,userid,providerid,branchid,criteriastat
 		if(["recieved","approved","packing","delivery","past"].indexOf(criteriastatus)<0){
 			self.emit("failedGetMySubOrders",{"error":{"message":"criteriastatus should be approved,packing,delivery"}});
 		}else{
-			var statusarray={recieved:["orderstart"],past:["ordercomplete","cancelled","rejected"],approved:["accepted"],packing:["inproduction","packing","factorytostore"],delivery:["storepickup","homedelivery"]};
+			var statusarray={recieved:["orderreceived"],past:["ordercomplete","cancelled","rejected"],approved:["accepted"],packing:["inproduction","packing","factorytostore"],delivery:["storepickup","homedelivery"]};
 			var query=[];
 			if(criteriastatus=="recieved"){
 				query.push({$match:{"suborder.productprovider.providerid":providerid,status:{$ne:"waitforapproval"},preferred_delivery_date:{$ne:null}}})
