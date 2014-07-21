@@ -7,5 +7,5 @@ exports.init = function (app) {
 	app.post('/api/location',auth,api.locationapi.addLocation);
 	app.put('/api/location',auth,api.locationapi.updateLocation);
 	app.get('/api/location',api.locationapi.getLocationDetails);
-	app.get('/api/location/area',auth,api.locationapi.getAllAreasByCity);
+	app.get('/api/location/area',api.locationapi.getAllAreasByCity);
  }

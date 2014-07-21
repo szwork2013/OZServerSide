@@ -304,3 +304,8 @@
 127.0.0.1 - - [Mon, 21 Jul 2014 05:39:17 GMT] "GET /api/pickupaddress/1t4ujecd9do HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/32.0.1700.77 Safari/537.36"
 127.0.0.1 - - [Mon, 21 Jul 2014 05:40:26 GMT] "GET /api/pickupaddress/1t4ujecd9do HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/32.0.1700.77 Safari/537.36"
 127.0.0.1 - - [Mon, 21 Jul 2014 05:40:29 GMT] "GET /api/pickupaddress/9t62y70j3rj HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/32.0.1700.77 Safari/537.36"
+127.0.0.1 - - [Mon, 21 Jul 2014 05:59:45 GMT] "DELETE /api/pickupaddress/9t62y70j3rj HTTP/1.1" 404 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/32.0.1700.77 Safari/537.36"
+127.0.0.1 - - [Mon, 21 Jul 2014 06:00:12 GMT] "DELETE /api/pickupaddress/1t4ujecd9do/pa9gljm4ymh4u HTTP/1.1" 200 98 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/32.0.1700.77 Safari/537.36"
+127.0.0.1 - - [Mon, 21 Jul 2014 06:00:22 GMT] "POST /api/user/signin HTTP/1.1" 200 4532 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/32.0.1700.77 Safari/537.36"
+127.0.0.1 - - [Mon, 21 Jul 2014 06:00:25 GMT] "DELETE /api/pickupaddress/1t4ujecd9do/pa9gljm4ymh4u HTTP/1.1" 200 73 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/32.0.1700.77 Safari/537.36"
+127.0.0.1 - - [Mon, 21 Jul 2014 06:00:50 GMT] "DELETE /api/pickupaddress/1t4ujecd9do/dfgdfg HTTP/1.1" 200 90 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/32.0.1700.77 Safari/537.36"

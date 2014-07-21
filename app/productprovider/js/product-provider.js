@@ -2277,6 +2277,8 @@ var _validateAddPickupAddresses=function(self,location,user,providerid){
 	    self.emit("failedAddPickupAddress",{"error":{"code":"ED002","message":"Please enter city"}});
 	}else if(location.state == undefined || location.state == ""){
 	    self.emit("failedAddPickupAddress",{"error":{"code":"ED002","message":"Please enter state"}});
+	}else if(location.country == undefined || location.country == ""){
+	    self.emit("failedAddPickupAddress",{"error":{"code":"ED002","message":"Please enter country"}});
 	}else{
 		////////////////////////////////////////////////////////////////////
 		_isProivderAdminToAddPickupAddresses(self,location,user,providerid);
@@ -2426,17 +2428,38 @@ var _isProivderAdminToDeletePickupAddresses = function(self,user,providerid,addr
 }
 var _deletePickupAddresses=function(self,user,providerid,addressid){
 	console.log("providerid : "+providerid+" addressid : "+addressid);
-
 	ProductProviderModel.update({providerid:providerid,"pickupaddresses.addresses.addressid":addressid},{$pull:{"pickupaddresses.addresses":{addressid:addressid}}},function(err,addressupdatestatus){
 		if(err){
-			logger.emit('error',"Database Issue ,function:_deletePickupAddresses"+err,user.userid)
+			logger.emit('error',"Database Issue ,function:_deletePickupAddresses"+err,user.userid);
 			self.emit("failedDeletePickupAddress",{"error":{"code":"ED001","message":"Database Issue"}});
 		}else if(addressupdatestatus==0){
 		    self.emit("failedDeletePickupAddress",{"error":{"message":"Provided addressid is not belongs with this provider"}});
-		}else{
+		}else{			
 			/////////////////////////////////////
 			_successfulDeletePickupAddress(self);
 			/////////////////////////////////////
+			////////////////////////////////////////////////////
+			_updateIsProvidePickupAddress(self,user,providerid);
+			////////////////////////////////////////////////////
+		}
+	})
+}
+var _updateIsProvidePickupAddress = function(self,user,providerid){
+	ProductProviderModel.findOne({providerid:providerid},{pickupaddresses:1,_id:0},function(err,doc){
+		if(err){
+			logger.emit('error',"Database Issue  _updateIsProvidePickupAddress"+err);
+		}else if(doc){
+			if(doc.pickupaddresses.addresses.length == 0){
+				ProductProviderModel.update({providerid:providerid},{$set:{"pickupaddresses.provide":false}},function(err,addressupdatestatus){
+					if(err){
+						logger.emit('error',"Database Issue ,function:_updateIsProvidePickupAddress"+err,user.userid);
+					}else if(addressupdatestatus==0){
+					    logger.emit('error',"Database Issue"+err,user.userid);
+					}else{			
+						logger.emit('info',"Pickup Address Deleted Successfully");
+					}
+				})
+			}
 		}
 	})
 }
