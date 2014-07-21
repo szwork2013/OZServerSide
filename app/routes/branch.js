@@ -5,8 +5,8 @@ exports.init = function (app) {
 	// console.log("api call");
 	app.post('/api/branch/:providerid',auth,api.productproviderapi.addBranch);
 	app.get('/api/mybranches',auth,api.productproviderapi.getAllMyBranches);
-	app.get('/api/branch/:providerid',api.productproviderapi.getProviderBranches);
-	app.get('/api/branch/:providerid/:branchid',api.productproviderapi.getBranch);
+	app.get('/api/branch/:providerid',auth,api.productproviderapi.getProviderBranches);
+	app.get('/api/branch/:providerid/:branchid',auth,api.productproviderapi.getBranch);
 	app.delete('/api/branch/:providerid/:branchid',auth,api.productproviderapi.deleteBranch);
 	app.put('/api/branch/:providerid/:branchid',auth,api.productproviderapi.updateBranch);
  	app.get('/api/hhicons/:iconname',api.hhiconapi.searchIcons);

@@ -15,7 +15,7 @@ if (system.args.length < 3 || system.args.length > 5) {
     if (system.args.length > 3 && system.args[2].substr(-4) === ".pdf") {
         size = system.args[3].split('*');
         page.paperSize = size.length === 2 ? {footer:{height:'1cm',contents:"<h1>bye</h1>"}, width: size[0], height: size[1], margin: '1px' }
-                                           : { format: system.args[3], orientation: 'landscape', margin: '1cm' , header: {
+                                           : { format: system.args[3], orientation: 'portrait', margin: '1cm' , header: {
             height: "1cm",
             contents: phantom.callback(function(pageNum, numPages) {
                 if (pageNum == 1) {

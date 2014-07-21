@@ -18,7 +18,7 @@ function IsJsonString(str) {
 }
 exports.addProductProvider=function(req,res){
 var  ProductProviderdata = req.body.data;
-
+console.log("req body"+JSON.stringify(req.body));
  var productprovider = new ProductProvider(ProductProviderdata);
  
  var providerlogo=req.files.logo;
@@ -911,7 +911,7 @@ exports.getPickupAddresses=function(req,res){
   productprovider.on("successfulGetPickupAddress",function(result){
     res.send(result);
   });
-  productprovider.getPickupAddresses(req.user,providerid);
+  productprovider.getPickupAddresses("user",providerid);
 }
 
 exports.deletePickupAddresses=function(req,res){

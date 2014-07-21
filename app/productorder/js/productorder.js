@@ -245,7 +245,7 @@ var _ProviderBranchSpecificCartsProducts=function(self,orderdata,validproductids
 				var product_provider=branchproducts[i]._id;
 				// product_provider.providerlogo=branchproducts[i].provider.providerlogo;
 				
-				var suborder={status:"orderstart",suborderid:"SODR-"+branchproducts[i]._id.providercode+"-"+Math.floor(Math.random()*100000000),productprovider:product_provider};
+				var suborder={status:"orderreceived",suborderid:"SODR-"+branchproducts[i]._id.providercode.toLowerCase()+"-"+Math.floor(Math.random()*100000000),productprovider:product_provider};
 				var suborderproducts=[];
 				var suborderprice=0;
 				console.log("branchid::::::::"+product_provider.branchid)
@@ -766,7 +766,7 @@ var _criteriawiseSuborders=function(self,userid,providerid,branchid,criteriastat
 		if(["recieved","approved","packing","delivery","past"].indexOf(criteriastatus)<0){
 			self.emit("failedGetMySubOrders",{"error":{"message":"criteriastatus should be approved,packing,delivery"}});
 		}else{
-			var statusarray={recieved:["orderstart"],past:["ordercomplete","cancelled","rejected"],approved:["accepted"],packing:["inproduction","packing","factorytostore"],delivery:["storepickup","homedelivery"]};
+			var statusarray={recieved:["orderreceived"],past:["ordercomplete","cancelled","rejected"],approved:["accepted"],packing:["inproduction","packing","factorytostore"],delivery:["indelivery"]};
 			var query=[];
 			if(criteriastatus=="recieved"){
 				query.push({$match:{"suborder.productprovider.providerid":providerid,status:{$ne:"waitforapproval"},preferred_delivery_date:{$ne:null}}})
@@ -1069,7 +1069,7 @@ Order.prototype.manageOrder = function(user,suborderid,action,deliverydate,remar
 }
 var _validateOrderAction=function(self,user,suborderid,action,deliverydate,remark){
 	console.log("action"+action);
-	if(["accept","reject","cancel","production","factoytostore","pack","shiptostore","pickfromstore","delivertohome","done"].indexOf(action)<0){
+	if(["accept","reject","cancel","production","factoytostore","pack","shiptostore","deliver","done"].indexOf(action)<0){
 		self.emit("failedManageOrder",{error:{message:"Order Action should be accept,reject,pack,deliver,pickup,cancel,delivered"}})
 	}else{
 		/////////////////////////////////////////////////////
@@ -1128,34 +1128,73 @@ var _isAuthorizeToManageOrder=function(self,user,order,action){
 			self.emit("failedManageOrder",{error:{message:"You have not authorize to manageOrder"}})
 		}else{
 			//////////////////////////////////////
-			_checkManageOrderAction(self,user,order.suborder,action,order)
+			_getProviderProcessConfiguration(self,user,order.suborder,action,order)
 			////////////////////////////////	
 		}
 	})
 }
-var _checkManageOrderAction=function(self,user,suborder,action,order){
+var _getProviderProcessConfiguration=function(self,user,suborder,action,order){
+	ProductProviderModel.findOne({providerid:suborder.productprovider.providerid},{orderprocess_configuration:1},function(err,provider){
+		if(err){
+			logger.emit("error","Database Issue:/_getProviderProcessConfiguration "+err)
+			self.emit("failedManageOrder",{error:{message:"Database Issue"}})
+		}else if(!provider){
+			self.emit("failedManageOrder",{error:{message:"Providerid is wrong"}})
+		}else{
+		
+			var providerprocessconfiguration=provider.orderprocess_configuration;
+			var orderprocess_configuration=providerprocessconfiguration;
+			var indexvalues=[];
+			var givenindexvalues=[];
+			var all_config_status=[];
+			var sequenceprocessconfiguration=[];
+			var nosequencedorderstatus=[];
+			for(var j=0;j<orderprocess_configuration.length;j++){
+			  if(orderprocess_configuration[j].index>0){
+			  		indexvalues.push(orderprocess_configuration[j].index);
+			  		sequenceprocessconfiguration.push(orderprocess_configuration[j])
+			  }else{
+			  	nosequencedorderstatus.push(orderprocess_configuration[j])
+			  }
+			  givenindexvalues.push(orderprocess_configuration[j].index);
+			  all_config_status.push(orderprocess_configuration[j].order_status)
+			}
+			
+			var sortedindexvalues=__.sortBy(indexvalues);
+			var valid_order_process_configuration=[];
+			console.log("givenindexvalues"+givenindexvalues)
+			console.log("sortedindexvalues"+sortedindexvalues);
+			var sequencestatus=[]
+			for(var k=0;k<sortedindexvalues.length;k++){
+				if(givenindexvalues.indexOf(sortedindexvalues[k])>=0){
+					console.log("testing");
+					var index=givenindexvalues.indexOf(sortedindexvalues[k]);
+				  sequencestatus.push(orderprocess_configuration[index].order_status);
+				}
+			}
+			logger.emit("log","sequencestatus"+sequencestatus);
+			_checkManageOrderAction(self,user,order.suborder,action,order,sequencestatus)
+		}
+	})
+}
+var _checkManageOrderAction=function(self,user,suborder,action,order,order_staus){
 	console.log("orderid  ddd"+order.orderid)
 	if(action=="cancel"){//proivder can cancel suborder any time
 		_manageOrder(self,action,user,suborder,"cancelled",order);
 	}else if(action=="reject"){
-		if(suborder.status=="orderstart" || suborder.status=="accepted"){
+		if(suborder.status=="orderreceived"){
 			_manageOrder(self,action,user,suborder,"rejected",order);
 		}else if(suborder.status=="rejected"){
 			self.emit("failedManageOrder",{error:{message:"Sub Order is already rejected"}});
 		}else{
-			self.emit("failedManageOrder",{error:{message:"You can reject this suborder"}});
+			self.emit("failedManageOrder",{error:{message:"You can  not reject this Order after you accept"}});
 		}
 	}else{
-	  var actionstatus={accept:"accepted",cancel:"cancelled",reject:"rejected",production:"inproduction",shiptostore:"factorytostore",pack:"packing",delivertohome:"homedelivery",pickfromstore:"storepickup",done:"ordercomplete"};
-	  var  home_deliverystatus=["orderstart","accepted","inproduction","packing","factorytostore","homedelivery","ordercomplete"];
-	  var pickup_deliverystatus=["orderstart","accepted","inproduction","packing","factorytostore","storepickup","ordercomplete"];
+	  var actionstatus={accept:"accepted",cancel:"cancelled",reject:"rejected",production:"inproduction",shiptostore:"factorytostore",pack:"packing",deliver:"indelivery",pickfromstore:"storepickup",done:"ordercomplete"};
+	  // var  deliverystatus=["orderstart","accepted","inproduction","packing","factorytostore","indelivery","ordercomplete"];
+	  
 	  //ordr type is home
-	  var order_staus;
-	  if(suborder.deliverytype.toLowerCase()=="home"){
-	  	order_staus=home_deliverystatus;
-	  }else{
-	  	order_staus=pickup_deliverystatus;
-	  }
+	  
   	 var indexofcurrentstatus=order_staus.indexOf(suborder.status);
     var deliverystatuslength=order_staus.length;
     if(indexofcurrentstatus==deliverystatuslength-1){
@@ -1175,9 +1214,7 @@ var _checkManageOrderAction=function(self,user,suborder,action,order){
       	self.emit("failedManageOrder",{error:{message:"You can not perform this action"}})
       }	
     }
-      
-    
-	  }
+  }
 }
 var _manageOrder=function(self,action,user,suborder,status,order){
 	var tracking={status:status,datetime:new Date(),updatedby:user.userid};
@@ -1203,7 +1240,7 @@ var _manageOrder=function(self,action,user,suborder,status,order){
 					self.emit("failedManageOrder",{error:{message:"suborderid is wrong"}});
 				}else{
 					console.log("actiondddd"+action)
-					if(action.toLowerCase()=="pack")
+					if(action.toLowerCase()=="deliver")
 					{
 						//////////////////////////////
 						 _createInvoiceForSuborder(suborder,user.userid);
@@ -1973,7 +2010,7 @@ var _getSubOrderStatusWiseCount=function(self,userid,branchid){
 	 		logger.emit("error","Database Issue _getSubOrderStatusWiseCount"+err)
 			self.emit("failedgetOrderStatusWiseCount",{"error":{"code":"ED001","message":"Database Issue"}});
 	 	}else{
-	 		var statusarray={recieved:["orderstart"],past:["ordercomplete","cancelled","rejected"],approved:["accepted"],packing:["inproduction","packing","factorytostore"],delivery:["storepickup","homedelivery"]};
+	 		var statusarray={recieved:["orderreceived"],past:["ordercomplete","cancelled","rejected"],approved:["accepted"],packing:["inproduction","packing","factorytostore"],delivery:["indelivery"]};
 	 		var statuswisecountarray=[];
 	 		console.log("teset"+JSON.stringify(statuswisecount))
 	 		for(var i in statusarray){
@@ -2023,7 +2060,7 @@ var _getProviderSubOrderStatusWiseCount=function(self,userid,providerid){
 	 		logger.emit("error","Database Issue _getSubOrderStatusWiseCount"+err)
 			self.emit("failedgetPrviderOrderStatusWiseCount",{"error":{"code":"ED001","message":"Database Issue"}});
 	 	}else{
-	 		var statusarray={past:["ordercomplete","cancelled","rejected"],recieved:["orderstart"],approved:["accepted"],packing:["inproduction","packing","factorytostore"],delivery:["storepickup","homedelivery"]};
+	 		var statusarray={past:["ordercomplete","cancelled","rejected"],recieved:["orderreceived"],approved:["accepted"],packing:["inproduction","packing","factorytostore"],delivery:["indelivery"]};
 	 		var statuswisecountarray=[];
 	 		console.log("teset"+JSON.stringify(statuswisecount))
 	 		for(var i in statusarray){

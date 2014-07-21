@@ -28,7 +28,7 @@ var _validaterderProcessingStatus = function(self,process,user){
 		self.emit("failedAddOrderProcessingStatus",{"error":{"code":"AV001","message":"Please enter index"}});
 	}else if(process.order_status == undefined || process.order_status == ""){
 		self.emit("failedAddOrderProcessingStatus",{"error":{"code":"AV001","message":"Please enter order_status"}});
-	}else if(["orderreceived","accepted","inproduction","packing","factorytostore","homedelivery","storepickup","ordercomplete","cancelled","rejected"].indexOf(process.order_status.toLowerCase())<0){
+	}else if(["orderreceived","accepted","inproduction","packing","factorytostore","indelivery","ordercomplete","cancelled","rejected"].indexOf(process.order_status.toLowerCase())<0){
 		self.emit("failedAddOrderProcessingStatus",{"error":{"code":"AV001","message":"order_status should be 'orderreceived','accepted','inproduction','packing','factorytostore','homedelivery','storepickup','ordercomplete','cancelled','rejected' "}});
 	}else if(process.require == undefined || process.require == ""){
 		self.emit("failedAddOrderProcessingStatus",{"error":{"code":"AV001","message":"Please enter require"}});

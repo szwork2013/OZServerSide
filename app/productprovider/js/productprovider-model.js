@@ -46,7 +46,7 @@ var branchSchema = mongoose.Schema(
     delivery:
     {
       isprovidehomedelivery:{type:Boolean,default:false},
-      isprovidepickup:{type:Boolean,default:true},
+      isprovidepickup:{type:Boolean,default:false},
       isdeliverychargeinpercent:{type:Boolean,default:false},
       
     },//in this case charge or percent any of this
@@ -84,6 +84,9 @@ var productProviderSchema = mongoose.Schema(
     branch:[branchSchema],
     deliverytimingsinstructions:{type:String,default:null},
     paymentmode:{cod:{type:Boolean,default:false},online:{type:Boolean,default:true}},
+
+    orderprocess_configuration:[{index:Number,order_status:String}],
+
     pickupaddresses:{
       provide:{type:Boolean,default:false},
       addresses:[
@@ -99,6 +102,7 @@ var productProviderSchema = mongoose.Schema(
         }
       ]
     }
+
 
         //membership handling
         //loyal customer

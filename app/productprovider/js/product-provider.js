@@ -20,6 +20,7 @@ var exec = require('child_process').exec;
 AWS.config.update({accessKeyId:'AKIAJOGXRBMWHVXPSC7Q', secretAccessKey:'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'});
 AWS.config.update({region:'ap-southeast-1'});
 var s3bucket = new AWS.S3();
+var OrderStatusRefModel=require('./orderstatus-reff-model');
 var ProductProvider = function(productproviderdata) {
   this.productprovider=productproviderdata;
 };
@@ -227,7 +228,13 @@ var _validateProductProviderData=function(self,productproviderdata,user,provider
 	// }else if(productproviderdata.branch.length==0){
 	// 	self.emit("failedProductProviderRegistration",{"error":{"code":"AV001","message":"Please add atleast one branch details"}});
 	// 
-    }else if(productproviderdata.providercode==undefined || productproviderdata.providercode==""){
+    }else if(productproviderdata.orderprocess_configuration==undefined || productproviderdata.orderprocess_configuration==""){
+		self.emit("failedProductProviderRegistration",{"error":{"code":"AV001","message":"please pass orderprocess_configuration details"}})
+	}else  if(!isArray(productproviderdata.orderprocess_configuration)){
+		self.emit("failedProductProviderRegistration",{"error":{"code":"AV001","message":"Process Configuration should be an array"}})
+	}else  if(productproviderdata.orderprocess_configuration.length==0){
+		self.emit("failedProductProviderRegistration",{"error":{"code":"AV001","message":"Process Configuration should not be empty"}})
+	}else if(productproviderdata.providercode==undefined || productproviderdata.providercode==""){
 		self.emit("failedProductProviderRegistration",{"error":{"code":"AV001","message":"Please enter sellercode"}})
 	}else if(productproviderdata.tax==undefined || productproviderdata.tax==""){
 		self.emit("failedProductProviderRegistration",{"error":{"code":"AV001","message":"Please pass tax information"}})
@@ -277,9 +284,51 @@ var _checkProviderCodeAlreadyExist=function(self,productproviderdata,user,provid
 		}else if(providercodedata.length!=0){
 			self.emit("failedProductProviderRegistration",{"error":{"message":"Provider code already used"}});
 		}else{
-			//////////////////////////////////////////////////////////////
+				//////////////////////////////////////////////////////////////
+			_checkOrderProcessConfiguration(self,productproviderdata,user,providerlogo)
+			//////////////////////////////////////////////////////////
+		}
+	})
+}
+var _checkOrderProcessConfiguration=function(self,productproviderdata,user,providerlogo){
+	OrderStatusRefModel.find({},function(err,orderrefstatus){
+		if(err){
+			logger.emit("error","Database Issue,fun:_checkOrderProcessConfiguration"+err,user.userid);
+			self.emit("failedProductProviderRegistration",{"error":{"code":"ED001","message":"Database Issue"}});		
+		}else if(orderrefstatus.length==0){
+			self.emit("failedProductProviderRegistration",{"error":{"message":"No Order Reference status exist"}});		
+		}else{
+			var requireorderdstatus=[];
+			var allorderstatus=[];
+			for(var i=0;i<orderrefstatus.length;i++){
+				allorderstatus.push(orderrefstatus[i].order_status)
+				if(orderrefstatus[i].require){
+					requireorderdstatus.push(orderrefstatus[i].order_status)
+				}
+			}
+			//check provide process configuration status exist in reforder status
+			var validorderprocess_configurationstatus=[];
+			var orderprocess_configurationstatus=[];
+			logger.emit("log","allorderstatus"+JSON.stringify(allorderstatus));
+			logger.emit("log","requireorderdstatus"+JSON.stringify(requireorderdstatus));
+			logger.emit("log","productproviderdata"+JSON.stringify(productproviderdata.orderprocess_configuration));
+			for(var i=0;i<productproviderdata.orderprocess_configuration.length;i++){
+				if(allorderstatus.indexOf(productproviderdata.orderprocess_configuration[i].order_status)>=0){
+					validorderprocess_configurationstatus.push(productproviderdata.orderprocess_configuration[i])
+				}
+				orderprocess_configurationstatus.push(productproviderdata.orderprocess_configuration[i].order_status)
+			}
+			logger.emit("log","validorderprocess_configurationstatus:"+JSON.stringify(validorderprocess_configurationstatus));
+			var missingrequirestatus=__.difference(requireorderdstatus,orderprocess_configurationstatus);
+			logger.emit("log","missingrequirestatus"+JSON.stringify(missingrequirestatus))
+			if(missingrequirestatus.length!=0){
+					self.emit("failedProductProviderRegistration",{"error":{"message":"You have to compulsorty select"+requireorderdstatus+"these status"}});		
+			}else{
+				productproviderdata.orderprocess_configuration=validorderprocess_configurationstatus
+				//////////////////////////////////////////////////////////////
 			_addProductProvider(self,productproviderdata,user,providerlogo)
-			//////////////////////////////////////////////////////////	
+			//////////////////////////////////////////////////////////
+			}
 		}
 	})
 }
@@ -1067,15 +1116,57 @@ var _checkUserHaveProvider=function(self,user){
 }
 var _getAllMyProviders=function(self,providerarray){
     console.log("providerarray"+providerarray)
-	ProductProviderModel.find({providerid:{$in:providerarray}},{_id:0,providerid:1,providerlogo:1,providername:1,providercode:1,status:1,providerdescription:1,category:1,deliverytimingsinstructions:1,tax:1,paymentmode:1},function(err,providers){
+	ProductProviderModel.find({providerid:{$in:providerarray}},{_id:0,providerid:1,providerlogo:1,providername:1,providercode:1,status:1,providerdescription:1,category:1,deliverytimingsinstructions:1,tax:1,paymentmode:1,orderprocess_configuration:1},function(err,providers){
 		if(err){
 			logger.emit('error',"Database Issue fun:_getAllMyProviders"+err)
 		  self.emit("failedGetAllMyProviders",{"error":{"code":"ED001","message":"Database Issue"}});			
 		}else if(providers.length==0){
 			self.emit("failedGetAllMyProviders",{"error":{"code":"PP001","message":"No provider associated with your account,please add atleast one provider"}});		
 		}else{
+			providers=JSON.stringify(providers);
+				providers=JSON.parse(providers);
 			// console.log("tssss55555555555555sesddddddddtdd")
-
+			var actionstatus={accepted:"accept",cancelled:"cancel",rejected:"reject",inproduction:"production",factorytostore:"shiiptostore",packing:"pack",indelivery:"deliver",storepickup:"pickfromstore",ordercomplete:"done"};
+			for(var i=0;i<providers.length;i++){
+					var orderprocess_configuration=providers[i].orderprocess_configuration;
+					var givenindexes=[];
+					var sequenceorderprocess_configuration=[];
+					var negetive_order_process_configuration=[];
+          for(var j=0;j<orderprocess_configuration.length;j++){
+          	if(orderprocess_configuration[j].index>0){
+          		givenindexes.push(orderprocess_configuration[j].index);
+          		sequenceorderprocess_configuration.push(orderprocess_configuration[j])
+          	}else{
+          		negetive_order_process_configuration.push(orderprocess_configuration[j])
+          	}
+          }
+          var positiveindex_orderprocess=[];
+          var sortedindex=__.sortBy(givenindexes);
+					for(var k=0;k<sortedindex.length;k++){
+						if(givenindexes.indexOf(sortedindex[k])>=0){
+							positiveindex_orderprocess.push(sequenceorderprocess_configuration[givenindexes.indexOf(sortedindex[k])])
+						}
+					}
+					var final_order_processconfiguration=[]
+					for(var k=0;k<positiveindex_orderprocess.length;k++){
+		  			var indexvalue=k+1;
+						var order_configprocess={index:indexvalue,order_status:positiveindex_orderprocess[k].order_status};
+						if(k==(positiveindex_orderprocess.length-1)){
+							order_configprocess.action=null;
+						}else{
+							order_configprocess.action=actionstatus[positiveindex_orderprocess[indexvalue].order_status]
+						}
+						final_order_processconfiguration.push(order_configprocess)
+					}
+					for(var l=0;l<negetive_order_process_configuration.length;l++){
+						final_order_processconfiguration.push({index:negetive_order_process_configuration[l].index,order_status:negetive_order_process_configuration[l].order_status,action:null})
+					}
+			
+			
+				// console.log("valid_order_process_configuration"+JSON.stringify(valid_order_process_configuration))
+				providers[i].orderprocess_configuration=final_order_processconfiguration;	
+			}
+			
 			///////////////////////////////////////
 			_successfullGetAllMyProvider(self,providers);
 			/////////////////////////////////////
@@ -2270,8 +2361,11 @@ var _successfulAddPickupAddress=function(self,ProductProviderdata,user,provideri
 ProductProvider.prototype.getPickupAddresses = function(user,providerid) {
 	var self=this;
 	///////////////////////////////////////////////////////////
-	_isProivderAdminToGetPickupAddresses(self,user,providerid);
+	// _isProivderAdminToGetPickupAddresses(self,user,providerid);
 	///////////////////////////////////////////////////////////
+	//////////////////////////////////////////
+	     	_getPickupAddresses(self,user,providerid);
+		    //////////////////////////////////////////
 }
 var _isProivderAdminToGetPickupAddresses = function(self,user,providerid){
 	UserModel.findOne({userid:user.userid,"provider.providerid":providerid,"provider.isOwner":true},function(err,usersp){
@@ -2290,7 +2384,7 @@ var _isProivderAdminToGetPickupAddresses = function(self,user,providerid){
 var _getPickupAddresses = function(self,user,providerid){
 	ProductProviderModel.findOne({providerid:providerid},{pickupaddresses:1,_id:0},function(err,doc){
 		if(err){
-			logger.emit('error',"Database Issue  _getPickupAddresses"+err,user.userid)
+			logger.emit('error',"Database Issue  _getPickupAddresses"+err);
 			self.emit("failedGetPickupAddress",{"error":{"code":"ED001","message":"Database Issue"}});
 		}else if(doc){
 			//////////////////////////////////////
