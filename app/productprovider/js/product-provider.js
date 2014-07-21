@@ -2358,6 +2358,71 @@ var _successfulAddPickupAddress=function(self,ProductProviderdata,user,provideri
 	self.emit("successfulAddPickupAddress",{"success":{"message":"Pickup Address Added Successfully"}});
 }
 
+ProductProvider.prototype.updatePickupAddresses = function(user,providerid,addressid) {
+	var self=this;
+	var location=self.productprovider;
+	console.log("Loation "+JSON.stringify(location));
+	///////////////////////////////////////////////////////////
+	_validateUpdatePickupAddresses(self,location,user,providerid,addressid);
+	///////////////////////////////////////////////////////////
+}
+var _validateUpdatePickupAddresses=function(self,location,user,providerid,addressid){
+	if(location==undefined){
+		self.emit("failedUpdatePickupAddress",{"error":{"code":"AV001","message":"Please enter location"}});	
+	}else if(location.address1 == undefined || location.address1 == ""){
+	    self.emit("failedUpdatePickupAddress",{"error":{"code":"ED002","message":"Please enter address1"}});
+	}else if(location.address2 == undefined || location.address2 == ""){
+	    self.emit("failedUpdatePickupAddress",{"error":{"code":"ED002","message":"Please enter address2"}});
+	}else if(location.area == undefined || location.area == ""){
+	    self.emit("failedUpdatePickupAddress",{"error":{"code":"ED002","message":"Please enter area"}});
+	}else if(location.zipcode == undefined || location.zipcode == ""){
+	    self.emit("failedUpdatePickupAddress",{"error":{"code":"ED002","message":"Please enter zipcode"}});
+	}else if(location.city == undefined || location.city == ""){
+	    self.emit("failedUpdatePickupAddress",{"error":{"code":"ED002","message":"Please enter city"}});
+	}else if(location.state == undefined || location.state == ""){
+	    self.emit("failedUpdatePickupAddress",{"error":{"code":"ED002","message":"Please enter state"}});
+	}else if(location.country == undefined || location.country == ""){
+	    self.emit("failedUpdatePickupAddress",{"error":{"code":"ED002","message":"Please enter country"}});
+	}else if(location.addressid != undefined){
+	    self.emit("failedUpdatePickupAddress",{"error":{"code":"ED002","message":"You can not update addressid"}});
+	}else{
+		////////////////////////////////////////////////////////////////////
+		_isProivderAdminToUpdatePickupAddresses(self,location,user,providerid,addressid);
+		////////////////////////////////////////////////////////////////////		
+	}
+}
+var _isProivderAdminToUpdatePickupAddresses = function(self,location,user,providerid,addressid){
+	UserModel.findOne({userid:user.userid,"provider.providerid":providerid,"provider.isOwner":true},function(err,usersp){
+		if(err){
+			logger.emit('error',"Database Issue  _isProivderAdminToUpdatePickupAddresses"+err,user.userid)
+			self.emit("failedUpdatePickupAddress",{"error":{"code":"ED001","message":"Database Issue"}});
+		}else if(!usersp){
+			self.emit("failedUpdatePickupAddress",{"error":{"message":"You are not authorized to add pickup address"}});
+		}else{
+			///////////////////////////////////////////////////
+	     	_updatePickupAddresses(self,location,user,providerid,addressid);
+		    ///////////////////////////////////////////////////
+		}
+	})
+}
+var _updatePickupAddresses=function(self,location,user,providerid,addressid){
+	ProductProviderModel.update({providerid:providerid,"pickupaddresses.addresses.addressid":addressid},{$set:{"pickupaddresses.addresses.$.address1":location.address1,"pickupaddresses.addresses.$.address2":location.address2,"pickupaddresses.addresses.$.area":location.area,"pickupaddresses.addresses.$.zipcode":location.zipcode,"pickupaddresses.addresses.$.city":location.city,"pickupaddresses.addresses.$.state":location.state,"pickupaddresses.addresses.$.country":location.country}},function(err,ppupdatestatus){
+		if(err){
+			logger.emit('error',"Database Issue ,function:_updatePickupAddresses"+err,user.userid);
+			self.emit("failedUpdatePickupAddress",{"error":{"code":"ED001","message":"Database Issue"}});
+		}else if(ppupdatestatus==0){
+		    self.emit("failedUpdatePickupAddress",{"error":{"message":"providerid is wrong"}});
+		}else{
+			/////////////////////////////////////
+			_successfulUpdatePickupAddress(self);
+			/////////////////////////////////////
+		}
+	})
+}
+var _successfulUpdatePickupAddress=function(self,ProductProviderdata,user,providerid){
+	self.emit("successfulUpdatePickupAddress",{"success":{"message":"Pickup Address Updated Successfully"}});
+}
+
 ProductProvider.prototype.getPickupAddresses = function(user,providerid) {
 	var self=this;
 	//////////////////////////////////////////
