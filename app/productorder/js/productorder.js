@@ -135,7 +135,7 @@ var _validateCreateOrderData = function(self,orderdata,user){
 		// for(var i=0;i<orderdata.deliverytypes.length;i++){
 		// 	deliverytypesarray.push(orderdata.deliverytypes[i].deliverytype)
 		// }
-		if(deliverytypesarray.indexOf("home")<0){
+		if(deliverytypesarray.indexOf("home")<0){//if in create order there is not deliverytypes home
 			logger.emit("log","order validated");
 		///////////////////////////////////////////
 		_validateCartDetails(self,orderdata,user)
@@ -282,7 +282,7 @@ var _ProviderBranchSpecificCartsProducts=function(self,orderdata,validproductids
 									dilivery_type=deliverytypes[deliverytypebranchids.indexOf(orderdata.deliverycharges[k].branchid)].deliverytype;
 									if(deliverytypes[deliverytypebranchids.indexOf(orderdata.deliverycharges[k].branchid)].deliverytype.toLowerCase()=="home"){
 										  if(orderdata.deliverycharges[k].isdeliverychargeinpercent==false){
-										  	delivery_charge=parseFloat(orderdata.deliverycharges[k].charge)	
+										  	delivery_charge=	(orderdata.deliverycharges[k].charge)	
 										  }else{
 										  	delivery_charge=suborderprice*(parseFloat(orderdata.deliverycharges[k].charge)/100)
 										  }
@@ -1830,7 +1830,7 @@ Order.prototype.paytmCallbackUrl = function(paytmresponsedata){
 	responseobject.IS_CHECKSUM_VALID=false;
 	
 	////////////////////////////////////////
-	_validatePaytmCallbackData(self,paytmresponsedata,responseobject);
+	 _validatePaytmCallbackData(self,paytmresponsedata,responseobject);
 	////////////////////////////////////////
 }
 var _validatePaytmCallbackData=function(self,paytmresponsedata,responseobject){
@@ -1930,10 +1930,14 @@ var _validateCheckSumPayTm=function(self,paytmresponsedata,responseobject){
   	 	
 	})
 }
+
 var _updateOrderPaymentDatails=function(self,responseobject){
 	var paymentsetdata={};
 	for(i in responseobject){
-		paymentsetdata[i]=responseobject[i]
+		if(responseobject[i]!=undefined){
+			paymentsetdata[i]=responseobject[i];	
+		}
+		
 	}
   // paymentsetdata.mode="paytm";
   // paymentsetdata.paymentid=generateId()
@@ -1941,9 +1945,9 @@ var _updateOrderPaymentDatails=function(self,responseobject){
 	console.log(paymentsetdata)
 	OrderModel.update({orderid:responseobject.ORDERID},{$set:{status:"approved",payment:paymentsetdata}},function(err,paymentupdatestatus){
 		if(err){
-			logger.emit("error",{error:{code:"ED001",message:"Database Issueerr"+err,responseobject:responseobject}})
+			logger.emit("error",{error:{code:"ED001",message:"Database Issueerr::"+err}})
 		}else if(paymentupdatestatus==0){
-			logger.emit("error",{error:{message:"Order id is wrong",responseobject:responseobject}})
+			logger.emit("error",{error:{message:"Order id is wrong"}})
 		}else{
 			responseobject.IS_CHECKSUM_VALID="Y";
 			OrderModel.findOne({orderid:responseobject.ORDERID},function(err,order){

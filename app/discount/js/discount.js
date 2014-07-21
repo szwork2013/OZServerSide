@@ -521,7 +521,7 @@ var _isValidProviderToDeleteDiscount=function(self,userid,providerid,branchid,di
 	})
 }
 var _deleteDiscount = function(self,userid,providerid,branchid,discountid){
-	DiscountModel.update({discountid:discountid},{$set:{status:"deactive"}},function(err,rmvdiscountstatus){
+	DiscountModel.remove({discountid:discountid},function(err,rmvdiscountstatus){
 	  	if(err){
 	  		logger.emit("error","Database Issue _removeProductFromDiscount");
 	  		self.emit("failedDeleteDiscount",{error:{code:"ED001",message:"Database Issue"}});
