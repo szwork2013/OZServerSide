@@ -250,9 +250,13 @@ var _successfulUpdateLocationDetails = function(self){
 
 LocationRefference.prototype.getAllAreasByCity = function(city) {
 	var self = this;
-	//////////////////////////////
-	_getAllAreasByCity(self,city);
-	//////////////////////////////
+	if(city == undefined){
+		self.emit("failedGetAllAreasByCity",{"error":{"message":"Please enter city"}});
+	}else{
+		//////////////////////////////
+		_getAllAreasByCity(self,city);
+		//////////////////////////////
+	}
 };
 var _getAllAreasByCity = function(self,city){
 	LocationModel.aggregate({$unwind:"$area"},{$match:{city:city}},{$group:{_id:"$city",area:{$addToSet:"$area"}}}).exec(function(err,doc){
@@ -262,7 +266,7 @@ var _getAllAreasByCity = function(self,city){
 		}else if(doc.length>0){
 			self.emit("successfulGetAllAreasByCity",{"success":{"message":"Getting All Areas For "+city+" Sucessfully","area":doc[0].area}});
 		}else{
-	  		self.emit("failedGetAllAreasByCity",{"error":{"code":"AD001","message":"Areas not exists for "+city}});
+	  		self.emit("failedGetAllAreasByCity",{"error":{"code":"AD001","message":"Please enter valid city"}});
 	  	}
 	});
 }
