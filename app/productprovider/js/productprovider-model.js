@@ -94,11 +94,11 @@ var productProviderSchema = mongoose.Schema(
           addressid:{type:String,unique:true},
           address1:{type:String},
           address2:{type:String},
-          address3:{type:String},
           area:{type:String},
           zipcode:{type:String},
           city:{type:String},
           state:{type:String},
+          country:{type:String}
         }
       ]
     }

@@ -102,8 +102,7 @@ exports.getLocationDetails=function(req,res){
      //user.removeAllListeners();
       res.send(result);
     });
-  
- 
+  // location.getLocationDetails(req.user,key,value); 
     	location.getLocationDetails("test",key,value); 	
     
 }
