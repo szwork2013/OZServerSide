@@ -248,13 +248,13 @@ var _successfulUpdateLocationDetails = function(self){
 	self.emit("successfulUpdateLocationDetails",{"success":{"message":"Location Updated Sucessfully"}});
 }
 
-LocationRefference.prototype.getAllAreasByCity = function(user,city) {
+LocationRefference.prototype.getAllAreasByCity = function(city) {
 	var self = this;
 	//////////////////////////////
 	_getAllAreasByCity(self,city);
 	//////////////////////////////
 };
-var _getAllAreasByCity = function(self,city,user){
+var _getAllAreasByCity = function(self,city){
 	LocationModel.aggregate({$unwind:"$area"},{$match:{city:city}},{$group:{_id:"$city",area:{$addToSet:"$area"}}}).exec(function(err,doc){
 		if(err){
 			logger.emit("error","Database Error : _getAllAreasByCity " + err);
