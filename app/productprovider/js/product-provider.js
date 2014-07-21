@@ -2269,8 +2269,6 @@ var _validateAddPickupAddresses=function(self,location,user,providerid){
 	    self.emit("failedAddPickupAddress",{"error":{"code":"ED002","message":"Please enter address1"}});
 	}else if(location.address2 == undefined || location.address2 == ""){
 	    self.emit("failedAddPickupAddress",{"error":{"code":"ED002","message":"Please enter address2"}});
-	}else if(location.address3 == undefined || location.address3 == ""){
-	    self.emit("failedAddPickupAddress",{"error":{"code":"ED002","message":"Please enter address3"}});
 	}else if(location.area == undefined || location.area == ""){
 	    self.emit("failedAddPickupAddress",{"error":{"code":"ED002","message":"Please enter area"}});
 	}else if(location.zipcode == undefined || location.zipcode == ""){
@@ -2360,17 +2358,14 @@ var _successfulAddPickupAddress=function(self,ProductProviderdata,user,provideri
 
 ProductProvider.prototype.getPickupAddresses = function(user,providerid) {
 	var self=this;
-	///////////////////////////////////////////////////////////
-	// _isProivderAdminToGetPickupAddresses(self,user,providerid);
-	///////////////////////////////////////////////////////////
 	//////////////////////////////////////////
-	     	_getPickupAddresses(self,user,providerid);
-		    //////////////////////////////////////////
+	_getPickupAddresses(self,user,providerid);
+	//////////////////////////////////////////
 }
 var _isProivderAdminToGetPickupAddresses = function(self,user,providerid){
 	UserModel.findOne({userid:user.userid,"provider.providerid":providerid,"provider.isOwner":true},function(err,usersp){
 		if(err){
-			logger.emit('error',"Database Issue  _isProivderAdminToGetPickupAddresses"+err,user.userid)
+			logger.emit('error',"Database Issue  _isProivderAdminToGetPickupAddresses"+err,user.userid);
 			self.emit("failedGetPickupAddress",{"error":{"code":"ED001","message":"Database Issue"}});
 		}else if(!usersp){
 			self.emit("failedGetPickupAddress",{"error":{"message":"You are not authorized to get pickup address"}});
@@ -2387,9 +2382,19 @@ var _getPickupAddresses = function(self,user,providerid){
 			logger.emit('error',"Database Issue  _getPickupAddresses"+err);
 			self.emit("failedGetPickupAddress",{"error":{"code":"ED001","message":"Database Issue"}});
 		}else if(doc){
-			//////////////////////////////////////
-		    _successfulGetPickupAddress(self,doc.pickupaddresses.addresses);
-			//////////////////////////////////////
+			if(doc == undefined){
+				self.emit("failedGetPickupAddress",{"error":{"message":"Pickup addresses not exists"}});
+			}else{
+				if(doc.pickupaddresses.addresses == undefined){
+					self.emit("failedGetPickupAddress",{"error":{"message":"Pickup addresses not exists"}});	
+				}else if(doc.pickupaddresses.addresses.length>0){
+					////////////////////////////////////////////////////////////////
+		    		_successfulGetPickupAddress(self,doc.pickupaddresses.addresses);
+					////////////////////////////////////////////////////////////////
+				}else{
+					self.emit("failedGetPickupAddress",{"error":{"message":"pickup address not exists"}});	
+				}
+			}
 		}else{
 			self.emit("failedGetPickupAddress",{"error":{"message":"providerid is wrong"}});
 		}
