@@ -128,9 +128,7 @@ exports.getAllAreasByCity=function(req,res){
       res.send(result);
     });
   
-    if(req.user.isAdmin ==true ||  req.user.usertype == "provider"){
-    	location.getAllAreasByCity(req.user,city); 	
-    }else{
-    	location.emit("failedGetAllAreasByCity",{error:{message:"You are not an authorized to do this action"}});	
-    }   
+    
+    	location.getAllAreasByCity(city); 	
+      
 }

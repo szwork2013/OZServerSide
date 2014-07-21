@@ -12,6 +12,7 @@ exports.init = function (app) {
  	app.get("/api/acceptreject/:providerid",auth,api.productproviderapi.acceptrejectProductProvider);
 
  	app.post('/api/pickupaddress/:providerid',auth,api.productproviderapi.addPickupAddresses);
+ 	app.put('/api/pickupaddress/:providerid/addressid',auth,api.productproviderapi.updatePickupAddresses); 	
  	app.get('/api/pickupaddress/:providerid',auth,api.productproviderapi.getPickupAddresses);
  	app.delete('/api/pickupaddress/:providerid/:addressid',auth,api.productproviderapi.deletePickupAddresses);
 

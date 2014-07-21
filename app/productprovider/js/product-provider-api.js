@@ -895,6 +895,28 @@ exports.addPickupAddresses=function(req,res){
   productprovider.addPickupAddresses(req.user,providerid);
 }
 
+exports.updatePickupAddresses=function(req,res){
+ var providerid=req.params.providerid;
+ var addressid = req.params.addressid;
+ var ProductProviderdata = req.body.location;
+ logger.emit("info","req updatePickupAddresses data"+JSON.stringify(req.body));
+ var productprovider = new ProductProvider(ProductProviderdata);
+ productprovider.removeAllListeners("failedUpdatePickupAddress");
+  productprovider.on("failedUpdatePickupAddress",function(err){
+    if(err.error.code!="ED001"){
+     logger.emit("error", err.error.message); 
+    }
+    
+    // //user.removeAllListeners();
+    res.send(err);
+  });
+  productprovider.removeAllListeners("successfulUpdatePickupAddress");
+  productprovider.on("successfulUpdatePickupAddress",function(result){
+    res.send(result);
+  });
+  productprovider.updatePickupAddresses(req.user,providerid,addressid);
+}
+
 exports.getPickupAddresses=function(req,res){
  var providerid=req.params.providerid;
  var productprovider = new ProductProvider();
