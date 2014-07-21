@@ -306,6 +306,7 @@ exports.paytmCallbackUrl = function(req,res){//Add New Order
   htmlresponse+="<body>Redirection back To the app<br>";
   // htmlresponse+="<form name='frm' method='post'><input type='hidden' name='responseField' value='"+responseobject+"'></form></body></html>";    
   logger.emit("log","req body"+JSON.stringify(req.body));
+  console.log("req body:"+JSON.stringify(req.body))
   order.removeAllListeners("failedPaytmCallbackUrl");
   order.on("failedPaytmCallbackUrl",function(err){
    console.log("JSON"+JSON.stringify(err.error.responseobject))
