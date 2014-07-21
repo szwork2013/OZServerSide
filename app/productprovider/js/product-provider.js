@@ -936,6 +936,7 @@ var _validateBranchData=function(self,branchdata,sessionuser,providerid){
 	}
 }
 var _isValidProductProvider=function(self,branchdata,sessionuser,providerid){
+	console.log("sessionuser : "+sessionuser.userid+" providerid : "+providerid);
 	ProductProviderModel.findOne({"user.userid":sessionuser.userid,providerid:providerid},function(err,productprovider){
 		if(err){
 			logger.emit("error","Database Error:_isValidServiceProvider"+err,sessionuser.userid);
@@ -977,11 +978,14 @@ var _addBranch=function(self,branchdata,sessionuser,productprovider){
 			logger.emit("error","Database Error:_addBranch"+err,sessionuser.userid);
 			self.emit("failedAddBranch",{"error":{"code":"ED001","message":"Database Issue"}})
 		}else if(providerbranchaddstatus==0){
-			self.emit("failedAddBranch",{"error":{"code":"ED001","message":"provider id is wrong			"}})
+			self.emit("failedAddBranch",{"error":{"code":"ED001","message":"provider id is wrong"}})
 		}else{
 			/////////////////////////////////////
 			_addBranchDetailsToTheUser(self,sessionuser,branchdata,productprovider.providerid)
 			////////////////////////////
+			////////////////////////////////////////////////////////////////////////
+			_addBranchAddressDetailsToPickupAddress(self,sessionuser,branchdata,productprovider);
+			////////////////////////////////////////////////////////////////////////
 		}
 	})
 }
@@ -994,10 +998,36 @@ var _addBranchDetailsToTheUser=function(self,sessionuser,branch,providerid){
 			self.emit("failedAddBranch",{"error":{"message":"Userid is wrong"}})
 		}else{
 			///////////////////////////
-		_addAdminGroupToBranch(self,sessionuser,branch,providerid);
-		/////////////////////////////
+			_addAdminGroupToBranch(self,sessionuser,branch,providerid);
+			/////////////////////////////
 		}
 	})
+}
+var _addBranchAddressDetailsToPickupAddress=function(self,sessionuser,branch,provider){
+	if(provider.pickupaddresses.provide == true){
+		branch.location.addressid = "pa"+generateId();
+		ProductProviderModel.update({providerid:provider.providerid},{$push:{"pickupaddresses.addresses":branch.location}},function(err,ppupdatestatus){
+			if(err){
+				logger.emit('error',"Database Issue ,function:_addBranchAddressDetailsToPickupAddress"+err,user.userid)
+			}else if(ppupdatestatus==0){
+				logger.emit('error',"providerid is wrong");
+			}else{
+				logger.emit('info',"Branch address added successfully in pickup address");
+			}
+		})
+	}else{
+		branch.location.addressid = "pa"+generateId();
+		var pickupaddresses = {provide:true,addresses:[branch.location]};
+		ProductProviderModel.update({providerid:provider.providerid},{$set:{pickupaddresses:pickupaddresses}},function(err,ppupdatestatus){
+			if(err){
+				logger.emit('error',"Database Issue ,function:_addBranchAddressDetailsToPickupAddress"+err,user.userid);
+			}else if(ppupdatestatus==0){
+			    logger.emit('error',"providerid is wrong");
+			}else{
+				logger.emit('info',"Branch address added successfully in pickup address");
+			}
+		})
+	}
 }
 var _addAdminGroupToBranch=function(self,sessionuser,branch,providerid){
 	  var grpmembers=[];
@@ -1022,6 +1052,7 @@ var _addAdminGroupToBranch=function(self,sessionuser,branch,providerid){
 var _successfullAddBranch=function(self){
 	self.emit("successfulAddBranch",{"success":{"message":"Branch Added Successfully"}});
 }
+
 ProductProvider.prototype.getAllMyBranches = function(user) {
 	var self = this;
 	////////////////////////////////////
@@ -2387,14 +2418,14 @@ var _validateUpdatePickupAddresses=function(self,location,user,providerid,addres
 	    self.emit("failedUpdatePickupAddress",{"error":{"code":"ED002","message":"You can not update addressid"}});
 	}else{
 		////////////////////////////////////////////////////////////////////
-		_isProivderAdminToUpdatePickupAddresses(self,location,user,providerid,addressid);
+		_isProviderAdminToUpdatePickupAddresses(self,location,user,providerid,addressid);
 		////////////////////////////////////////////////////////////////////		
 	}
 }
-var _isProivderAdminToUpdatePickupAddresses = function(self,location,user,providerid,addressid){
+var _isProviderAdminToUpdatePickupAddresses = function(self,location,user,providerid,addressid){
 	UserModel.findOne({userid:user.userid,"provider.providerid":providerid,"provider.isOwner":true},function(err,usersp){
 		if(err){
-			logger.emit('error',"Database Issue  _isProivderAdminToUpdatePickupAddresses"+err,user.userid)
+			logger.emit('error',"Database Issue  _isProviderAdminToUpdatePickupAddresses"+err,user.userid);
 			self.emit("failedUpdatePickupAddress",{"error":{"code":"ED001","message":"Database Issue"}});
 		}else if(!usersp){
 			self.emit("failedUpdatePickupAddress",{"error":{"message":"You are not authorized to add pickup address"}});
@@ -2411,7 +2442,7 @@ var _updatePickupAddresses=function(self,location,user,providerid,addressid){
 			logger.emit('error',"Database Issue ,function:_updatePickupAddresses"+err,user.userid);
 			self.emit("failedUpdatePickupAddress",{"error":{"code":"ED001","message":"Database Issue"}});
 		}else if(ppupdatestatus==0){
-		    self.emit("failedUpdatePickupAddress",{"error":{"message":"providerid is wrong"}});
+		    self.emit("failedUpdatePickupAddress",{"error":{"message":"providerid or addressid is wrong"}});
 		}else{
 			/////////////////////////////////////
 			_successfulUpdatePickupAddress(self);
