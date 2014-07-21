@@ -2292,12 +2292,12 @@ var _getPickupAddresses = function(self,user,providerid){
 		if(err){
 			logger.emit('error',"Database Issue  _getPickupAddresses"+err,user.userid)
 			self.emit("failedGetPickupAddress",{"error":{"code":"ED001","message":"Database Issue"}});
-		}else if(!doc){
-			self.emit("failedGetPickupAddress",{"error":{"message":"You are not authorized to get pickup address"}});
-		}else{
+		}else if(doc){
 			//////////////////////////////////////
 		    _successfulGetPickupAddress(self,doc.pickupaddresses.addresses);
 			//////////////////////////////////////
+		}else{
+			self.emit("failedGetPickupAddress",{"error":{"message":"providerid is wrong"}});
 		}
 	})
 }
