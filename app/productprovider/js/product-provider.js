@@ -1036,7 +1036,7 @@ var _addAdminGroupToBranch=function(self,sessionuser,branch,providerid){
 	  var providergroup=new ProviderGroupModel(provider_groupdata);
 	  providergroup.save(function(err,providergroup){
 		  if(err){
-		  	logger.emit('error',"Database Issue fun:_addAdminGroupToBranch"+err,user.userid)
+		  	logger.emit('error',"Database Issue fun:_addAdminGroupToBranch"+err,user.userid);
 		  	self.emit("failedAddBranch",{"error":{"code":"ED001","message":"Database Issue"}});		
 	  	}else{
 	  		//////////////////////////////
