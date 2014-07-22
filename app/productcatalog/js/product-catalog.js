@@ -744,27 +744,27 @@ var _validateHoldingProductPriceData=function(self,branchid,productid,pricedata,
 		self.emit("failedHoldProductPrice",{error:{code:"AV001",message:"New price should be numeric"}});
 	}else if(pricedata.uom==undefined || pricedata.uom==""){
 		self.emit("failedHoldProductPrice",{"error":{"code":"AV001","message":"Please enter unit of measurement"}});
-	}else if(pricedata.fromdate==undefined || pricedata.fromdate==""){
-		self.emit("failedHoldProductPrice",{error:{code:"AV001",message:"Please enter from date"}});
-	}else if(pricedata.todate==undefined || pricedata.todate==""){
-		self.emit("failedHoldProductPrice",{error:{code:"AV001",message:"Please enter to date"}});
+	// }else if(pricedata.fromdate==undefined || pricedata.fromdate==""){
+	// 	self.emit("failedHoldProductPrice",{error:{code:"AV001",message:"Please enter from date"}});
+	// }else if(pricedata.todate==undefined || pricedata.todate==""){
+	// 	self.emit("failedHoldProductPrice",{error:{code:"AV001",message:"Please enter to date"}});
 	}else  if(["kg","no","litre","lb","gm"].indexOf(pricedata.uom.toLowerCase())<0){
 		self.emit("failedHoldProductPrice",{"error":{"code":"AV001","message":"unit of measurement should be kg,litre,no,lb,gm"}});
 	}else{
-		var fromDate = new Date(pricedata.fromdate);
-		var toDate = new Date(pricedata.todate);
+		// var fromDate = new Date(pricedata.fromdate);
+		// var toDate = new Date(pricedata.todate);
 
-		if(fromDate == "Invalid Date"){
-			self.emit("failedHoldProductPrice",{"error":{"code":"AV001","message":"Invalid fromdate"}});
-		}else if(toDate == "Invalid Date"){
-			self.emit("failedHoldProductPrice",{"error":{"code":"AV001","message":"Invalid todate"}});
-		}else{
-			pricedata.fromdate = fromDate;
-			pricedata.todate = toDate;
+		// if(fromDate == "Invalid Date"){
+		// 	self.emit("failedHoldProductPrice",{"error":{"code":"AV001","message":"Invalid fromdate"}});
+		// }else if(toDate == "Invalid Date"){
+		// 	self.emit("failedHoldProductPrice",{"error":{"code":"AV001","message":"Invalid todate"}});
+		// }else{
+		// 	pricedata.fromdate = fromDate;
+		// 	pricedata.todate = toDate;
 			///////////////////////////////////////////////////////////////////////////////////////
 	    	_isValidProductProviderToHoldProductPrice(self,branchid,productid,pricedata,sessionuserid);
 	    	//////////////////////////////////////////////////////////////////////////////////////
-		}
+		// }
 	}
 }
 var _isValidProductProviderToHoldProductPrice=function(self,branchid,productid,pricedata,sessionuserid){
@@ -887,6 +887,83 @@ var _activateProductPrice=function(self,productid,sessionuserid,product){
 }
 var _successfulActivateProductPrice=function(self){
 	self.emit("successfulActivateProductPrice",{success:{message:"Price Activated Successfully"}});
+}
+
+ProductCatalog.prototype.deactivateProductPrice = function(branchid,productid,sessionuserid){
+	var self=this;
+	//////////////////////////////////////////////////////////////////////////////////
+	_isValidProductProviderToDeactivateProductPrice(self,branchid,productid,sessionuserid);
+	//////////////////////////////////////////////////////////////////////////////////
+}
+var _isValidProductProviderToDeactivateProductPrice=function(self,branchid,productid,sessionuserid){
+	UserModel.findOne({userid:sessionuserid,"provider.branchid":branchid,"provider.isOwner":true},function(err,userpp){
+		if(err){
+			logger.emit('error',"Database Issue  _isValidProductProviderToDeactivateProductPrice"+err,sessionuserid);
+			self.emit("failedDeactivateProductPrice",{"error":{"code":"ED001","message":"Database Issue"}});
+		}else if(!userpp){
+			self.emit("failedDeactivateProductPrice",{"error":{"message":"You are not authorized to deactivate product price"}});
+		}else{
+			///////////////////////////////////////////////////////////////////
+	     	_isValidProductToDeactivatePrice(self,branchid,productid,sessionuserid);
+		    //////////////////////////////////////////////////////////////////
+		}
+	})
+}
+var _isValidProductToDeactivatePrice=function(self,branchid,productid,sessionuserid){
+	// var query = {productid:productid},{price:1,productid:1,branch:1,holding_price:1}
+	ProductCatalogModel.aggregate({$match:{productid:productid}},{$unwind:"$price_history"},{$sort:{"price_history.updatedon":-1}},{$limit:1},{$project:{productid:1,price:1,branch:1,holding_price:1,price_history:1}},function(err,product){
+		if(err){
+			logger.emit('error',"Database Issue  _isValidProductToDeactivatePrice"+err,sessionuserid);
+			self.emit("failedDeactivateProductPrice",{"error":{"code":"ED001","message":"Database Issue "+err}});
+		}else if(product.length>0){
+			console.log(JSON.stringify(product));
+			if(product[0].branch.branchid!=branchid){
+				self.emit("failedDeactivateProductPrice",{error:{message:"This product does not belong's to your branch"}});
+			}else{
+				console.log("product.holding_price.st : "+product[0].holding_price.status);
+				if(product[0].holding_price.status == "deactive"){
+					self.emit("failedDeactivateProductPrice",{error:{message:"Holding price already deactivated"}});
+				}else if(product[0].holding_price.status == "init"){
+					self.emit("failedDeactivateProductPrice",{error:{message:"Can't deactivate, Beacause holding price not an activate"}});
+				}else{
+					console.log("_deactivateProductPrice");
+					////////////////////////////////////////////////////////////
+					_deactivateProductPrice(self,productid,sessionuserid,product[0]);
+					////////////////////////////////////////////////////////////
+				}
+			}
+		}else{
+			self.emit("failedDeactivateProductPrice",{error:{message:"product id is wrong"}});
+					
+		}
+	})
+}
+var _deactivateProductPrice=function(self,productid,sessionuserid,product){
+	console.log("product : "+JSON.stringify(product));
+	ProductCatalogModel.update({productid:productid},{$set:{"price.value":product.price_history.oldprice,"holding_price.status":"deactive"}},function(err,priceactivatestatus){
+		if(err){
+			logger.emit('error',"Database Issue  _deactivateProductPrice "+err,sessionuserid);
+			self.emit("failedDeactivateProductPrice",{"error":{"code":"ED001","message":"Database Issue "+err}});
+		}else if(priceactivatestatus==0){
+			self.emit("failedDeactivateProductPrice",{error:{message:"Server Issue"}});
+		}else{
+			ProductCatalogModel.update({productid:productid},{$push:{price_history:{oldprice:product.price.value,newprice:product.price_history.oldprice,updatedby:sessionuserid,updatedon:new Date()}}},function(err,pricehistorystatus){
+				if(err){
+					logger.emit('error',"Database Issue  _deactivateProductPrice "+err,sessionuserid)
+					self.emit("failedDeactivateProductPrice",{"error":{"code":"ED001","message":"Database Issue"}});
+				}else if(pricehistorystatus==0){
+					self.emit("failedDeactivateProductPrice",{error:{message:"Server Issue"}});
+				}else{
+					//////////////////////////////////
+					_successfulDeactivateProductPrice(self);
+					//////////////////////////////////
+				}
+			})			
+		}
+	})
+}
+var _successfulDeactivateProductPrice=function(self){
+	self.emit("successfulDeactivateProductPrice",{success:{message:"Price Deactivated Successfully"}});
 }
 
 ProductCatalog.prototype.publishUnpublishProductCatalog = function(branchid,productids,user,action){
