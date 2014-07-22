@@ -647,7 +647,7 @@ var _validateProductsPriceData=function(self,branchid,productpricedata,sessionus
 		var productpricedataarr = [];
 		console.log("productpricedata : "+JSON.stringify(productpricedata));
 		for(var i=0;i<productpricedata.length;i++){
-			if(productpricedata[i].productid != "" && productpricedata[i].newprice != "" && S(productpricedata[i].newprice).isNumeric()){
+			if(productpricedata[i].productid != "" && productpricedata[i].newprice != undefined && S(productpricedata[i].newprice).isNumeric()){
 				productpricedataarr.push(productpricedata[i]);
 			}
 		}

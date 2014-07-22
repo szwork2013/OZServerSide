@@ -175,16 +175,37 @@ var _createPDFInvocie=function(self,inoviceobject,branch){
      htmldata=htmldata.replaceAll("{{sellercontact}}",inoviceobject.productprovider.contact_supports+"");
      htmldata=htmldata.replaceAll("{{selleremail}}",inoviceobject.productprovider.email);
      htmldata=htmldata.replaceAll("{{sellername}}",inoviceobject.productprovider.providername);
-      var delivery_addressoject=inoviceobject.delivery_address;
+     //for delivery address
+     var delivery_addressoject=inoviceobject.delivery_address;
      var delivery_address="";
-     for(var i in delivery_addressoject){
-      delivery_address+=delivery_addressoject[i]+",<br>";
-     }
+    if(inoviceobject.delivery_address!=undefined){
+      var delivery_locationkeys=Object.keys(delivery_addressoject)
+      for(var i=0;i<delivery_locationkeys.length;i++){
+        if(i==(delivery_locationkeys.length-1)){
+          delivery_address+=delivery_addressoject[delivery_locationkeys[i]];  
+        }else{
+          delivery_address+=delivery_addressoject[delivery_locationkeys[i]]+",<br>";  
+        }  
+      }
+    }
+   
+     //for pickup address
+       var pickup_address="";
      var pickup_addressoject=inoviceobject.pickup_address;
-     var pickup_address="";
-     for(var i in pickup_addressoject){
-      pickup_address+=pickup_addressoject[i]+",<br>";
-     }
+    if(pickup_addressoject!=undefined){
+      var pickup_locationkeys=Object.keys(pickup_addressoject)
+       // console.log("locationkeys"+locationkeys)
+    
+      for(var i=0;i<pickup_locationkeys.length;i++){
+        if(i==(pickup_locationkeys.length-1)){
+         pickup_address+=pickup_addressoject[pickup_locationkeys[i]]+".";  
+        }else{
+         pickup_address+=pickup_addressoject[pickup_locationkeys[i]]+",<br>";  
+        }  
+      } 
+    }
+    
+     
      if(inoviceobject.deliverytype.toLowerCase()=="home"){
       htmldata=htmldata.replaceAll("{{addresskeyname}}","Shipping Address");
 
@@ -196,6 +217,8 @@ var _createPDFInvocie=function(self,inoviceobject,branch){
      htmldata=htmldata.replaceAll("{{deliveryaddress}}",delivery_address);
      htmldata=htmldata.replaceAll("{{totalprice}}",inoviceobject.totalprice);
        // htmldata=htmldata.replaceAll("{{sellercontact}}",inoviceobject.delivery_address);
+
+       //for seller address
      var selleraddress="";
      var sellerlocation=JSON.stringify(inoviceobject.productprovider.location);
      sellerlocation=JSON.parse(sellerlocation)
@@ -204,7 +227,7 @@ var _createPDFInvocie=function(self,inoviceobject,branch){
      console.log("locationkeys"+locationkeys)
      for(var i=0;i<locationkeys.length;i++){
       if(i==(locationkeys.length-1)){
-        selleraddress+=sellerlocation[locationkeys[i]];  
+        selleraddress+=sellerlocation[locationkeys[i]]+".";  
       }else{
         selleraddress+=sellerlocation[locationkeys[i]]+",";  
       }  
@@ -216,9 +239,16 @@ var _createPDFInvocie=function(self,inoviceobject,branch){
      htmldata=htmldata.replaceAll("{{sellerlogo}}",inoviceobject.productprovider.providerlogo);
      var billing_addressoject=inoviceobject.billing_address;
      var billing_address="";
-     for(var i in billing_addressoject){
-      billing_address+=billing_addressoject[i]+",<br>";
-     }
+     var billing_locationkeys=Object.keys(billing_addressoject)
+     // console.log("locationkeys"+locationkeys)
+     for(var i=0;i<billing_locationkeys.length;i++){
+      if(i==(billing_locationkeys.length-1)){
+        billing_address+=billing_addressoject[billing_locationkeys[i]]+".";  
+      }else{
+        billing_address+=billing_addressoject[billing_locationkeys[i]]+",<br>";  
+      }  
+    }
+   
      htmldata=htmldata.replaceAll("{{billingaddress}}",billing_address);
      var buyername;
      if(inoviceobject.buyername==undefined || inoviceobject.buyername==null){
