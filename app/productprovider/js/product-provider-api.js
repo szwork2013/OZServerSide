@@ -873,6 +873,30 @@ exports.getBranchDeliveryCharges=function(req,res){
    productprovider.GetBranchDeliveryCharges(sessionuserid,branchid,zipcode,city);
   ///////////////////////////////////////////////////////////////////////////////
 }
+exports.deleteDeliveryChargesArea=function(req,res){
+  var sessionuserid=req.user.userid;
+  var productprovider = new ProductProvider();
+  // var deliverychargedata=req.body.deliverychargedata;
+  var branchid=req.params.branchid;
+  var zipcode=req.query.zipcode;
+  var area=req.query.area;
+  productprovider.removeAllListeners("failedDeleteDeliveryChargesArea");
+  productprovider.on("failedDeleteDeliveryChargesArea",function(err){
+    if(err.error.code!="ED001"){
+     logger.emit("error", err.error.message); 
+    }
+    
+    // user.removeAllListeners();
+    res.send(err);
+  })
+  productprovider.removeAllListeners("successfulDeleteDeliveryChargesArea");
+  productprovider.on("successfulDeleteDeliveryChargesArea",function(result){
+    res.send(result);
+  });
+  ///////////////////////////////////////////////////////////////////////// 
+   productprovider.deleteDeliveryChargesArea(sessionuserid,branchid,zipcode,area);
+  ///////////////////////////////////////////////////////////////////////////////
+}
 
 exports.addPickupAddresses=function(req,res){
  var providerid=req.params.providerid;

@@ -13,5 +13,6 @@ exports.init = function (app) {
  	app.get('/api/publishunpublish/branch/:providerid/:branchid',auth,api.productproviderapi.publishUnpublishBranch)
  	app.put('/api/managedeliverycharges/:branchid',auth,api.productproviderapi.manageDeliveryCharges);
  	app.get('/api/branchdeliverycharges/:branchid',auth,api.productproviderapi.getBranchDeliveryCharges)
+ 	app.delete('/api/branchdeliverycharges/:branchid',auth,api.productproviderapi.deleteDeliveryChargesArea)
  }	
 

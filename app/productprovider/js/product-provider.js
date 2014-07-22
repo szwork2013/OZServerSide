@@ -2252,6 +2252,53 @@ var _GetBranchDeliveryCharges=function(self,sessionuserid,branchid,zipcode,city)
 var _successfullGetBranchDeliveryCharges=function(self,branchdeliverycharges){
 	self.emit("successfulGetBranchDeliveryCharges",{success:{message:"Gettin Branch Delivery Charges Successfully",branchdeliverycharges:branchdeliverycharges}})
 }
+ProductProvider.prototype.deleteDeliveryChargesArea = function(sessionuserid,branchid,zipcode,area) {
+	var self=this;
+	if(zipcode==undefined || zipcode==""){
+		self.emit("failedDeleteDeliveryChargesArea",{error:{code:"AV001",message:"Please pass zipcode"}})
+	}else if(area==undefined || area==""){
+		self.emit("failedDeleteDeliveryChargesArea",{error:{code:"AV001",message:"Please pass area"}})
+	}else{
+	////////////////////////////////////////////////////////////////////
+	   _isAuthorizedUserToDeleteDeliveryBranch(self,sessionuserid,branchid,zipcode,area);
+	    ////////////////////////////////////////////////////////////////////		
+				
+	}
+}
+	
+var _isAuthorizedUserToDeleteDeliveryBranch=function(self,sessionuserid,branchid,zipcode,area){
+	UserModel.findOne({userid:sessionuserid,"provider.branchid":branchid},{provider:1},function(err,userprovider){
+		if(err){
+			logger.emit('error',"Database Issue fun:_checkUserHaveProviderBranches"+err,user.userid)
+		  self.emit("failedDeleteDeliveryChargesArea",{"error":{"code":"ED001","message":"Database Issue"}});			
+		}else if(!userprovider){
+			self.emit("failedDeleteDeliveryChargesArea",{"error":{"message":"User does not belong to provider"}});			
+		}else{
+			
+  		////////////////////////////////////////
+  		_deleteBranchDeliveryCharges(self,sessionuserid,branchid,zipcode,area);
+  		/////////////////////////////////
+
+		}
+	})
+}
+var _deleteBranchDeliveryCharges=function(self,sessionuserid,branchid,zipcode,area){
+	ProductProviderModel.update({"branch.branchid":branchid},{$pull:{"branch.$.deliverycharge":{"coverage.zipcode":zipcode,"coverage.area":area}}},function(err,updatedeletedeliverarea){
+		if(err){
+			logger.emit('error',"Database Issue fun:_checkUserHaveProviderBranches"+err,user.userid)
+		  self.emit("failedDeleteDeliveryChargesArea",{"error":{"code":"ED001","message":"Database Issue"}});			
+		}else if(updatedeletedeliverarea==0){
+			self.emit("failedDeleteDeliveryChargesArea",{success:{message:"Given area and zipcode does not exists"}})
+		}else{
+			///////////////////////////////
+			_successfullDeleteBranchDeliveryCharges(self)
+			/////////////////////////////	
+		}
+	})
+}
+var _successfullDeleteBranchDeliveryCharges=function(self){
+	self.emit("successfulDeleteDeliveryChargesArea",{success:{message:"Delete Area from delivery Availibility"}})
+}
 
 ProductProvider.prototype.addPickupAddresses = function(user,providerid) {
 	var self=this;
