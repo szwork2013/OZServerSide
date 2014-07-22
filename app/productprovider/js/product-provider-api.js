@@ -885,7 +885,7 @@ exports.addPickupAddresses=function(req,res){
      logger.emit("error", err.error.message); 
     }
     
-    // //user.removeAllListeners();
+     //user.removeAllListeners();
     res.send(err);
   });
   productprovider.removeAllListeners("successfulAddPickupAddress");

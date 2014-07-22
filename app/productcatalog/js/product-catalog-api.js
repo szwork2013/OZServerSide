@@ -285,11 +285,41 @@ exports.activateProductPrice=function(req,res){
       res.send(result);
     });  
     if(req.user.usertype!="provider"){
-      productcatalog.emit('failedHoldProductPrice',{error:{code:"EA001",message:"You are not a provider to change price details"}});
+      productcatalog.emit('failedActivateProductPrice',{error:{code:"EA001",message:"You are not a provider to change price details"}});
     }else{
       /////////////////////////////////////////////////////////////////////////////////
       productcatalog.activateProductPrice(branchid,productid,req.user.userid);
       /////////////////////////////////////////////////////////////////////////////////
+    }
+}
+
+exports.deactivateProductPrice=function(req,res){
+  var branchid = req.params.branchid;
+  var productid = req.params.productid;
+  var productcatalog = new ProductCatalog();
+   productcatalog.removeAllListeners("failedDeactivateProductPrice");
+    productcatalog.on("failedDeactivateProductPrice",function(err){
+      if(err.error.code!="ED001"){
+       logger.emit("error", err.error.message); 
+      }      
+      // user.removeAllListeners();
+      res.send(err);
+    });
+    productcatalog.removeAllListeners("successfulDeactivateProductPrice");
+    productcatalog.on("successfulDeactivateProductPrice",function(result){
+      // if(err.error.code!="ED001"){
+      //  logger.emit("error", err.error.message); 
+      // }
+      
+      // user.removeAllListeners();
+      res.send(result);
+    });  
+    if(req.user.usertype!="provider"){
+      productcatalog.emit('failedDeactivateProductPrice',{error:{code:"EA001",message:"You are not a provider to change price details"}});
+    }else{
+      //////////////////////////////////////////////////////////////////////////
+      productcatalog.deactivateProductPrice(branchid,productid,req.user.userid);
+      //////////////////////////////////////////////////////////////////////////
     }
 }
 
