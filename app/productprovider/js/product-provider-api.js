@@ -878,8 +878,8 @@ exports.deleteDeliveryChargesArea=function(req,res){
   var productprovider = new ProductProvider();
   // var deliverychargedata=req.body.deliverychargedata;
   var branchid=req.params.branchid;
-  var zipcode=req.query.zipcode;
-  var area=req.query.area;
+  var deliveryareaids=req.body.deliveryareaids;
+  // var area=req.query.area;
   productprovider.removeAllListeners("failedDeleteDeliveryChargesArea");
   productprovider.on("failedDeleteDeliveryChargesArea",function(err){
     if(err.error.code!="ED001"){
@@ -894,7 +894,7 @@ exports.deleteDeliveryChargesArea=function(req,res){
     res.send(result);
   });
   ///////////////////////////////////////////////////////////////////////// 
-   productprovider.deleteDeliveryChargesArea(sessionuserid,branchid,zipcode,area);
+   productprovider.deleteDeliveryChargesArea(sessionuserid,branchid,deliveryareaids);
   ///////////////////////////////////////////////////////////////////////////////
 }
 

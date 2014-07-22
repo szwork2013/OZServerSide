@@ -2236,7 +2236,7 @@ var _GetBranchDeliveryCharges=function(self,sessionuserid,branchid,zipcode,city)
 		query={$match:{"coverage.city":city}}
 	}
 	
-	ProductProviderModel.aggregate({$match:{"branch.branchid":branchid}},{$unwind:"$branch"},{$match:{"branch.branchid":branchid}},{$unwind:"$branch.deliverycharge"},{$project:{value:"$branch.deliverycharge.value",coverage:"$branch.deliverycharge.coverage",_id:0}},query,function(err,branchdeliverycharges){
+	ProductProviderModel.aggregate({$match:{"branch.branchid":branchid}},{$unwind:"$branch"},{$match:{"branch.branchid":branchid}},{$unwind:"$branch.deliverycharge"},{$project:{value:"$branch.deliverycharge.value",coverage:"$branch.deliverycharge.coverage",id:"$branch.deliverycharge._id",_id:0}},query,function(err,branchdeliverycharges){
 		if(err){
 			logger.emit('error',"Database Issue fun:_checkUserHaveProviderBranches"+err,user.userid)
 		  self.emit("failedGetBranchDeiliveryCharges",{"error":{"code":"ED001","message":"Database Issue"}});			
@@ -2252,21 +2252,23 @@ var _GetBranchDeliveryCharges=function(self,sessionuserid,branchid,zipcode,city)
 var _successfullGetBranchDeliveryCharges=function(self,branchdeliverycharges){
 	self.emit("successfulGetBranchDeliveryCharges",{success:{message:"Gettin Branch Delivery Charges Successfully",branchdeliverycharges:branchdeliverycharges}})
 }
-ProductProvider.prototype.deleteDeliveryChargesArea = function(sessionuserid,branchid,zipcode,area) {
+ProductProvider.prototype.deleteDeliveryChargesArea = function(sessionuserid,branchid,deliveryareaids) {
 	var self=this;
-	if(zipcode==undefined || zipcode==""){
-		self.emit("failedDeleteDeliveryChargesArea",{error:{code:"AV001",message:"Please pass zipcode"}})
-	}else if(area==undefined || area==""){
-		self.emit("failedDeleteDeliveryChargesArea",{error:{code:"AV001",message:"Please pass area"}})
-	}else{
+	if(deliveryareaids==undefined || deliveryareaids==""){
+		self.emit("failedDeleteDeliveryChargesArea",{error:{code:"AV001",message:"Please pass deliveryareaids"}})
+	}else if(!isArray(deliveryareaids)){
+		self.emit("failedDeleteDeliveryChargesArea",{error:{code:"AV001",message:"deliveryareaids should be an array"}})
+	}else if(deliveryareaids.length==0){
+		self.emit("failedDeleteDeliveryChargesArea",{error:{code:"AV001",message:"Please passs atleast one delivery area id"}})
+	}else {
 	////////////////////////////////////////////////////////////////////
-	   _isAuthorizedUserToDeleteDeliveryBranch(self,sessionuserid,branchid,zipcode,area);
+	   _isAuthorizedUserToDeleteDeliveryBranch(self,sessionuserid,branchid,deliveryareaids);
 	    ////////////////////////////////////////////////////////////////////		
 				
 	}
 }
 	
-var _isAuthorizedUserToDeleteDeliveryBranch=function(self,sessionuserid,branchid,zipcode,area){
+var _isAuthorizedUserToDeleteDeliveryBranch=function(self,sessionuserid,branchid,deliveryareaids){
 	UserModel.findOne({userid:sessionuserid,"provider.branchid":branchid},{provider:1},function(err,userprovider){
 		if(err){
 			logger.emit('error',"Database Issue fun:_checkUserHaveProviderBranches"+err,user.userid)
@@ -2276,14 +2278,14 @@ var _isAuthorizedUserToDeleteDeliveryBranch=function(self,sessionuserid,branchid
 		}else{
 			
   		////////////////////////////////////////
-  		_deleteBranchDeliveryCharges(self,sessionuserid,branchid,zipcode,area);
+  		_deleteBranchDeliveryCharges(self,sessionuserid,branchid,deliveryareaids);
   		/////////////////////////////////
 
 		}
 	})
 }
-var _deleteBranchDeliveryCharges=function(self,sessionuserid,branchid,zipcode,area){
-	ProductProviderModel.update({"branch.branchid":branchid},{$pull:{"branch.$.deliverycharge":{"coverage.zipcode":zipcode,"coverage.area":area}}},function(err,updatedeletedeliverarea){
+var _deleteBranchDeliveryCharges=function(self,sessionuserid,branchid,deliveryareaids){
+	ProductProviderModel.update({"branch.branchid":branchid},{$pull:{"branch.$.deliverycharge":{_id:{$in:deliveryareaids}}}},function(err,updatedeletedeliverarea){
 		if(err){
 			logger.emit('error',"Database Issue fun:_checkUserHaveProviderBranches"+err,user.userid)
 		  self.emit("failedDeleteDeliveryChargesArea",{"error":{"code":"ED001","message":"Database Issue"}});			
