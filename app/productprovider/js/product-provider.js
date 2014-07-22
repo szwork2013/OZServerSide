@@ -40,6 +40,11 @@ var _updateProductProviderDetails=function(providerid){
 			logger.emit("error","Provider id is wrong for _updateProductProviderDetails ")
 		}else{
 			provider.providerlogo=provider.providerlogo.image;
+			provider.providerlogo=provider.providerlogo.image;
+			var setdata={};
+			provider=JSON.stringify(provider);
+			provider=JSON.parse(provider);
+			// for(i in provider){
 			ProductCatalogModel.update({"provider.providerid":providerid},{$set:{provider:provider}},{multi:true},function(err,productproviderstatus){
 				if(err){
 					logger.emit("error","Database Issue _updateProductProviderDetails"+err)
