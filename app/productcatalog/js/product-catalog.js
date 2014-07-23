@@ -865,14 +865,14 @@ var _activateProductPrice=function(self,productid,sessionuserid,product){
 	console.log("product : "+JSON.stringify(product));
 	ProductCatalogModel.update({productid:productid},{$set:{"price.value":product.holding_price.value,"price.currency":product.holding_price.currency,"price.uom":product.holding_price.uom,"holding_price.status":"active"}},function(err,priceactivatestatus){
 		if(err){
-			logger.emit('error',"Database Issue  _activateProductPrice1 "+err,sessionuserid);
+			logger.emit('error',"Database Issue  _activateProductPrice "+err,sessionuserid);
 			self.emit("failedActivateProductPrice",{"error":{"code":"ED001","message":"Database Issue "+err}});
 		}else if(priceactivatestatus==0){
 			self.emit("failedActivateProductPrice",{error:{message:"Server Issue"}});
 		}else{
 			ProductCatalogModel.update({productid:productid},{$push:{price_history:{oldprice:product.price.value,newprice:product.holding_price.value,updatedby:sessionuserid,updatedon:new Date()}}},function(err,pricehistorystatus){
 				if(err){
-					logger.emit('error',"Database Issue  _activateProductPrice2 "+err,sessionuserid)
+					logger.emit('error',"Database Issue  _activateProductPrice "+err,sessionuserid)
 					self.emit("failedActivateProductPrice",{"error":{"code":"ED001","message":"Database Issue"}});
 				}else if(pricehistorystatus==0){
 					self.emit("failedActivateProductPrice",{error:{message:"Server Issue"}});
