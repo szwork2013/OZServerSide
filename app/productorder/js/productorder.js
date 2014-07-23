@@ -263,7 +263,7 @@ var _ProviderBranchSpecificCartsProducts=function(self,orderdata,validproductids
 										if(orderdata.sellerdelivery[k].deliverycharge.isdeliverychargeinpercent==false){
 							  	delivery_charge=	parseFloat(orderdata.sellerdelivery[k].deliverycharge.charge)	
 								  }else{
-								  	delivery_charge=suborderprice*(parseFloat(orderdata.sellerdelivery[k].delivery.charge)/100)
+								  	delivery_charge=suborderprice*(parseFloat(orderdata.sellerdelivery[k].deliverycharge.charge)/100)
 								  }
 								}
 							  

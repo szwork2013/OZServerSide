@@ -9,11 +9,11 @@ exports.init = function (app) {
     app.post('/api/deliverycharge',api.orderapi.getDeliveryCharges);
     app.post('/api/latestproductprice',api.orderapi.getLatestProductPrices)
 	/////////////////provider////////////////////
-		app.get('/api/suborder/:providerid/:branchid',auth,api.orderapi.getMySubOrders);
-		app.get("/api/oz",api.commonapi.LongCodeResponse);
-		app.get('/api/manageorder/:suborderid',auth,api.orderapi.manageOrder);
-		app.get('/api/providerpayment/suborder/:suborderid',auth,api.orderapi.suborderpaymentdone);
-		
+	app.get('/api/suborder/:providerid/:branchid',auth,api.orderapi.getMySubOrders);
+	app.get("/api/oz",api.commonapi.LongCodeResponse);
+	app.get('/api/manageorder/:suborderid',auth,api.orderapi.manageOrder);
+	app.get('/api/providerpayment/suborder/:suborderid',auth,api.orderapi.suborderpaymentdone);
+	
 	// Api's for Admin Screen
 	app.get("/api/allorders/:branchid",auth,api.orderapi.getAllOrderDetailsForBranch);//get all order details
 	app.get("/api/nextorders/:orderid",auth,api.orderapi.loadMoreOrders);//get all order details
