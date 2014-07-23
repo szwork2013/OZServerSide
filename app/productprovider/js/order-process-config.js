@@ -1,6 +1,6 @@
 var events = require("events");
 var logger=require("../../common/js/logger");
-var OrderProcessConfigModel = require("./orderstatus-reff-model");
+var OrderProcessConfigModel = require("./order-process-config-model");
 
 var OrderProcessConfig = function(orderprocessconfigdata) {
   this.orderprocessconfigdata=orderprocessconfigdata;

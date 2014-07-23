@@ -20,7 +20,7 @@ var exec = require('child_process').exec;
 AWS.config.update({accessKeyId:'AKIAJOGXRBMWHVXPSC7Q', secretAccessKey:'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'});
 AWS.config.update({region:'ap-southeast-1'});
 var s3bucket = new AWS.S3();
-var OrderStatusRefModel=require('./orderstatus-reff-model');
+var OrderProcessConfigModel=require('./order-process-config-model');
 var ProductProvider = function(productproviderdata) {
   this.productprovider=productproviderdata;
 };
@@ -296,7 +296,7 @@ var _checkProviderCodeAlreadyExist=function(self,productproviderdata,user,provid
 	})
 }
 var _checkOrderProcessConfiguration=function(self,productproviderdata,user,providerlogo){
-	OrderStatusRefModel.find({},function(err,orderrefstatus){
+	OrderProcessConfigModel.find({},function(err,orderrefstatus){
 		if(err){
 			logger.emit("error","Database Issue,fun:_checkOrderProcessConfiguration"+err,user.userid);
 			self.emit("failedProductProviderRegistration",{"error":{"code":"ED001","message":"Database Issue"}});		
