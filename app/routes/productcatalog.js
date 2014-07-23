@@ -12,7 +12,6 @@ exports.init = function (app) {
  	app.put('/api/productprice/:branchid',auth,api.productcatalogapi.changeProductPrice);
  	app.put('/api/saveprice/:branchid/:productid',auth,api.productcatalogapi.holdingProductPrice);
  	app.put('/api/activateprice/:branchid/:productid',auth,api.productcatalogapi.activateProductPrice);
-
  	app.put('/api/deactivateprice/:branchid/:productid',auth,api.productcatalogapi.deactivateProductPrice);
 
  	app.put('/api/publishunpublish/product/:branchid',auth,api.productcatalogapi.publishUnpublishProductCatalog);

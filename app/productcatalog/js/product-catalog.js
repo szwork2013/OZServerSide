@@ -27,6 +27,10 @@ function isArray(what) {
     return Object.prototype.toString.call(what) === '[object Array]';
 }
 
+function isNumber(n) {
+  return !isNaN(parseFloat(n)) && isFinite(n);
+}
+
 ProductCatalog.prototype.addProductCatalog = function(branchid,providerid,categoryid,user,productlogo) {
 	var self = this;
 	console.log("This "+JSON.stringify(this));
@@ -46,6 +50,8 @@ var _validateServiceCatalogData=function(self,branchid,providerid,categoryid,pro
 		self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"Please pass price"}})
 	}else if(productcatalog.price.value==undefined || productcatalog.price.value==""){
 		self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"Please pass value in price"}})
+	}else if(!isNumber(S(productcatalog.price.value))){
+		self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"price should be numeric"}})
 	}else if(productcatalog.price.uom==undefined || productcatalog.price.uom==""){
 		self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"Please pass unit of measurement"}})
 	}else  if(["kg","no","ltr","lb","gm"].indexOf(productcatalog.price.uom.toLowerCase())<0){
@@ -561,7 +567,7 @@ var _validateProductPriceData=function(self,branchid,productid,pricedata,session
 		self.emit("failedChangeProductPrice",{error:{code:"AV001",message:"Please provide pricedata"}});
 	}else if(pricedata.newprice==undefined){
 		self.emit("failedChangeProductPrice",{error:{code:"AV001",message:"Please enter new price"}});
-	}else if(!S(pricedata.newprice).isNumeric()){
+	}else if(!isNumber(S(pricedata.newprice))){
 		self.emit("failedChangeProductPrice",{error:{code:"AV001",message:"New price should be numeric"}});
 	}else{
 		//////////////////////////////////////////////////////////////////////////////////////
@@ -729,6 +735,8 @@ var _changeProductsPrice=function(self,branchid,productprice,initialvalue,sessio
 	})
 }
 
+
+
 ProductCatalog.prototype.holdingProductPrice = function(branchid,productid,pricedata,sessionuserid) {
 	var self=this;
 	//////////////////////////////////////////////////////////////////////////////////
@@ -740,7 +748,7 @@ var _validateHoldingProductPriceData=function(self,branchid,productid,pricedata,
 		self.emit("failedHoldProductPrice",{error:{code:"AV001",message:"Please provide pricedata"}});
 	}else if(pricedata.newprice==undefined || pricedata.newprice==""){
 		self.emit("failedHoldProductPrice",{error:{code:"AV001",message:"Please enter new price"}});
-	}else if(!S(pricedata.newprice).isNumeric()){
+	}else if(!isNumber(pricedata.newprice)){
 		self.emit("failedHoldProductPrice",{error:{code:"AV001",message:"New price should be numeric"}});
 	}else if(pricedata.uom==undefined || pricedata.uom==""){
 		self.emit("failedHoldProductPrice",{"error":{"code":"AV001","message":"Please enter unit of measurement"}});
@@ -865,14 +873,14 @@ var _activateProductPrice=function(self,productid,sessionuserid,product){
 	console.log("product : "+JSON.stringify(product));
 	ProductCatalogModel.update({productid:productid},{$set:{"price.value":product.holding_price.value,"price.currency":product.holding_price.currency,"price.uom":product.holding_price.uom,"holding_price.status":"active"}},function(err,priceactivatestatus){
 		if(err){
-			logger.emit('error',"Database Issue  _activateProductPrice1 "+err,sessionuserid);
+			logger.emit('error',"Database Issue  _activateProductPrice "+err,sessionuserid);
 			self.emit("failedActivateProductPrice",{"error":{"code":"ED001","message":"Database Issue "+err}});
 		}else if(priceactivatestatus==0){
 			self.emit("failedActivateProductPrice",{error:{message:"Server Issue"}});
 		}else{
 			ProductCatalogModel.update({productid:productid},{$push:{price_history:{oldprice:product.price.value,newprice:product.holding_price.value,updatedby:sessionuserid,updatedon:new Date()}}},function(err,pricehistorystatus){
 				if(err){
-					logger.emit('error',"Database Issue  _activateProductPrice2 "+err,sessionuserid)
+					logger.emit('error',"Database Issue  _activateProductPrice "+err,sessionuserid)
 					self.emit("failedActivateProductPrice",{"error":{"code":"ED001","message":"Database Issue"}});
 				}else if(pricehistorystatus==0){
 					self.emit("failedActivateProductPrice",{error:{message:"Server Issue"}});
