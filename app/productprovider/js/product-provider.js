@@ -924,22 +924,23 @@ var _validateBranchData=function(self,branchdata,sessionuser,providerid){
 	  self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please provide delivery details for your branch"}})		
 	}else if(branchdata.delivery.isprovidehomedelivery==undefined){
 		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please select you will provide homedeliveryoptions"}})		
-	}else if(branchdata.delivery.isprovidepickup!=true){
+	}else if(branchdata.delivery.isprovidepickup==undefined){
 		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Pickup options should be selected"}})		
-    }else if(branchdata.delivery.isdeliverychargeinpercent==undefined){
-		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"You have to select delivery charge in percent or amount"}})		
-	}else  if(branchdata.note==undefined || branchdata.note==""){
-		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please pass note"}})		
-	}else{
-		
-		//////////////////////////////////////////////////////////////
-		_isValidProductProvider(self,branchdata,sessionuser,providerid)
-		//////////////////////////////////////////////////////////////	
-		
-		// if(delivery==undefined){}
-		
+    }else  if(branchdata.note==undefined){
+		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please enter note "}})		
+    }else  if(branchdata.delivery.isdeliverychargeinpercent==undefined){
+		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please select you provide delivery charge in percent or not "}})		
+    }else{
+    	if(branchdata.delivery.isprovidehomedelivery || branchdata.delivery.isprovidepickup){	
+          //////////////////////////////////////////////////////////////
+		   _isValidProductProvider(self,branchdata,sessionuser,providerid)
+		   //////////////////////////////////////////////////////////////	
+    	}else{
+    		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"You have to select atleast home or pickup option"}})			
+    	}
+    }  
 	}
-}
+
 var _isValidProductProvider=function(self,branchdata,sessionuser,providerid){
 	console.log("sessionuser : "+sessionuser.userid+" providerid : "+providerid);
 	ProductProviderModel.findOne({"user.userid":sessionuser.userid,providerid:providerid},function(err,productprovider){
@@ -1339,9 +1340,20 @@ var _validateUpdateBranchData=function(self,user,providerid,branchid,branchdata)
 	}else if(branchdata.status!=undefined || branchdata.usergrp!=undefined || branchdata.branch_images!=undefined ){
 		self.emit("failedUpdateBranch",{"error":{code:"AV001",message:"You can not change these details of branch"}});
 	}else{
-		/////////////////////////////////////////////////////////////
-	_isAuthorizedUserToUpdateBranch(self,user,providerid,branchid,branchdata)
-	////////////////////////////////////////////////////////////
+		if(branchdata.delivery==undefined){
+			/////////////////////////////////////////////////////////////
+	   _isAuthorizedUserToUpdateBranch(self,user,providerid,branchid,branchdata)
+	    ////////////////////////////////////////////////////////////
+		}else{
+			if(branchdata.delivery.isprovidehomedelivery || branchdata.delivery.isprovidepickup){
+				/////////////////////////////////////////////////////////////
+	      _isAuthorizedUserToUpdateBranch(self,user,providerid,branchid,branchdata)
+	      ////////////////////////////////////////////////////////////
+			}else{
+				self.emit("failedUpdateBranch",{"error":{code:"AV001",message:"You have to select atleast home or pickup"}});
+			}
+		}
+	
 	}
 }
 var _isAuthorizedUserToUpdateBranch=function(self,user,providerid,branchid,branchdata){
@@ -1360,8 +1372,11 @@ var _isAuthorizedUserToUpdateBranch=function(self,user,providerid,branchid,branc
 }
 var _updateBranch=function(self,providerid,branchid,branchdata){
 	var branch_object={};
-	for (k in branchdata ) {
+	  for (k in branchdata ) {
     	branch_object["branch.$."+k]=branchdata[k];
+    }
+    if(branchdata.delivery.isprovidehomedelivery==false){
+    	branch_object["branch.$.deliverycharge"]=[];
     }
     logger.emit("log","test"+JSON.stringify(branch_object));
 	ProductProviderModel.update({providerid:providerid,"branch.branchid":branchid},{$set:branch_object},function(err,branchupdatestatus){
@@ -1371,6 +1386,7 @@ var _updateBranch=function(self,providerid,branchid,branchdata){
 		}else if(branchupdatestatus==0){
 			self.emit("failedUpdateBranch",{"error":{"message":"Branch not exists"}});			
 		}else{
+
 			/////////////////////////////////
 			_updateBranchProductsDetails(branchid)
 			//////////////////////////////
