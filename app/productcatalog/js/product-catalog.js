@@ -729,6 +729,10 @@ var _changeProductsPrice=function(self,branchid,productprice,initialvalue,sessio
 	})
 }
 
+function isNumber(n) {
+  return !isNaN(parseFloat(n)) && isFinite(n);
+}
+
 ProductCatalog.prototype.holdingProductPrice = function(branchid,productid,pricedata,sessionuserid) {
 	var self=this;
 	//////////////////////////////////////////////////////////////////////////////////
@@ -740,7 +744,7 @@ var _validateHoldingProductPriceData=function(self,branchid,productid,pricedata,
 		self.emit("failedHoldProductPrice",{error:{code:"AV001",message:"Please provide pricedata"}});
 	}else if(pricedata.newprice==undefined || pricedata.newprice==""){
 		self.emit("failedHoldProductPrice",{error:{code:"AV001",message:"Please enter new price"}});
-	}else if(!S(pricedata.newprice).isNumeric()){
+	}else if(!isNumber(pricedata.newprice)){
 		self.emit("failedHoldProductPrice",{error:{code:"AV001",message:"New price should be numeric"}});
 	}else if(pricedata.uom==undefined || pricedata.uom==""){
 		self.emit("failedHoldProductPrice",{"error":{"code":"AV001","message":"Please enter unit of measurement"}});
