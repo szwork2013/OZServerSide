@@ -16,6 +16,15 @@ module.exports = {
           user: "orderzapp@giantleapsystems.com",
           pass: "Orderzapp123"
         }
+      },
+      paytm:{
+        connectionurl:"/api/orderzapp/payment",
+        checksumurl:"/api/paytm/generatechecksum",
+        MID:"GiantL66431191194091",
+        INDUSTRY_TYPE_ID:"Retail115",
+        WEBSITE:"giantleapsystems",
+        merchantKey:"T5n43ZNnszBBO0v3",
+        CHANNEL_ID:"WEB"
       }
 	}
 }
