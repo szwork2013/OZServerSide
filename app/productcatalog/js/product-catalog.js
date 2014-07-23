@@ -27,6 +27,10 @@ function isArray(what) {
     return Object.prototype.toString.call(what) === '[object Array]';
 }
 
+function isNumber(n) {
+  return !isNaN(parseFloat(n)) && isFinite(n);
+}
+
 ProductCatalog.prototype.addProductCatalog = function(branchid,providerid,categoryid,user,productlogo) {
 	var self = this;
 	console.log("This "+JSON.stringify(this));
@@ -46,6 +50,8 @@ var _validateServiceCatalogData=function(self,branchid,providerid,categoryid,pro
 		self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"Please pass price"}})
 	}else if(productcatalog.price.value==undefined || productcatalog.price.value==""){
 		self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"Please pass value in price"}})
+	}else if(!isNumber(S(productcatalog.price.value))){
+		self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"price should be numeric"}})
 	}else if(productcatalog.price.uom==undefined || productcatalog.price.uom==""){
 		self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"Please pass unit of measurement"}})
 	}else  if(["kg","no","ltr","lb","gm"].indexOf(productcatalog.price.uom.toLowerCase())<0){
@@ -561,7 +567,7 @@ var _validateProductPriceData=function(self,branchid,productid,pricedata,session
 		self.emit("failedChangeProductPrice",{error:{code:"AV001",message:"Please provide pricedata"}});
 	}else if(pricedata.newprice==undefined){
 		self.emit("failedChangeProductPrice",{error:{code:"AV001",message:"Please enter new price"}});
-	}else if(!S(pricedata.newprice).isNumeric()){
+	}else if(!isNumber(S(pricedata.newprice))){
 		self.emit("failedChangeProductPrice",{error:{code:"AV001",message:"New price should be numeric"}});
 	}else{
 		//////////////////////////////////////////////////////////////////////////////////////
@@ -729,9 +735,7 @@ var _changeProductsPrice=function(self,branchid,productprice,initialvalue,sessio
 	})
 }
 
-function isNumber(n) {
-  return !isNaN(parseFloat(n)) && isFinite(n);
-}
+
 
 ProductCatalog.prototype.holdingProductPrice = function(branchid,productid,pricedata,sessionuserid) {
 	var self=this;
