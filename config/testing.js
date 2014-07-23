@@ -1,14 +1,14 @@
 module.exports = {
     OrderZapp: {
-      name:"quality",
-      dbName: "ozpp-demo",
+      name: "development",
+      dbName: "ozpp-test",
       dbHost: "localhost",
       dbPort: "27017",
-      debug:true,
       SMSLongCode:"9243007462",
       gtranslatekey:"AIzaSyBd6VpfinXfXMKKlEUbU6IWsDZ9eOmB9Dc",
-      amazonbucket:'orderzapp/products/quality',
+      debug:true,
       merchantKey:"kzAVMuQG8xKIiaVl",
+      amazonbucket:'orderzapp/products/test',
       smtp_general:{
         host: "smtp.giantleapsystems.com", // hostname
         secureConnection: true, // use SSL
