@@ -926,11 +926,11 @@ var _validateBranchData=function(self,branchdata,sessionuser,providerid){
 		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please select you will provide homedeliveryoptions"}})		
 	}else if(branchdata.delivery.isprovidepickup==undefined){
 		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Pickup options should be selected"}})		
-    }else  if(branchdata.note==undefined){
+  }else  if(branchdata.note==undefined){
 		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please enter note "}})		
-    }else  if(branchdata.delivery.isdeliverychargeinpercent==undefined){
+  }else  if(branchdata.delivery.isdeliverychargeinpercent==undefined){
 		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please select you provide delivery charge in percent or not "}})		
-    }else{
+  }else{
     	if(branchdata.delivery.isprovidehomedelivery || branchdata.delivery.isprovidepickup){	
           //////////////////////////////////////////////////////////////
 		   _isValidProductProvider(self,branchdata,sessionuser,providerid)
@@ -1375,17 +1375,18 @@ var _updateBranch=function(self,providerid,branchid,branchdata){
 	  for (k in branchdata ) {
     	branch_object["branch.$."+k]=branchdata[k];
     }
+    //if he only select pickup then deliverycharges set to be empty
     if(branchdata.delivery.isprovidehomedelivery==false){
     	branch_object["branch.$.deliverycharge"]=[];
     }
     logger.emit("log","test"+JSON.stringify(branch_object));
-	ProductProviderModel.update({providerid:providerid,"branch.branchid":branchid},{$set:branch_object},function(err,branchupdatestatus){
-		if(err){
-			logger.emit('error',"Database Issue fun:_updateBranch"+err,user.userid)
-		  self.emit("failedUpdateBranch",{"error":{"code":"ED001","message":"Database Issue"}});			
-		}else if(branchupdatestatus==0){
-			self.emit("failedUpdateBranch",{"error":{"message":"Branch not exists"}});			
-		}else{
+	  ProductProviderModel.update({providerid:providerid,"branch.branchid":branchid},{$set:branch_object},function(err,branchupdatestatus){
+			if(err){
+				logger.emit('error',"Database Issue fun:_updateBranch"+err,user.userid)
+			  self.emit("failedUpdateBranch",{"error":{"code":"ED001","message":"Database Issue"}});			
+			}else if(branchupdatestatus==0){
+				self.emit("failedUpdateBranch",{"error":{"message":"Branch not exists"}});			
+			}else{
 
 			/////////////////////////////////
 			_updateBranchProductsDetails(branchid)
