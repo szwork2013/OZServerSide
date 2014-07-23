@@ -13,16 +13,16 @@
 var mongoose = require('../../common/js/db');
 var generateId = require('time-uuid');
  
-var orderStatusReffSchema = mongoose.Schema({
+var orderProcessConfig = mongoose.Schema({
   index:{type:Number,unique:true},
   order_status:{type:String,unique:true},
   require:{type:Boolean,default:false}  
 });
 
-orderStatusReffSchema.statics.findAndModify = function (query, sort, doc, options, callback) {
+orderProcessConfig.statics.findAndModify = function (query, sort, doc, options, callback) {
   return this.collection.findAndModify(query, sort, doc, options, callback);
 };
-var orderStatus = mongoose.model('orderstatusreff', orderStatusReffSchema);
+var orderprocessconfiguration = mongoose.model('orderprocessconfig', orderProcessConfig);
 
 //export the model schema
-module.exports = orderStatus;
+module.exports = orderprocessconfiguration;

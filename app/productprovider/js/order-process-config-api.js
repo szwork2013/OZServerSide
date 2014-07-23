@@ -1,11 +1,11 @@
 var logger = require("../../common/js/logger");
-var OrderStatusReff = require("./orderstatus-reff");
+var OrderProcessConfig = require("./order-process-config");
 
 exports.addOrderProcessingStatus = function(req,res){
 
-  var orderstatusdata = req.body.process;  
-  var orderstatusreff = new OrderStatusReff(orderstatusdata);
-  console.log("addOrderProcessingStatus : "+JSON.stringify(orderstatusdata));
+  var orderprocessconfigdata = req.body.process;  
+  var orderstatusreff = new OrderProcessConfig(orderprocessconfigdata);
+  console.log("addOrderProcessingStatus : "+JSON.stringify(orderprocessconfigdata));
   orderstatusreff.removeAllListeners("failedAddOrderProcessingStatus");
   orderstatusreff.on("failedAddOrderProcessingStatus",function(err){
     if(err.error.code!="ED001"){
@@ -31,7 +31,7 @@ exports.addOrderProcessingStatus = function(req,res){
 }
 
 exports.getOrderProcessingStatus = function(req,res){
-  var orderstatusreff = new OrderStatusReff();
+  var orderstatusreff = new OrderProcessConfig();
   orderstatusreff.removeAllListeners("failedGetOrderProcessingStatus");
   orderstatusreff.on("failedGetOrderProcessingStatus",function(err){
     if(err.error.code!="ED001"){
@@ -58,7 +58,7 @@ exports.getOrderProcessingStatus = function(req,res){
 
 exports.deleteOrderProcessingStatus = function(req,res){
   var index = req.params.index;
-  var orderstatusreff = new OrderStatusReff();
+  var orderstatusreff = new OrderProcessConfig();
   orderstatusreff.removeAllListeners("failedDeleteOrderProcessingStatus");
   orderstatusreff.on("failedDeleteOrderProcessingStatus",function(err){
     if(err.error.code!="ED001"){

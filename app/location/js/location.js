@@ -16,34 +16,46 @@ function isArray(what) {
 
 LocationRefference.prototype.manageLocations = function() {
 	var self = this;
-	console.log("manageLocations");
 
 	// Connect to the db
-	MongoClient.connect("mongodb://localhost:27017/ozpp-dev", function(err, db) {
+	MongoClient.connect("mongodb://localhost:27017/mydb", function(err, db) {
 	  	if(err) {
 	    	console.log("Connection Failed To ozpp-dev "+err);
 	  	}else{
-	  		console.log("Connected Successfully To ozpp-dev");
-	  		var zipcodesModel = db.collection('zipcodes');
-	  		zipcodesModel.aggregate([{$group:{_id:"$zipcode",area:{$addToSet:"$area"},country:{$addToSet:"$countrycode"},state:{$addToSet:"$state"},city:{$addToSet:"$district"},lati:{$addToSet:"$lat"},longi:{$addToSet:"$longitude"}}}],function(err,doc){
+	  		console.log("Connected Successfully To mydb");
+	  // 		var zipcodesModel = db.collection('zipcodes');
+	  // 		zipcodesModel.aggregate([{$group:{_id:"$zipcode",area:{$addToSet:"$area"},country:{$addToSet:"$countrycode"},state:{$addToSet:"$state"},city:{$addToSet:"$district"},lati:{$addToSet:"$lat"},longi:{$addToSet:"$longitude"}}}],function(err,doc){
+			// 	if(err){
+			// 		logger.emit("error","Database Error : manageLocations " + err);
+			// 		self.emit("failedManageLocation",{"error":{"code":"ED001","message":"Database Issue"}});
+			// 	}else if(doc.length>0){
+			// 		var zipcodearray=[];
+			// 		for(var i=0;i<doc.length;i++){
+			// 			var zipcodearea={country:doc[i].country[0],zipcode:doc[i]._id,state:doc[i].state[0],city:doc[i].city[0],geo:{lati:doc[i].lati[0]+"",longi:doc[i].longi[0]+""},area:doc[i].area}
+			// 			zipcodearray.push(zipcodearea)
+			// 		}
+			// 		LocationModel.create(zipcodearray,function(er,locationdata){
+			// 			if(err){
+			// 				logger.emit("error","Database Error:manageLocations"+err);
+			// 				self.emit("failedManageLocation",{"error":{"code":"ED001","message":"Database Issue"}});
+			// 			}else{
+			// 				logger.emit("log","Location added");
+			// 				self.emit("successfulManageLocation",{"success":{"message":"Location Added Sucessfully"}});
+			// 			}
+			// 		})
+			// 	}else{
+		 //  			self.emit("failedManageLocation",{"error":{"code":"AD001","message":"Data does not exists"}});
+		 //  		}
+			// });
+			var things = db.collection('things');
+
+	  		things.find({zipcode:'400001'},function(err,doc){
 				if(err){
-					logger.emit("error","Database Error : _isValidCategoryID " + err);
+					logger.emit("error","Database Error : manageLocations " + err);
 					self.emit("failedManageLocation",{"error":{"code":"ED001","message":"Database Issue"}});
-				}else if(doc.length>0){
-					var zipcodearray=[];
-					for(var i=0;i<doc.length;i++){
-						var zipcodearea={country:doc[i].country[0],zipcode:doc[i]._id,state:doc[i].state[0],city:doc[i].city[0],geo:{lati:doc[i].lati[0]+"",longi:doc[i].longi[0]+""},area:doc[i].area}
-						zipcodearray.push(zipcodearea)
-					}
-					LocationModel.create(zipcodearray,function(er,locationdata){
-						if(err){
-							logger.emit("error","Database Error:manageLocations"+err);
-							self.emit("failedManageLocation",{"error":{"code":"ED001","message":"Database Issue"}});
-						}else{
-							logger.emit("log","Location added");
-							self.emit("successfulManageLocation",{"success":{"message":"Location Added Sucessfully"}});
-						}
-					})
+				}else if(doc){
+					console.log(doc);
+					self.emit("successfulManageLocation",{"success":{"message":"Getting Things","doc":doc}});
 				}else{
 		  			self.emit("failedManageLocation",{"error":{"code":"AD001","message":"Data does not exists"}});
 		  		}

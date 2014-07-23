@@ -26,7 +26,7 @@ exports.init = function (app) {
  	app.get('/api/sellersagreement/:providerid',auth,api.productproviderapi.getSellersAgreement);
  	app.post('/api/sellersagreement/file/:providerid',auth,api.productproviderapi.changeSellersAgreementFile);
 
- 	app.post('/api/orderstatus',auth,api.orderstatus.addOrderProcessingStatus);
- 	app.get('/api/orderstatus',auth,api.orderstatus.getOrderProcessingStatus);
- 	app.delete('/api/orderstatus/:index',auth,api.orderstatus.deleteOrderProcessingStatus);
+ 	app.post('/api/orderprocessconfig',auth,api.orderprocessconfig.addOrderProcessingStatus);
+ 	app.get('/api/orderprocessconfig',auth,api.orderprocessconfig.getOrderProcessingStatus);
+ 	app.delete('/api/orderprocessconfig/:index',auth,api.orderprocessconfig.deleteOrderProcessingStatus);
 }
