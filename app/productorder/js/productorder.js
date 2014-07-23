@@ -117,68 +117,47 @@ var _validateCreateOrderData = function(self,orderdata,user){
 		self.emit("failedCreateOrder",{"error":{"code":"AV001","message":"Please enter zipcode for billing address"}});
 	}else  if(orderdata.paymentmode==undefined ||orderdata.paymentmode==""){
 		self.emit("failedCreateOrder",{"error":{"code":"AV001","message":"Please select paymentoptions"}});
-	}else if(orderdata.orderinstructions==undefined && !isArray(orderdata.orderinstructions)){
-		self.emit("failedCreateOrder",{"error":{"code":"AV001","message":"Please pass order instructions"}});
+	// }else if(orderdata.orderinstructions==undefined && !isArray(orderdata.orderinstructions)){
+		// self.emit("failedCreateOrder",{"error":{"code":"AV001","message":"Please pass order instructions"}});
 	// }else if(orderdata.deliverycharges==undefined){
 	// 	self.emit("failedCreateOrder",{"error":{"code":"AV001","message":"Please provide deliverycharges information"}});
 	// }else if(!isArray(orderdata.deliverycharges)){
 	// 	self.emit("failedCreateOrder",{"error":{"code":"AV001","message":"deliverycharges should not be Array"}});	
-	// }else if(orderdata.deliverytypes==undefined){
-	// 		self.emit("failedCreateOrder",{"error":{"code":"AV001","message":"please provide deliverytypes"}});	
-	// }else if(!isArray(orderdata.deliverytypes)){
-	// 	self.emit("failedCreateOrder",{"error":{"code":"AV001","message":"deliverytypes should not be array"}});	
-	// }else if(orderdata.deliverytypes.length==0){
-	// 	self.emit("failedCreateOrder",{"error":{"code":"AV001","message":"deliverytypes should not be empty"}});	
-	// }else{
+	}else if(orderdata.sellerdelivery==undefined){
+			self.emit("failedCreateOrder",{"error":{"code":"AV001","message":"please provide sellerdelivery"}});	
+	}else if(!isArray(orderdata.sellerdelivery)){
+		self.emit("failedCreateOrder",{"error":{"code":"AV001","message":"sellerdelivery should not be array"}});	
+	}else if(orderdata.sellerdelivery.length==0){
+		self.emit("failedCreateOrder",{"error":{"code":"AV001","message":"sellerdelivery should not be empty"}});	
+	
   }else{ 
 		var deliverytypesarray=[];
-		// for(var i=0;i<orderdata.deliverytypes.length;i++){
-		// 	deliverytypesarray.push(orderdata.deliverytypes[i].deliverytype)
-		// }
+		for(var i=0;i<orderdata.sellerdelivery.length;i++){
+			deliverytypesarray.push(orderdata.sellerdelivery[i].deliverytype)
+		 }
 		if(deliverytypesarray.indexOf("home")<0){//if in create order there is not deliverytypes home
 			logger.emit("log","order validated");
 		///////////////////////////////////////////
 		_validateCartDetails(self,orderdata,user)
 		//////////////////////////////////////////
 		}else{
-			if(orderdata.delivery_address == undefined){
-				self.emit("failedCreateOrder",{"error":{"code":"AV001","message":"Please enter delivery_address details"}});
-			}else if(orderdata.delivery_address.city == undefined || orderdata.delivery_address.city.trim() == ""){
-				self.emit("failedCreateOrder",{"error":{"code":"AV001","message":"Please enter shipping address city"}});
-			}else if(orderdata.delivery_address.address1 == undefined ||orderdata.delivery_address.address1.trim() == ""){
-				self.emit("failedCreateOrder",{"error":{"code":"AV001","message":"Please enter shipping address1"}});
-			}else if(orderdata.delivery_address.address2 == undefined || orderdata.delivery_address.address2.trim() == ""){
-				self.emit("failedCreateOrder",{"error":{"code":"AV001","message":"Please enter shipping address2"}});
-			}else if(orderdata.delivery_address.area == undefined){
-				self.emit("failedCreateOrder",{"error":{"code":"AV001","message":"Please enter shipping address area"}});
-			}else if(orderdata.delivery_address.zipcode == undefined){
-				self.emit("failedCreateOrder",{"error":{"code":"AV001","message":"Please enter zipcode for shipping address"}});
-			}else{
-				logger.emit("log","order validated");
-				logger.emit("log","orderdata deliverycharges"+JSON.stringify(orderdata));
-				///////////////////////////////////////
-		 		_validatePreferredDeliveryDate(self,orderdata,user)
-		 		/////////////////////////////////////
-			}
+			///////////////////////////////////////////
+		_validateCartDetails(self,orderdata,user)
+		//////////////////////////////////////////
 		}
   }
 }
 var _validatePreferredDeliveryDate=function(self,orderdata,user){
-	if(orderdata.preferred_delivery_date==undefined){
-		 ///////////////////////////////////////////
-		  _validateCartDetails(self,orderdata,user)
-		  //////////////////////////////////////////
-	}else{
-		var currentdate=new Date();
-		currentdate=new Date(currentdate.getFullYear()+"/"+(currentdate.getMonth()+1)+"/"+currentdate.getDate())
-		if(new Date(orderdata.preferred_delivery_date)<currentdate){
-			self.emit("failedCreateOrder",{"error":{"code":"AV001","message":"Preferred date should be greater or equal to current date"}});
-		}else{
-			//////////////////////////////////////////
-		  	_validateCartDetails(self,orderdata,user);
-		  ////////////////////////////////////////////
+
+
+	for(var i=0;i<orderdata.sellerdelivery.length;i++){
+		if(orderdata.sellerdelivery[i].prefdeldtime!=undefined){
+			orderdata.sellerdelivery[i].prefdeldtime=new Date(orderdata.sellerdelivery[i].prefdeldtime);
 		}
 	}
+	////////////////////////////
+	_validateCartDetails(self,orderdata,user)
+	//////////////////////////
 }
 var _validateCartDetails=function(self,orderdata,user){
 	var carts=[];
@@ -245,7 +224,7 @@ var _ProviderBranchSpecificCartsProducts=function(self,orderdata,validproductids
 				var product_provider=branchproducts[i]._id;
 				// product_provider.providerlogo=branchproducts[i].provider.providerlogo;
 				
-				var suborder={status:"orderreceived",suborderid:"SODR-"+branchproducts[i]._id.providercode.toLowerCase()+"-"+Math.floor(Math.random()*100000000),productprovider:product_provider};
+				var suborder={status:"orderreceived",suborderid:"SODR-"+branchproducts[i]._id.providercode.toUpperCase()+"-"+Math.floor(Math.random()*100000000),productprovider:product_provider};
 				var suborderproducts=[];
 				var suborderprice=0;
 				console.log("branchid::::::::"+product_provider.branchid)
@@ -266,32 +245,53 @@ var _ProviderBranchSpecificCartsProducts=function(self,orderdata,validproductids
 				}
 				var delivery_charge=0;
 				var dilivery_type="pickup";
+        var prefdeldtime;
 				console.log("deliverycharges"+JSON.stringify(orderdata.deliverycharges))
-				var deliverytypes=orderdata.deliverytypes;
-				var deliverytypebranchids=[]
-				if(deliverytypes!=undefined && isArray(deliverytypes)){
-					for(var l=0;l<deliverytypes.length;l++){
-						deliverytypebranchids.push(deliverytypes[l].branchid);
-					}
-				}
-					if(orderdata.deliverycharges!=undefined && isArray(orderdata.deliverycharges)){
-						for(var k=0;k<orderdata.deliverycharges.length;k++){
-
-							if(orderdata.deliverycharges[k].branchid==product_provider.branchid){
-								if(deliverytypebranchids.indexOf(orderdata.deliverycharges[k].branchid)>=0){//this condition for check branchid exist in deliverytypes array provided by cart
-									dilivery_type=deliverytypes[deliverytypebranchids.indexOf(orderdata.deliverycharges[k].branchid)].deliverytype;
-									if(deliverytypes[deliverytypebranchids.indexOf(orderdata.deliverycharges[k].branchid)].deliverytype.toLowerCase()=="home"){
-										  if(orderdata.deliverycharges[k].isdeliverychargeinpercent==false){
-										  	delivery_charge=	(orderdata.deliverycharges[k].charge)	
-										  }else{
-										  	delivery_charge=suborderprice*(parseFloat(orderdata.deliverycharges[k].charge)/100)
-										  }
-											
-									}
+			
+				// var deliverytypebranchids=[]
+				
+				for(var k=0;k<orderdata.sellerdelivery.length;k++){
+					if(orderdata.sellerdelivery[k].branchid==product_provider.branchid){
+						//this condition for check branchid exist in deliverytypes array provided by cart
+						//for setting deliverytype
+						  if(orderdata.sellerdelivery[k].deliverytype!=undefined){
+						  		dilivery_type=orderdata.sellerdelivery[k].deliverytype;	
+						  }
+						  //for calculating deliverycharge
+							if(orderdata.sellerdelivery[k].deliverycharge!=undefined){
+								if(orderdata.sellerdelivery[k].deliverytype.toLowerCase()=="home"){
+										if(orderdata.sellerdelivery[k].deliverycharge.isdeliverychargeinpercent==false){
+							  	delivery_charge=	parseFloat(orderdata.sellerdelivery[k].deliverycharge.charge)	
+								  }else{
+								  	delivery_charge=suborderprice*(parseFloat(orderdata.sellerdelivery[k].delivery.charge)/100)
+								  }
+								}
+							  
+							}
+							//for setting preffered delivery date and time
+							if(orderdata.sellerdelivery[k].prefdeldtime!=undefined){
+							 	prefdeldtime=orderdata.sellerdelivery[k].prefdeldtime;
+							}
+							//delivery type is pickup then set pickup address
+							if(orderdata.sellerdelivery[k].deliverytype.toLowerCase()=="pickup"){
+								if(orderdata.sellerdelivery[k].pickup_address!=undefined){
+									suborder.pickup_address=orderdata.sellerdelivery[k].pickup_address
 								}
 							}
+							//for setting order instruction for seller
+							if(orderdata.sellerdelivery[k].orderinstructions){
+								suborder.orderinstructions=orderdata.sellerdelivery[k].orderinstructions;
+							}
+							if(orderdata.sellerdelivery[k].deliverytype.toLowerCase()=="home"){
+								if(orderdata.sellerdelivery[k].delivery_address!=undefined){
+									suborder.delivery_address=orderdata.sellerdelivery[k].delivery_address
+								}
+							}
+
 						}
 					}
+				
+					
 
 				suborderprice+=delivery_charge;
 				suborder.deliverycharge=delivery_charge;
@@ -302,33 +302,32 @@ var _ProviderBranchSpecificCartsProducts=function(self,orderdata,validproductids
 				suborder.buyerpayment={status:"pending",mode:orderdata.paymentmode};
 				
 				suborder.billing_address=orderdata.billing_address;
-				if(dilivery_type=="pickup"){
-        	suborder.delivery_address=null;
-        }else{
-        	suborder.delivery_address=orderdata.delivery_address;	
-        }
+				// if(dilivery_type=="pickup"){
+    //     	suborder.delivery_address=null;
+    //     }else{
+    //     	suborder.delivery_address=orderdata.delivery_address;	
+    //     }
 				suborder.suborder_price=suborderprice;
-				suborder.prefdeldtime=orderdata.deliverydate;
+				suborder.prefdeldtime=prefdeldtime;
 		    suborder.deliverytype=dilivery_type;
-		    var orderinstructionbranchids=[]
-				for(j=0;j<orderdata.orderinstructions.length;j++){
-					orderinstructionbranchids.push(orderdata.orderinstructions[j].branchid)
-				}
-				console.log("branchid"+branchproducts[i]._id.branchid)
-				if(orderinstructionbranchids.indexOf(branchproducts[i]._id.branchid)>=0){
-					suborder.orderinstructions=orderinstructionbranchids[orderinstructionbranchids.indexOf(branchproducts[i]._id.branchid)].message;
-				}else{
-					suborder.orderinstructions=null;
-				}
+		  //   var orderinstructionbranchids=[]
+				// for(j=0;j<orderdata.orderinstructions.length;j++){
+				// 	orderinstructionbranchids.push(orderdata.orderinstructions[j].branchid)
+				// }
+				// console.log("branchid"+branchproducts[i]._id.branchid)
+				// if(orderinstructionbranchids.indexOf(branchproducts[i]._id.branchid)>=0){
+				// 	suborder.orderinstructions=orderinstructionbranchids[orderinstructionbranchids.indexOf(branchproducts[i]._id.branchid)].message;
+				// }else{
+				// 	suborder.orderinstructions=null;
+				// }
 				
-				console.log("suborder orderinstructions"+suborder.orderinstructions)
+				// console.log("suborder orderinstructions"+suborder.orderinstructions)
 				suborders.push(suborder);
 				// suborders.status="init";
 			}
 			var orderobject={preferred_delivery_date:orderdata.preferred_delivery_date,consumer:{userid:user.userid,name:user.firstname+" "+user.lastname,email:user.email,mobileno:user.mobileno},total_order_price:totalorderprice,suborder:suborders,payment:{mode:orderdata.paymentmode,paymentid:generateId()}}
-			if(CONFIG.name=="quality"){
-				orderobject.status="approved";
-			}
+			orderobject.status="approved";
+			logger.emit("log","Final Order Data:"+JSON.stringify(orderobject))
 			////////////////////////////////,
 			_createOrder(self,orderobject,user);
 			///////////////////////////////
@@ -369,7 +368,7 @@ var _createOrder=function(self,orderobject,user){
 			if(CONFIG.name!="quality"){
 				if(orderobject.payment.mode.toLowerCase()=="cod"){
 			    ////////////////////////////////////////////////////////////
-			 	_sendOrderConfirmationOTPToConsumer(user,orderdata.orderid);
+			 	// _sendOrderConfirmationOTPToConsumer(user,orderdata.orderid);
 				////////////////////////////////////////////////////////////
 		    }	
 			}
@@ -773,9 +772,9 @@ var _criteriawiseSuborders=function(self,userid,providerid,branchid,criteriastat
 				query.push({$unwind:"$suborder"})
 				query.push({$sort:{createdate:1}})
 				query.push({$match:{"suborder.productprovider.branchid":branchid,"suborder.status":{$in:statusarray[criteriastatus]}}})
-				query.push({$project:{pref_deliverydatetime:{$add:["$preferred_delivery_date",60*60*1000*5.5]},buyerpayment:"$suborder.buyerpayment",sellerpayment:"$suborder.sellerpayment",orderinstructions:"$suborder.orderinstructions", payment:1,preferred_delivery_date:1,createdate:1,suborderid:"$suborder.suborderid",products:"$suborder.products",suborder_price:"$suborder.suborder_price",billing_address:"$suborder.billing_address",delivery_address:"$suborder.delivery_address",deliverytype:"$suborder.deliverytype",deliverydate:"$suborder.deliverydate",status:"$suborder.status",_id:0,consumer:1}})
-				query.push({$project:{pref_deliverydatetime:{day:{$dayOfMonth:'$pref_deliverydatetime'},month:{$month:'$pref_deliverydatetime'},year:{$year:'$pref_deliverydatetime'}},buyerpayment:1,sellerpayment:1,orderinstructions:1, payment:1,preferred_delivery_date:1,createdate:1,suborderid:1,products:1,suborder_price:1,billing_address:1,delivery_address:1,deliverytype:1,deliverydate:1,status:1,consumer:1}})
-				query.push({$group:{_id:"$pref_deliverydatetime",suborders:{$addToSet:{buyerpayment:"$buyerpayment",sellerpayment:"$sellerpayment",orderinstructions:"$orderinstructions", payment:"$payment",preferred_delivery_date:"$preferred_delivery_date",createdate:"$createdate",suborderid:"$suborderid",products:"$products",suborder_price:"$suborder_price",billing_address:"$billing_address",delivery_address:"$delivery_address",deliverytype:"$deliverytype",deliverydate:"$deliverydate",status:"$status",consumer:"$consumer"}}}})
+				query.push({$project:{pref_deliverydatetime:{$add:["$preferred_delivery_date",60*60*1000*5.5]},pickup_address:"$suborder.pickup_address",buyerpayment:"$suborder.buyerpayment",sellerpayment:"$suborder.sellerpayment",orderinstructions:"$suborder.orderinstructions", payment:1,preferred_delivery_date:1,createdate:1,suborderid:"$suborder.suborderid",products:"$suborder.products",suborder_price:"$suborder.suborder_price",billing_address:"$suborder.billing_address",delivery_address:"$suborder.delivery_address",deliverytype:"$suborder.deliverytype",deliverydate:"$suborder.deliverydate",status:"$suborder.status",_id:0,consumer:1}})
+				query.push({$project:{pref_deliverydatetime:{day:{$dayOfMonth:'$pref_deliverydatetime'},month:{$month:'$pref_deliverydatetime'},year:{$year:'$pref_deliverydatetime'}},buyerpayment:1,sellerpayment:1,orderinstructions:1, payment:1,pickup_address:1,preferred_delivery_date:1,createdate:1,suborderid:1,products:1,suborder_price:1,billing_address:1,delivery_address:1,deliverytype:1,deliverydate:1,status:1,consumer:1}})
+				query.push({$group:{_id:"$pref_deliverydatetime",suborders:{$addToSet:{buyerpayment:"$buyerpayment",sellerpayment:"$sellerpayment",orderinstructions:"$orderinstructions", pickup_address:"$pickup_address",payment:"$payment",preferred_delivery_date:"$preferred_delivery_date",createdate:"$createdate",suborderid:"$suborderid",products:"$products",suborder_price:"$suborder_price",billing_address:"$billing_address",delivery_address:"$delivery_address",deliverytype:"$deliverytype",deliverydate:"$deliverydate",status:"$status",consumer:"$consumer"}}}})
 				query.push({$project:{deliverydatetime:"$_id",suborders:1,_id:0}})
 				
 				
@@ -785,15 +784,15 @@ var _criteriawiseSuborders=function(self,userid,providerid,branchid,criteriastat
 				query.push({$unwind:"$suborder"})
 				query.push({$sort:{createdate:1}})
 				query.push({$match:{"suborder.productprovider.branchid":branchid,"suborder.status":{$in:statusarray[criteriastatus]}}})
-				query.push({$project:{pref_deliverydatetime:{$add:["$suborder.deliverydate",60*60*1000*5.5]},buyerpayment:"$suborder.buyerpayment",sellerpayment:"$suborder.sellerpayment",orderinstructions:"$suborder.orderinstructions", payment:1,preferred_delivery_date:1,createdate:1,suborderid:"$suborder.suborderid",products:"$suborder.products",suborder_price:"$suborder.suborder_price",billing_address:"$suborder.billing_address",delivery_address:"$suborder.delivery_address",deliverytype:"$suborder.deliverytype",deliverydate:"$suborder.deliverydate",status:"$suborder.status",_id:0,consumer:1}})
-				query.push({$project:{pref_deliverydatetime:{day:{$dayOfMonth:'$pref_deliverydatetime'},month:{$month:'$pref_deliverydatetime'},year:{$year:'$pref_deliverydatetime'}},buyerpayment:1,sellerpayment:1,orderinstructions:1, payment:1,preferred_delivery_date:1,createdate:1,suborderid:1,products:1,suborder_price:1,billing_address:1,delivery_address:1,deliverytype:1,deliverydate:1,status:1,consumer:1}})
-				query.push({$group:{_id:"$deliverydatetime",suborders:{$addToSet:{buyerpayment:"$buyerpayment",sellerpayment:"$sellerpayment",orderinstructions:"$orderinstructions", payment:"$payment",preferred_delivery_date:"$preferred_delivery_date",createdate:"$createdate",suborderid:"$suborderid",products:"$products",suborder_price:"$suborder_price",billing_address:"$billing_address",delivery_address:"$delivery_address",deliverytype:"$deliverytype",deliverydate:"$deliverydate",status:"$status",consumer:"$consumer"}}}})
+				query.push({$project:{pref_deliverydatetime:{$add:["$suborder.deliverydate",60*60*1000*5.5]},buyerpayment:"$suborder.buyerpayment", pickup_address:"$pickup_address",sellerpayment:"$suborder.sellerpayment",orderinstructions:"$suborder.orderinstructions", payment:1,preferred_delivery_date:1,createdate:1,suborderid:"$suborder.suborderid",products:"$suborder.products",suborder_price:"$suborder.suborder_price",billing_address:"$suborder.billing_address",delivery_address:"$suborder.delivery_address",deliverytype:"$suborder.deliverytype",deliverydate:"$suborder.deliverydate",status:"$suborder.status",_id:0,consumer:1}})
+				query.push({$project:{pref_deliverydatetime:{day:{$dayOfMonth:'$pref_deliverydatetime'},month:{$month:'$pref_deliverydatetime'},year:{$year:'$pref_deliverydatetime'}},pickup_address:1,buyerpayment:1,sellerpayment:1,orderinstructions:1, payment:1,preferred_delivery_date:1,createdate:1,suborderid:1,products:1,suborder_price:1,billing_address:1,delivery_address:1,deliverytype:1,deliverydate:1,status:1,consumer:1}})
+				query.push({$group:{_id:"$deliverydatetime",suborders:{$addToSet:{buyerpayment:"$buyerpayment",sellerpayment:"$sellerpayment",orderinstructions:"$orderinstructions", pickup_address:"$pickup_address", payment:"$payment",preferred_delivery_date:"$preferred_delivery_date",createdate:"$createdate",suborderid:"$suborderid",products:"$products",suborder_price:"$suborder_price",billing_address:"$billing_address",delivery_address:"$delivery_address",deliverytype:"$deliverytype",deliverydate:"$deliverydate",status:"$status",consumer:"$consumer"}}}})
 				query.push({$project:{deliverydatetime:"$_id",suborders:1}})
 			}else{
 				query.push({$match:{"suborder.productprovider.providerid":providerid,status:{$ne:"waitforapproval"}}})
 				query.push({$unwind:"$suborder"})
 				query.push({$match:{"suborder.productprovider.branchid":branchid,"suborder.status":{$in:statusarray[criteriastatus]}}})
-				query.push({$project:{buyerpayment:"$suborder.buyerpayment",sellerpayment:"$suborder.sellerpayment",orderinstructions:"$suborder.orderinstructions", payment:1,preferred_delivery_date:1,createdate:1,suborderid:"$suborder.suborderid",products:"$suborder.products",suborder_price:"$suborder.suborder_price",billing_address:"$suborder.billing_address",delivery_address:"$suborder.delivery_address",deliverytype:"$suborder.deliverytype",deliverydate:"$suborder.deliverydate",status:"$suborder.status",_id:0,consumer:1}})
+				query.push({$project:{buyerpayment:"$suborder.buyerpayment",pickup_address:"$suborder.pickup_address",sellerpayment:"$suborder.sellerpayment",orderinstructions:"$suborder.orderinstructions", payment:1,preferred_delivery_date:1,createdate:1,suborderid:"$suborder.suborderid",products:"$suborder.products",suborder_price:"$suborder.suborder_price",billing_address:"$suborder.billing_address",delivery_address:"$suborder.delivery_address",deliverytype:"$suborder.deliverytype",deliverydate:"$suborder.deliverydate",status:"$suborder.status",_id:0,consumer:1}})
 				query.push({$sort:{createdate:1}})
 			}
 		 _getMySubOrders(self,userid,providerid,branchid,query)
@@ -1827,6 +1826,7 @@ var _successfullPayTmCheckSumCreation=function(self,checksumobject){
 Order.prototype.paytmCallbackUrl = function(paytmresponsedata){
 	var self = this;
 	var responseobject=JSON.stringify(paytmresponsedata);
+	console.log("")
 	responseobject.IS_CHECKSUM_VALID=false;
 	
 	////////////////////////////////////////
@@ -1973,7 +1973,7 @@ var _updateOrderPaymentDatails=function(self,responseobject){
 }
 var _makeSubOrderPaymentDone=function(orderid,suborderid){
 
-	OrderModel.update({orderid:orderid,"suborder.suborderid":suborderid},{$set:{"suborder.$.sellerpayment.status":"done","suborder.$.sellerpayment.paiddate":new Date(),"suborder.$.buyerpayment.status":"done","suborder.$.buyerpayment.paiddate":new Date()}},function(err,suborderpaymentstaus){
+	OrderModel.update({orderid:orderid,"suborder.suborderid":suborderid},{$set:{"suborder.$.buyerpayment.status":"done","suborder.$.buyerpayment.paiddate":new Date()}},function(err,suborderpaymentstaus){
 		if(err){
 			logger.emit("error","Database Issue :_makeSubOrderPaymentDone"+err)
 		}else if(suborderpaymentstaus==0){

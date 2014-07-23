@@ -11,23 +11,11 @@ if (system.args.length < 3 || system.args.length > 5) {
 } else {
     address = system.args[1];
     output = system.args[2];
-    page.viewportSize = { width: 1000, height: 1200};
+    page.viewportSize = { width: 1000, height: 1000 };
     if (system.args.length > 3 && system.args[2].substr(-4) === ".pdf") {
         size = system.args[3].split('*');
-        page.paperSize = size.length === 2 ? {footer:{height:'1cm',contents:"<h1>bye</h1>"}, width: size[0], height: size[1], margin: '1px' }
-                                           : { format: system.args[3], orientation: 'portrait', margin: '1cm' , header: {
-            height: "1cm",
-            contents: phantom.callback(function(pageNum, numPages) {
-                if (pageNum == 1) {
-                    return "";
-                }
-                return "<h1>Header <span style='float:right'>" + pageNum + " / " + numPages + "</span></h1>";
-            })
-        },
-        footer: {
-            height: "1cm",
-            contents: "<h1>1</h1>"
-        }};
+        page.paperSize = size.length === 2 ? { width: size[0], height: size[1], margin: '0px' }
+                                           : { format: system.args[3], orientation: 'portrait', margin: '1cm' };
     } else if (system.args.length > 3 && system.args[3].substr(-2) === "px") {
         size = system.args[3].split('*');
         if (size.length === 2) {

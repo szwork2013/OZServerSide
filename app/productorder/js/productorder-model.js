@@ -46,6 +46,18 @@ var suborderSchema=mongoose.Schema({
       country: { type:String},
       zipcode: {type:String},     
     },
+    pickup_address:{
+      address1:{type:String},
+      address2:{type:String},
+      address3:{type:String},
+      area:{type:String},
+      geo:{ latitude:String, longitude:String },
+      city: {type:String },
+      district: { type:String },
+      state:{ type:String},
+      country: { type:String},
+      zipcode: {type:String},     
+    },
     sellerpayment:{
         status:{type:String,default:"pending"},
         paiddate:{type:Date}

@@ -13,7 +13,7 @@
 	
 	</head>
 	<body id="body" ng-controller="OZMainController">
-		<div style="width:750px;border: 1px solid #EEE8E8;padding:10px;border-radius:6px;" id="invoice" class="invoice-container">
+		<div style="width:850px;border: 1px solid #EEE8E8;padding:10px;border-radius:6px;" id="invoice" class="invoice-container">
 			<div style="margin:0px;" class="row">
 				<div style="padding:1px;" class="col-md-2">
 					<img style="width:90%;height:40px;" alt="" src="{{sellerlogo}}">
@@ -55,7 +55,7 @@
 					<p>{{billingaddress}}</p>
 				</div>
 				<div class="col-md-4">
-					<p><strong>Shipping Address</strong></p>
+					<p><strong>{{addresskeyname}}</strong></p>
 
 					<p>{{buyername}}</p>
 
@@ -90,15 +90,14 @@
 							<th style="border: 0px;" width="40%"></th>
 							<th style="border: 0px;" width="15%"></th>
 							<th style="border: 0px;" width="15%"></th>
-							<th style="border: 0px;" width="15%"><span>Grand Total:</span></th>
+							<th style="border: 0px;" width="15%"><span>Grand Total(<i class="fa fa-inr"></i>)</span></th>
 							<th style="border: 0px;" width="15%"><span style='float:right'>{{totalprice}}</span></th>
 						</tr>				
 					</table>
 				</div>
 			</div>
-			<hr size=5 style="height:2px; color:gray;margin-top:0px; margin-bottom:0px;" noshade>
 			<div style="margin:0px;" class="row">
-				<div style="padding:1px;" class="col-md-12">
+				<div style="padding:1px;border-top:solid 1.5px black;" class="col-md-12">
 					<p class="text-center" style="font-size:9px; font-weight:bold;letter-spacing:1px;"><em>This is a computer generated invoice. No signature required.</em></p> 
 				</div>
 			</div>
