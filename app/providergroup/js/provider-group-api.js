@@ -296,3 +296,29 @@ exports.removeMemberFromGroup=function(req,res){
     self.emit("failedRemoveMemberFromGroup",{"error":{code:"EA001",message:"You are not authorized to remove member group from branch"}});
   } 
 }
+exports.updateGroupBranch=function(req,res){
+  var providergroup = new ProviderGroup();
+  var providerid=req.params.providerid;
+  var branchid=req.params.branchid;
+  var groupdata=req.body.groupdata;
+  var groupid=req.params.groupid;
+  logger.emit("log","req body updateGroupBranch"+ JSON.stringify(req.body));
+  providergroup.removeAllListeners("failedUpdateGroupBranch");
+  providergroup.on("failedUpdateGroupBranch",function(err){
+    if(err.error.code!="ED001"){
+     logger.emit("error", err.error.message); 
+    }
+    
+    // user.removeAllListeners();
+    res.send(err);
+  })
+  providergroup.removeAllListeners("successfulUpdateGroupBranch");
+  providergroup.on("successfulUpdateGroupBranch",function(result){
+    res.send(result);
+  });
+  if(req.user.usertype=="provider"){
+    providergroup.updateGroupBranch(req.user,providerid,branchid,groupdata,groupid);
+  }else{
+    self.emit("failedUpdateGroupBranch",{"error":{code:"EA001",message:"You are not an provider to update group details"}});
+  } 
+}

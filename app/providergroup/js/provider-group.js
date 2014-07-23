@@ -654,3 +654,76 @@ var _isAuthorizeUserToGetMemberDetails=function(self,sessionuser,providerid,bran
 		self.emit("sendemailnotificationforremovingmember",user,branch,groupdata,emailtemplate)
 
 	}   
+ProviderGroup.prototype.updateGroupBranch = function(sessionuser,providerid,branchid,groupdata,groupid) {
+	var self=this;
+	
+	///////////////////////////////////////////////////////////////////////
+	_validateUpdateBranchGroupData(self,sessionuser,providerid,branchid,groupdata,groupid);
+	//////////////////////////////////////////////////////////////////////
+};
+var _validateUpdateBranchGroupData=function(self,sessionuser,providerid,branchid,groupdata,groupid){
+	if(groupdata==undefined){
+		self.emit("failedUpdateGroupBranch",{"error":{code:"AV001",message:"Please provide groupdata"}});
+	}else if(groupdata.grpname==undefined || groupdata.grpname==""){
+		self.emit("failedUpdateGroupBranch",{"error":{code:"AV001",message:"Please enter groupname"}});
+	}else if(groupdata.description==undefined || groupdata.description==""){
+		self.emit("failedUpdateGroupBranch",{"error":{code:"AV001",message:"Please enter groupdescription"}});
+	}else if(groupdata.grpmembers!=undefined){
+		self.emit("failedUpdateGroupBranch",{"error":{code:"AV001",message:"You can not update groupmemers details"}});
+	}else{
+		groupdata.grpname=groupdata.grpname.toLowerCase();
+		///////////////////////////////////////////////////
+		_isAuthorizedUserToUpdateGroup(self,sessionuser,providerid,branchid,groupdata,groupid)
+		//////////////////////////////////////////////////
+
+	}
+}
+var _isAuthorizedUserToUpdateGroup=function(self,sessionuser,providerid,branchid,groupdata,groupid){
+	isAuthorizedUserToManageGroup(sessionuser.userid,branchid,function(err,result){
+		if(err){
+			self.emit("failedUpdateGroupBranch",err);
+		}else{
+			///////////////////////////////////////////////////
+			 _checkGroupNameAlreadyExistForUpdate(self,sessionuser,providerid,branchid,groupdata,groupid);
+			/////////////////////////////////////////////////////////////////////////
+		}
+	})				
+}
+	
+	var _checkGroupNameAlreadyExistForUpdate=function(self,sessionuser,providerid,branchid,groupdata,groupid){
+
+		ProviderGroupModel.aggregate({$match:{providerid:providerid,branchid:branchid}},{$unwind:"$usergrp"},{$match:{"usergrp.groupid":{$ne:groupid},"usergrp.grpname":groupdata.grpname.toLowerCase()}},function(err,providergroup){
+			if(err){
+				logger.emit("error","Database Issue: _checkGroupNameAlreadyExist"+err);
+				self.emit("failedUpdateGroupBranch",{"error":{"message":"Database Issue"}});
+			}else if(providergroup.length!=0){
+				self.emit("failedUpdateGroupBranch",{"error":{"message":"Provided group name already exists"}});
+			}else{	
+
+				/////////////////////////////////////////////////////////////////
+				_updateGroupToBranch(self,sessionuser,providerid,branchid,groupdata,groupid);
+				/////////////////////////////////////////////////////////////////
+			}
+		})
+	}
+	var _updateGroupToBranch=function(self,sessionuser,providerid,branchid,groupdata,groupid){
+ 		var group_setdata={};
+ 		for(var i in groupdata){
+ 			group_setdata["usergrp.$."+i]=groupdata[i];
+ 		}
+		ProviderGroupModel.update({providerid:providerid,branchid:branchid,"usergrp.groupid":groupid},{$set:group_setdata},function(err,updategroupstatus){
+			if(err){
+				logger.emit("error","Database Issue: _checkGroupNameAlreadyExist"+err);
+				self.emit("failedUpdateGroupBranch",{"error":{"message":"Database Issue"}});
+			}else if(updategroupstatus==0){
+					self.emit("failedUpdateGroupBranch",{"error":{"message":"Group id is wrong"}});
+			}else{
+				///////////////////////////////
+				_successfulUpdateGroupBranch(self)
+				////////////////////////////////
+			}
+		})
+	}
+	var _successfulUpdateGroupBranch=function(self){
+		self.emit("successfulUpdateGroupBranch",{success:{message:"Group information updated Successfully"}})
+	}
