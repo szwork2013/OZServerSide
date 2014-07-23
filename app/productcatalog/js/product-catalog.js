@@ -48,7 +48,7 @@ var _validateServiceCatalogData=function(self,branchid,providerid,categoryid,pro
 		self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"Please pass value in price"}})
 	}else if(productcatalog.price.uom==undefined || productcatalog.price.uom==""){
 		self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"Please pass unit of measurement"}})
-	}else  if(["kg","no","lt","lb","gm"].indexOf(productcatalog.price.uom.toLowerCase())<0){
+	}else  if(["kg","no","ltr","lb","gm"].indexOf(productcatalog.price.uom.toLowerCase())<0){
 		self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"unit of measurement should be kg,lt,lb,no,gm"}});
 	}else if(productcatalog.productdescription==undefined || productcatalog.productdescription==""){
 		self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"Please pass productdescription"}});
@@ -647,7 +647,7 @@ var _validateProductsPriceData=function(self,branchid,productpricedata,sessionus
 		var productpricedataarr = [];
 		console.log("productpricedata : "+JSON.stringify(productpricedata));
 		for(var i=0;i<productpricedata.length;i++){
-			if(productpricedata[i].productid != "" && productpricedata[i].newprice != "" && S(productpricedata[i].newprice).isNumeric()){
+			if(productpricedata[i].productid != "" && productpricedata[i].newprice != undefined && S(productpricedata[i].newprice).isNumeric()){
 				productpricedataarr.push(productpricedata[i]);
 			}
 		}

@@ -126,7 +126,7 @@ var _createJSONForInvoice=function(self,suborderid){
                 var productconfiguration=suborder.products[j].productconfiguration;
                 console.log("baseprice"+baseprice);
                 console.log("taxprice"+tax);
-                var product={qty:qty,productid:suborder.products[j].productid,orderprice:orderprice,uom:uom,productcode:productcode,productname:productname,baseprice:baseprice,tax:tax,productprice:productprice,productconfiguration:productconfiguration}
+                var product={qty:qty,productid:suborder.products[j].productid,orderprice:orderprice,uom:uom,productcode:productcode,productname:productname,baseprice:baseprice,tax:0,productprice:productprice,productconfiguration:productconfiguration}
                 console.log("productsdddd"+product);
                 products.push(product)
               }
@@ -138,7 +138,8 @@ var _createJSONForInvoice=function(self,suborderid){
               inoviceobject.totalprice=suborder.suborder_price;
               inoviceobject.payment=suborder.payment;
               inoviceobject.deliverycharge=suborder.deliverycharge;
-
+              inoviceobject.pickup_address=suborder.pickup_address
+              // inoviceobject.delivery
               logger.emit("log","invoice:\n"+JSON.stringify(inoviceobject))
               // var invoice_data=new InvoiceModel(inoviceobject);
               _createPDFInvocie(self,inoviceobject,branch);
@@ -174,28 +175,80 @@ var _createPDFInvocie=function(self,inoviceobject,branch){
      htmldata=htmldata.replaceAll("{{sellercontact}}",inoviceobject.productprovider.contact_supports+"");
      htmldata=htmldata.replaceAll("{{selleremail}}",inoviceobject.productprovider.email);
      htmldata=htmldata.replaceAll("{{sellername}}",inoviceobject.productprovider.providername);
-      var delivery_addressoject=inoviceobject.delivery_address;
+     //for delivery address
+     var delivery_addressoject=inoviceobject.delivery_address;
      var delivery_address="";
-     for(var i in delivery_addressoject){
-      delivery_address+=delivery_addressoject[i]+",<br>";
+    if(inoviceobject.delivery_address!=undefined){
+      var delivery_locationkeys=Object.keys(delivery_addressoject)
+      for(var i=0;i<delivery_locationkeys.length;i++){
+        if(i==(delivery_locationkeys.length-1)){
+          delivery_address+=delivery_addressoject[delivery_locationkeys[i]];  
+        }else{
+          delivery_address+=delivery_addressoject[delivery_locationkeys[i]]+",<br>";  
+        }  
+      }
+    }
+   
+     //for pickup address
+       var pickup_address="";
+     var pickup_addressoject=inoviceobject.pickup_address;
+    if(pickup_addressoject!=undefined){
+      var pickup_locationkeys=Object.keys(pickup_addressoject)
+       // console.log("locationkeys"+locationkeys)
+    
+      for(var i=0;i<pickup_locationkeys.length;i++){
+        if(i==(pickup_locationkeys.length-1)){
+         pickup_address+=pickup_addressoject[pickup_locationkeys[i]]+".";  
+        }else{
+         pickup_address+=pickup_addressoject[pickup_locationkeys[i]]+",<br>";  
+        }  
+      } 
+    }
+    
+     
+     if(inoviceobject.deliverytype.toLowerCase()=="home"){
+      htmldata=htmldata.replaceAll("{{addresskeyname}}","Shipping Address");
+
+     }else{
+        htmldata=htmldata.replaceAll("{{addresskeyname}}","Pickup Address");
+        delivery_address=pickup_address
      }
+
      htmldata=htmldata.replaceAll("{{deliveryaddress}}",delivery_address);
      htmldata=htmldata.replaceAll("{{totalprice}}",inoviceobject.totalprice);
        // htmldata=htmldata.replaceAll("{{sellercontact}}",inoviceobject.delivery_address);
+
+       //for seller address
      var selleraddress="";
      var sellerlocation=JSON.stringify(inoviceobject.productprovider.location);
      sellerlocation=JSON.parse(sellerlocation)
-     for(var i in sellerlocation){
-      selleraddress+=sellerlocation[i]+",";
-     }
+     sellerlocation={address1:sellerlocation.address1,address2:sellerlocation.address2,address3:sellerlocation.address3,area:sellerlocation.area,city:sellerlocation.city,zipcode:sellerlocation.zipcode};
+     var locationkeys=Object.keys(sellerlocation)
+     console.log("locationkeys"+locationkeys)
+     for(var i=0;i<locationkeys.length;i++){
+      if(i==(locationkeys.length-1)){
+        selleraddress+=sellerlocation[locationkeys[i]]+".";  
+      }else{
+        selleraddress+=sellerlocation[locationkeys[i]]+",";  
+      }  
+    }
+     
+
 
      htmldata=htmldata.replaceAll("{{selleraddress}}",selleraddress);
      htmldata=htmldata.replaceAll("{{sellerlogo}}",inoviceobject.productprovider.providerlogo);
      var billing_addressoject=inoviceobject.billing_address;
      var billing_address="";
-     for(var i in billing_addressoject){
-      billing_address+=billing_addressoject[i]+",<br>";
-     }
+     var billing_locationkeys=Object.keys(billing_addressoject)
+     // console.log("locationkeys"+locationkeys)
+     for(var i=0;i<billing_locationkeys.length;i++){
+      if(i==(billing_locationkeys.length-1)){
+        billing_address+=billing_addressoject[billing_locationkeys[i]]+".";  
+      }else{
+        billing_address+=billing_addressoject[billing_locationkeys[i]]+",<br>";  
+      }  
+    }
+   
      htmldata=htmldata.replaceAll("{{billingaddress}}",billing_address);
      var buyername;
      if(inoviceobject.buyername==undefined || inoviceobject.buyername==null){
@@ -235,7 +288,8 @@ var _createPDFInvocie=function(self,inoviceobject,branch){
           }
         }
       }
-      if(inoviceobject.deliverycharge!=undefined){
+      if(inoviceobject.deliverytype.toLowerCase()=="home"){
+        if(inoviceobject.deliverycharge!=undefined){
             productshtml+="<tr>"
             productshtml+="<td></td>";
             productshtml+="<td></td>";
@@ -244,8 +298,9 @@ var _createPDFInvocie=function(self,inoviceobject,branch){
             productshtml+="<td>+delivery charges</td>";
             productshtml+="<td><span style='float:right'>"+inoviceobject.deliverycharge+"</span></td>";
             productshtml+="</tr>";
-      }
-     htmldata=htmldata.replaceAll("{{products}}",productshtml);
+       }
+       }
+          htmldata=htmldata.replaceAll("{{products}}",productshtml);
      ////////////////////////////////////////
      _writeHtmlDataToFile(self,inoviceobject,htmldata.s,branch);
      /////////////////////////////////////        
@@ -261,7 +316,7 @@ var _writeHtmlDataToFile=function(self,inoviceobject,htmldata,branch){
   var pdfinvoice=inoviceobject.suborderid+".pdf";
   stream.once('open', function(fd) {
     stream.write(htmldata);
-    exec("phantomjs/bin/phantomjs phantomjs/bin/rasterize.js "+filename+" "+pdfinvoice,function(err,out,code){
+    exec("phantomjs/bin/phantomjs phantomjs/bin/rasterize.js "+filename+" "+pdfinvoice+" A4",function(err,out,code){
       if(err){
         self.emit("failedCreateInvoice",{error:{message:"Invoice Pdf creation issue"}})
         logger.emit("error","Invoice Sample html Issue:_writeHtmlDataToFile "+err);
