@@ -17,7 +17,7 @@ var locationReffSchema = mongoose.Schema({
   	country:{type:String},
   	state:{type:String},
   	city:{type:String},
-  	zipcode:{type:String},
+  	zipcode:{type:String,unique:true},
   	area:[],
   	geo:{lati:String,longi:String}
   }
