@@ -46,7 +46,7 @@ exports.verifyUser=function(req,res){
         logger.emit("error","Database Issue verifyUser"+err);
         user.emit("failedVerifyUser",{"error":{"code":"ED001","message":"Database Issue"}})
       }else if(!userdata){
-        user.emit("failedVerifyUser",{"error":{"message":"User Does not exist"}});
+        user.emit("failedVerifyUser",{"error":{"message":"User does not exist"}});
       }else{
         console.log("user password"+user.password);
         if(userdata.password==undefined){

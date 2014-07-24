@@ -76,7 +76,7 @@ exports.loadSMSTemplates=function (req,res) {
 	
 	"lang" : "EN",
 	"name" : "otp",
-	"template" : "Please enter your One Time Password <otp> to verify your registratation with OrderZapp"
+	"template" : "Please enter your One Time Password <otp> to verify your registration with OrderZapp"
 },
 {
 	
