@@ -512,7 +512,7 @@ var _isContainsPassword=function(self,userid,userdata){
       commonapi.getBcryptString(userdata.password,function(err,newencryptedpasswrod){
         if(err){
           logger.emit("error","Error to encrypt password _updatePassword");
-          self.emit("failedUserUpdation",{"error":{"message":"Server Issue plese try again"}}); 
+          self.emit("failedUserUpdation",{"error":{"message":"Server Issue please try again"}}); 
         }else{
           userdata.password=newencryptedpasswrod;
           ////////////////////////////////////
@@ -535,7 +535,7 @@ var _checkUserNameAlreadyExistsForUpdateUser=function(self,userid,userdata){
     // body...
     if(err){
       logger.emit("error","Error to encrypt password _checkUserNameAlreadyExistsForUpdateUser");
-      self.emit("failedUserUpdation",{"error":{"message":"Server Issue plese try again"}}); 
+      self.emit("failedUserUpdation",{"error":{"message":"Server Issue please try again"}}); 
     } else if(user){
       self.emit("failedUserUpdation",{"error":{"message":"Username already exist ,please give another username"}}); 
     }else{

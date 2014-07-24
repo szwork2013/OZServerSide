@@ -926,11 +926,11 @@ var _validateBranchData=function(self,branchdata,sessionuser,providerid){
 		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please select you will provide homedeliveryoptions"}})		
 	}else if(branchdata.delivery.isprovidepickup==undefined){
 		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Pickup options should be selected"}})		
-  }else  if(branchdata.note==undefined){
-		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please enter note "}})		
-  }else  if(branchdata.delivery.isdeliverychargeinpercent==undefined){
-		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please select you provide delivery charge in percent or not "}})		
-  }else{
+	}else  if(branchdata.note==undefined){
+			self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please enter note "}})		
+	  }else  if(branchdata.delivery.isdeliverychargeinpercent==undefined){
+			self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please select you provide delivery charge in percent or not "}})		
+	  }else{
     	if(branchdata.delivery.isprovidehomedelivery || branchdata.delivery.isprovidepickup){	
           //////////////////////////////////////////////////////////////
 		   _isValidProductProvider(self,branchdata,sessionuser,providerid)
