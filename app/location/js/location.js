@@ -49,7 +49,7 @@ LocationRefference.prototype.manageLocations = function() {
 			// });
 			var things = db.collection('things');
 
-	  		things.find({zipcode:'400001'},function(err,doc){
+	  		things.aggregate({$group:{_id:"$zipcode"}},function(err,doc){
 				if(err){
 					logger.emit("error","Database Error : manageLocations " + err);
 					self.emit("failedManageLocation",{"error":{"code":"ED001","message":"Database Issue"}});
