@@ -184,7 +184,7 @@ var _isAuthoRizedUserToAddGroupMember=function(self,sessionuser,branchid,groupid
 			ProductProviderModel.aggregate({$unwind:"$branch"},{$match:{"branch.branchid":branchid}},{$project:{branchid:"$branch.branchid",branchname:"$branch.branchname",providerid:1,usergrp:"$branch.usergrp",providername:1}},function(err,providerbranch){
 				if(err){
 					logger.emit("error","Database Issue: _isAuthorizedUserToAddNewGroup"+err);
-	      	self.emit("failedAddMembersToGroup",{"error":{"message":"Database Issue"}});
+	      		self.emit("failedAddMembersToGroup",{"error":{"message":"Database Issue"}});
 				}else if(providerbranch.length==0){
 					self.emit("failedAddMembersToGroup",{"error":{"message":"Branch does not exist"}});
 				}else{

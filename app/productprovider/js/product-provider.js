@@ -1842,12 +1842,15 @@ var _publishAndUnpublishAllProductsOfBranch=function(self,providerid,branchid,ac
 			///////////////////////////////////////////////////
 		}else{
 			//////////////////////////////////////////////////
-			_successfullPublishAndUnpublishBranch(self,action);
+			_successfullPublishAndUnpublishBranchProducts(self,action);
 			//////////////////////////////////////////////////
 		}
 	})
 }
 var _successfullPublishAndUnpublishBranch=function(self,action){
+  self.emit("successfulPublishUnpublishBranch",{success:{message:"Branch "+action+"ed successfully",status:action}});
+}
+var _successfullPublishAndUnpublishBranchProducts=function(self,action){
   self.emit("successfulPublishUnpublishBranch",{success:{message:"Branch and their products "+action+"ed successfully",status:action}});
 }
 
