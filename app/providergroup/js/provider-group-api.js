@@ -60,7 +60,7 @@ exports.addGroupToBranch=function(req,res){
   if(req.user.usertype=="provider"){
     providergroup.addGroupToBranch(req.user,providerid,branchid,groupdata);
   }else{
-    self.emit("failedAddGroupToBranch",{"error":{code:"EA001",message:"You are not an provider to add new group"}});
+    providergroup.emit("failedAddGroupToBranch",{"error":{code:"EA001",message:"You are not an provider to add new group"}});
   } 
 }
 exports.removeGroupFromBranch=function(req,res){
@@ -86,7 +86,7 @@ exports.removeGroupFromBranch=function(req,res){
   if(req.user.usertype=="provider"){
     providergroup.removeGroupFromBranch(req.user,branchid,groupid);
   }else{
-    self.emit("failedRemoveGroupFromBranch",{"error":{code:"EA001",message:"You are not an provider to remove group"}});
+    providergroup.emit("failedRemoveGroupFromBranch",{"error":{code:"EA001",message:"You are not an provider to remove group"}});
   } 
 }
 exports.addMembersToGroup=function(req,res){
@@ -206,7 +206,7 @@ exports.addMembersToGroup=function(req,res){
   if(req.user.usertype=="provider"){
     providergroup.addMembersToGroup(req.user,branchid,groupid,invites);
   }else{
-    self.emit("failedAddMembersToGroup",{"error":{code:"EA001",message:"You are not an provider to add member to group"}});
+    providergroup.emit("failedAddMembersToGroup",{"error":{code:"EA001",message:"You are not an provider to add member to group"}});
   } 
 }
 exports.getMyGroupMembers=function(req,res){
@@ -233,7 +233,7 @@ exports.getMyGroupMembers=function(req,res){
   if(req.user.usertype=="provider"){
     providergroup.getMyGroupMembers(req.user,providerid,branchid);
   }else{
-    self.emit("failedGetMyGroupMembers",{"error":{code:"EA001",message:"You are not an provider to get member details"}});
+    providergroup.emit("failedGetMyGroupMembers",{"error":{code:"EA001",message:"You are not an provider to get member details"}});
   } 
 }
 exports.removeMemberFromGroup=function(req,res){
@@ -293,7 +293,7 @@ exports.removeMemberFromGroup=function(req,res){
   if(req.user.usertype=="provider"){
     providergroup.removeMemberFromGroup(req.user,branchid,groupid,memberid);
   }else{
-    self.emit("failedRemoveMemberFromGroup",{"error":{code:"EA001",message:"You are not authorized to remove member group from branch"}});
+    providergroup.emit("failedRemoveMemberFromGroup",{"error":{code:"EA001",message:"You are not authorized to remove member group from branch"}});
   } 
 }
 exports.updateGroupBranch=function(req,res){
@@ -319,6 +319,6 @@ exports.updateGroupBranch=function(req,res){
   if(req.user.usertype=="provider"){
     providergroup.updateGroupBranch(req.user,providerid,branchid,groupdata,groupid);
   }else{
-    self.emit("failedUpdateGroupBranch",{"error":{code:"EA001",message:"You are not an provider to update group details"}});
+    providergroup.emit("failedUpdateGroupBranch",{"error":{code:"EA001",message:"You are not an provider to update group details"}});
   } 
 }
