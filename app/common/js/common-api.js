@@ -392,6 +392,26 @@ exports.loadSMSTemplates=function (req,res) {
 	"lang" : "GU",
 	"name" : "orderaccepted",
 	"template" : "We have a new delivery date <deliverydate> for your suborder <suborderid>, \n if you DO NOT want to continue the order with new delivery date, \n please cancel the order"
+},
+{	
+	"lang" : "EN",
+	"name" : "finaldeliveryhomeonline",
+	"template" : "Your OrderZapp shipment with SubOrderId:<suborderid> is out for delivery. OWe have a new delivery date <deliverydate> for your suborder <suborderid>, \n if you DO NOT want to contin"
+},
+{	
+	"lang" : "EN",
+	"name" : "finaldeliveryhomecod",
+	"template" : "Your OrderZapp shipment with SubOrderId:<suborderid> is ready for out delivery.So Please keep Rs.<suborder_price> with you.\n For any query please contact <contact_supports>"
+},
+{	
+	"lang" : "EN",
+	"name" : "finaldeliverypickuponline",
+	"template" : "Your OrderZapp shipment with SubOrderId:<suborderid> is ready for pickup.So Please pick up your Order from <pickup_address>"
+},
+{	
+	"lang" : "EN",
+	"name" : "finaldeliverypickupcod",
+	"template" : "Your OrderZapp shipment with SubOrderId:<suborderid> is ready for pickup.So Please pick up your Order from <pickup_address> and Keep change of Rs.<suborder_price> with you."
 }]
 for(var i=0;i<smstemplates.length;i++){
 		SMSTemplateModel.update({name:smstemplates[i].name,lang:smstemplates[i].lang},{$set:smstemplates[i]},{upsert:true},function(err,langcodeupdatestatus){
