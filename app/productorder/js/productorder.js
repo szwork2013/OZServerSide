@@ -73,7 +73,15 @@ var _sendSMSToUsersMobileNumber=function(mobileno,lang,tempname,suborder,callbac
       smstemplate=smstemplate.replaceAll("<suborder_price>",suborder.suborder_price);
       smstemplate=smstemplate.replaceAll("<sellername>",suborder.productprovider.providername);
       smstemplate=smstemplate.replaceAll("<deliverydate>",suborder.deliverydate);
-       smstemplate=smstemplate.replaceAll("<reason>",suborder.reasontocancelreject);
+      smstemplate=smstemplate.replaceAll("<reason>",suborder.reasontocancelreject);
+      var pickup_address;
+      if(suborder.pickup_address!=undefined){
+      	for(var i in suborder.pickup_address){
+     		 pickup_address+=pickup_address[i]+",";
+      	}
+      }
+       smstemplate=smstemplate.replaceAll("<pickup_address>",pickup_address);
+       
       var message=smstemplate.s;
       commonapi.sendMessage(message,mobileno,function(result){
         if(result=="failure"){
@@ -1254,11 +1262,7 @@ var _manageOrder=function(self,action,user,suborder,status,order){
 						 _makeSubOrderPaymentDone(order.orderid,suborder.suborderid);
 						///////////////////////////
 					}
-					if(action.toLowerCase()=="deliver"){
-						////////////////////////////
-						_sendOrderReadyToDeliveryNotificationToConsumer(s)
-						/////////////////////////////
-					}
+					
 					////////////////////////////////////
 					_sendNotificationToUser(suborder,status);
 					///////////////////////////////////
@@ -1297,7 +1301,7 @@ var _sendNotificationToUser=function(suborder,status){
 				          	}
 				        });
 					}else if(status == "accepted"){
-						var preferred_delivery_date = new Date(order.preferred_delivery_date.getDate());
+						var preferred_delivery_date = new Date(suborder.prefdeldtime.getDate());
 						var deliverydate = new Date(suborder.deliverydate.getDate());
 						if(preferred_delivery_date != deliverydate){
 							_sendSMSToUsersMobileNumber(user.mobileno,user.preffered_lang,"order"+status,suborder,function(result){
