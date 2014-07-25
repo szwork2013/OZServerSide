@@ -18,6 +18,7 @@ module.exports = {
           pass: "Orderzapp123"
         }
       },
+      paytmconfigaccesskey:"12345",
       paytm:{
         connectionurl:"/api/orderzapp/payment",
         checksumurl:"/api/paytm/generatechecksum",

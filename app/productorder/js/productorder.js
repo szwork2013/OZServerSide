@@ -77,7 +77,7 @@ var _sendSMSToUsersMobileNumber=function(mobileno,lang,tempname,suborder,callbac
       var pickup_address;
       if(suborder.pickup_address!=undefined){
       	for(var i in suborder.pickup_address){
-     		 pickup_address+=pickup_address[i]+",";
+     		 pickup_address+=suborder.pickup_address[i]+",";
       	}
       }
        smstemplate=smstemplate.replaceAll("<pickup_address>",pickup_address);

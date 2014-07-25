@@ -31,7 +31,7 @@ var StaticTemplateModel = require("./static-template-model");
 // var OtpModel=require("./otp-model");
 // var bcrypt = require('bcrypt');
 // var SALT_WORK_FACTOR = 10;
-// var CONFIG = require('config').OrderZapp;
+var CONFIG = require('config').OrderZapp;
 var bcrypt = require('bcrypt');
 var SALT_WORK_FACTOR = 10;
 var punycode=require("punycode");
@@ -867,3 +867,14 @@ exports.sendMail = function(message,smtpconfig,callback){
       //sending succussful then success
     });
 };
+exports.getPayTMConfiguration=function(req,res){
+	var paytmcongiguration=CONFIG.paytm;
+	var paytmconfigaccesskey=req.query.paytmconfigaccesskey;
+	if(paytmconfigaccesskey!=CONFIG.paytmconfigaccesskey){
+		res.send({error:{message:"You have not authorized to get Paytm Configuration details"}})
+	}else if(paytmcongiguration==undefined){
+		res.send({error:{message:"No paytmcongiguration exist"}})
+	}else{
+		res.send({success:{message:"Getting Paytm confguration Successfully",paytmcongiguration:paytmcongiguration}})
+	}
+}
