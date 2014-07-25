@@ -710,7 +710,7 @@ var _isValidProductsToChangePrice=function(self,branchid,productpricedata,sessio
 	}
 }
 var _changeProductsPrice=function(self,branchid,productprice,initialvalue,sessionuserid,productpricedata,product){
-	ProductCatalogModel.update({productid:productprice.productid},{$set:{"price.value":productprice.newprice}},function(err,pricechangestatus){
+	ProductCatalogModel.update({productid:productprice.productid},{$set:{"price.value":productprice.newprice,"holding_price.status":"init"}},function(err,pricechangestatus){
 		if(err){
 			logger.emit('error',"Database Issue _changeProductsPrice "+err,sessionuserid);
 			// self.emit("failedChangeProductPrice",{"error":{"code":"ED001","message":"Database Issue"}});

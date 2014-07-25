@@ -20,7 +20,7 @@ var exec = require('child_process').exec;
 AWS.config.update({accessKeyId:'AKIAJOGXRBMWHVXPSC7Q', secretAccessKey:'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'});
 AWS.config.update({region:'ap-southeast-1'});
 var s3bucket = new AWS.S3();
-var OrderStatusRefModel=require('./orderstatus-reff-model');
+var OrderProcessConfigModel=require('./order-process-config-model');
 var ProductProvider = function(productproviderdata) {
   this.productprovider=productproviderdata;
 };
@@ -296,7 +296,7 @@ var _checkProviderCodeAlreadyExist=function(self,productproviderdata,user,provid
 	})
 }
 var _checkOrderProcessConfiguration=function(self,productproviderdata,user,providerlogo){
-	OrderStatusRefModel.find({},function(err,orderrefstatus){
+	OrderProcessConfigModel.find({},function(err,orderrefstatus){
 		if(err){
 			logger.emit("error","Database Issue,fun:_checkOrderProcessConfiguration"+err,user.userid);
 			self.emit("failedProductProviderRegistration",{"error":{"code":"ED001","message":"Database Issue"}});		
@@ -926,11 +926,11 @@ var _validateBranchData=function(self,branchdata,sessionuser,providerid){
 		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please select you will provide homedeliveryoptions"}})		
 	}else if(branchdata.delivery.isprovidepickup==undefined){
 		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Pickup options should be selected"}})		
-  }else  if(branchdata.note==undefined){
-		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please enter note "}})		
-  }else  if(branchdata.delivery.isdeliverychargeinpercent==undefined){
-		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please select you provide delivery charge in percent or not "}})		
-  }else{
+	}else  if(branchdata.note==undefined){
+			self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please enter note "}})		
+	  }else  if(branchdata.delivery.isdeliverychargeinpercent==undefined){
+			self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please select you provide delivery charge in percent or not "}})		
+	  }else{
     	if(branchdata.delivery.isprovidehomedelivery || branchdata.delivery.isprovidepickup){	
           //////////////////////////////////////////////////////////////
 		   _isValidProductProvider(self,branchdata,sessionuser,providerid)
@@ -1842,12 +1842,15 @@ var _publishAndUnpublishAllProductsOfBranch=function(self,providerid,branchid,ac
 			///////////////////////////////////////////////////
 		}else{
 			//////////////////////////////////////////////////
-			_successfullPublishAndUnpublishBranch(self,action);
+			_successfullPublishAndUnpublishBranchProducts(self,action);
 			//////////////////////////////////////////////////
 		}
 	})
 }
 var _successfullPublishAndUnpublishBranch=function(self,action){
+  self.emit("successfulPublishUnpublishBranch",{success:{message:"Branch "+action+"ed successfully",status:action}});
+}
+var _successfullPublishAndUnpublishBranchProducts=function(self,action){
   self.emit("successfulPublishUnpublishBranch",{success:{message:"Branch and their products "+action+"ed successfully",status:action}});
 }
 
