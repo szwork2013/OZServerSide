@@ -302,25 +302,42 @@ exports.paytmCallbackUrl = function(req,res){//Add New Order
 
   htmlresponse+="<meta http-equiv='Content-Type' content='text/html;charset=ISO-8859-1'>";
   htmlresponse+="<title>Paytm</title>";
+  htmlresponse+="<link rel='stylesheet' href='https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css'>";
+  htmlresponse+=" <link href='https://netdna.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.css' rel='stylesheet'>"
   htmlresponse+="<script type='javascript'>function response() {return document.getElementById('response').value;}</script></head>";
-  htmlresponse+="<body>Redirection back To the app<br>";
+  // htmlresponse+="<body>Redirection back To the app<br>";
+  
+  htmlresponse+="<body>";
+
+   htmlresponse+="{{paytmresponse}}</body></html>"
   // htmlresponse+="<form name='frm' method='post'><input type='hidden' name='responseField' value='"+responseobject+"'></form></body></html>";    
   logger.emit("log","req body"+JSON.stringify(req.body));
   console.log("req body:"+JSON.stringify(req.body))
   order.removeAllListeners("failedPaytmCallbackUrl");
   order.on("failedPaytmCallbackUrl",function(err){
-   console.log("JSON"+JSON.stringify(err.error.responseobject))
-  err.error.responseobject=JSON.stringify(err.error.responseobject);
-  var responseobject=JSON.stringify(err.error.responseobject);
-  responseobject=S(JSON.parse(responseobject));
-  responseobject=responseobject.replaceAll('"',"&quot;");
-      htmlresponse+="<form name='frm' method='post'><input type='hidden' name='responseField' id='response' value='"+responseobject+"'></form></body></html>";    
+      console.log("JSON"+JSON.stringify(err.error.responseobject))
+      err.error.responseobject=JSON.stringify(err.error.responseobject);
+      var responseobject=JSON.stringify(err.error.responseobject);
+      responseobject=S(JSON.parse(responseobject));
+      responseobject=responseobject.replaceAll('"',"&quot;");
+      var paytmsuccessresponse="<form name='frm' method='post'><input type='hidden' name='responseField' id='response' value='"+responseobject+"'></form>";    
+      paytmsuccessresponse+="<div style='padding:40px; margin:40px; margin-bottom: 1px; color: rgb(80, 74, 74); letter-spacing: 1px;' class='row'>"
+      paytmsuccessresponse+="<div class='col-md-12'>";
+      paytmsuccessresponse+="<div class='no-message'>";
+      paytmsuccessresponse+="<center><div style='border:1px solid #d60027; border-radius:50px; width:40px; height:40px; color:#d60027;padding: 5px;'>";
+      paytmsuccessresponse+="<i class='fa fa-times fa-2x'></i></div>"
+      paytmsuccessresponse+="<div style='font-size:18px; letter-spacing: 2px; font-weight: bold; padding: 2px;>"
+      paytmsuccessresponse+="<p class='text-danger'><em>Payment Failed</em></p></div><div style='font-size:14px; letter-spacing: 2px; font-weight: bold; padding: 2px; '>";
+      paytmsuccessresponse+="<p class='text-muted'>Please try after some time.</p></div></center</div></div></div>";
       logger.emit("error", err.error.message);
       console.log("paytmCallbackUrl"+JSON.stringify(err.error));
+      
+      htmlresponse=S(htmlresponse);
+      htmlresponse=htmlresponse.replaceAll("{{paytmresponse}}",paytmsuccessresponse+"")
             // order.removeAllListeners();
       logger.emit("log","HTML:err:"+htmlresponse)
       //order.removeAllListeners();
-      res.send(htmlresponse);
+      res.send(htmlresponse.s);
     });
     order.removeAllListeners("successfulPaytmCallbackUrl");
     order.on("successfulPaytmCallbackUrl",function(result){
@@ -329,10 +346,30 @@ exports.paytmCallbackUrl = function(req,res){//Add New Order
       var responseobject=JSON.stringify(result.success.responseobject);
       responseobject=S(JSON.parse(responseobject));
       responseobject=responseobject.replaceAll('"',"&quot;");
-      htmlresponse+="<form name='frm' method='post'><input type='hidden' name='responseField' id='response' value='"+responseobject+"'></form></body></html>";    
-      // order.removeAllListeners();
+     var paytmsuccessresponse="<form name='frm' method='post'><input type='hidden' name='responseField' id='response' value='"+responseobject+"'></form>";    
+      paytmsuccessresponse+="<div style='padding:40px; margin:40px; margin-bottom: 1px;color:rgb(80, 74, 74); letter-spacing: 1px;'' class='row'>"
+      paytmsuccessresponse+="<div class='col-md-12'>";
+      paytmsuccessresponse+="<div class='no-message'>";
+      paytmsuccessresponse+="<center> <div style=border:1px solid green; border-radius:50px; width:40px; height:40px;color:green;padding: 5px;'>";
+      paytmsuccessresponse+="<i class='fa fa-check fa-2x'></i>";
+      paytmsuccessresponse+="</div>"
+      paytmsuccessresponse+="<div style='font-size:18px; letter-spacing: 2px; font-weight: bold; padding: 2px;'>";
+      paytmsuccessresponse+="<p class='text-success'><em>Payment Successful</em></p>"
+      paytmsuccessresponse+="</div><div class='row'><div style='' class='col-md-4'></div>";
+      paytmsuccessresponse+="<div style='font-size:12px; padding:2px; text-align:right; font-weight:bold;'' class='col-md-2'>";
+      paytmsuccessresponse+="<p>Amount:</p><p>Transaction Id:</p><p>Bank:</p></div>";
+      paytmsuccessresponse+="<div style='text-align:left;padding:3px;font-size:12px;' class='col-md-6'>";
+      paytmsuccessresponse+="<p>{{orderamount}}</p><p>{{transactionid}}</p><p>{{bankname}}</p></div></div></center></div></div></div>"
+      logger.emit("error", err.error.message);
+      console.log("paytmCallbackUrl"+JSON.stringify(err.error));
+      var paytmsuccessresponse=S(paytmsuccessresponse);
+      paytmsuccessresponse=paytmsuccessresponse.replaceAll("{{orderamount}}",responseobject.TXNAMOUNT);
+      paytmsuccessresponse=paytmsuccessresponse.replaceAll("{{bankname}}",responseobject.BANKNAME);
+
+      htmlresponse=s(htmlresponse);
+      htmlresponse=htmlresponse.replaceAll("{{paytmresponse}}",paytmsuccessresponse+"")
       logger.emit("log","HTML:success:"+htmlresponse)
-      res.send(htmlresponse);
+      res.send(htmlresponse.s);
     });
     order.paytmCallbackUrl(paytmresponsedata);
 }
