@@ -353,7 +353,7 @@ var _addProviderProviderBranchDetailsToTheUser=function(self,branch,existinguser
 	  	
 	   	// self.emit("failedAddMembersToGroup",{"error":{"message":"Userid is wrong"}});
 	  }else{
-			UserModel.update({userid:{$in:existingusers_mobileno}},{$set:{usertype:"provider"}},{multi:true},function(err,providerstatus){
+			UserModel.update({mobileno:{$in:existingusers_mobileno}},{$set:{usertype:"provider"}},{multi:true},function(err,providerstatus){
 			  if(err){
 			 		logger.emit("error","Database Issue,fun:_addServiceProviderDetailsToTheUser"+err,user.userid);
 					self.emit("failedAddMembersToGroup",{"error":{"code":"ED001","message":"Database Issue"}});
