@@ -162,6 +162,7 @@ exports.getDeliveryCharges=function(req,res){
   var area=req.body.area;
 
   var branchids=req.body.branchids;
+  logger.emit("log","getDeliveryCharges:city:"+city+",area:"+area)
   // logger.emit("log","getMySubOrders /providerid:"+providerid+" /branchid:"+branchid);
   order.removeAllListeners("failedGetDeliveryCharges");
     order.on("failedGetDeliveryCharges",function(err){
