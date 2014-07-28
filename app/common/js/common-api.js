@@ -31,7 +31,7 @@ var StaticTemplateModel = require("./static-template-model");
 // var OtpModel=require("./otp-model");
 // var bcrypt = require('bcrypt');
 // var SALT_WORK_FACTOR = 10;
-// var CONFIG = require('config').OrderZapp;
+var CONFIG = require('config').OrderZapp;
 var bcrypt = require('bcrypt');
 var SALT_WORK_FACTOR = 10;
 var punycode=require("punycode");
@@ -392,6 +392,26 @@ exports.loadSMSTemplates=function (req,res) {
 	"lang" : "GU",
 	"name" : "orderaccepted",
 	"template" : "We have a new delivery date <deliverydate> for your suborder <suborderid>, \n if you DO NOT want to continue the order with new delivery date, \n please cancel the order"
+},
+{	
+	"lang" : "EN",
+	"name" : "finaldeliveryhomeonline",
+	"template" : "Your OrderZapp shipment Suborder No: <suborderid> is ready to be delivered to <delivery_address>."
+},
+{	
+	"lang" : "EN",
+	"name" : "finaldeliveryhomecod",
+	"template" : "Your OrderZapp shipment Suborder No: <suborderid> is ready to be delivered to <delivery_address>. please try to keep change of Rs.<suborder_price> with you"
+},
+{	
+	"lang" : "EN",
+	"name" : "finaldeliverypickuponline",
+	"template" : "Your OrderZapp shipment Suborder No: <suborderid> is ready for pickup from <pickup_address>"
+},
+{	
+	"lang" : "EN",
+	"name" : "finaldeliverypickupcod",
+	"template" : "Your OrderZapp shipment with SubOrderId:<suborderid> is ready for pickup.So Please pick up your Order from <pickup_address> and Keep change of Rs.<suborder_price> with you."
 }]
 for(var i=0;i<smstemplates.length;i++){
 		SMSTemplateModel.update({name:smstemplates[i].name,lang:smstemplates[i].lang},{$set:smstemplates[i]},{upsert:true},function(err,langcodeupdatestatus){
@@ -847,3 +867,14 @@ exports.sendMail = function(message,smtpconfig,callback){
       //sending succussful then success
     });
 };
+exports.getPayTMConfiguration=function(req,res){
+	var paytmcongiguration=CONFIG.paytm;
+	var paytmconfigaccesskey=req.query.paytmconfigaccesskey;
+	if(paytmconfigaccesskey!=CONFIG.paytmconfigaccesskey){
+		res.send({error:{message:"You have not authorized to get Paytm Configuration details"}})
+	}else if(paytmcongiguration==undefined){
+		res.send({error:{message:"No paytmcongiguration exist"}})
+	}else{
+		res.send({success:{message:"Getting Paytm confguration Successfully",paytmcongiguration:paytmcongiguration}})
+	}
+}

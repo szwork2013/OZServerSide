@@ -73,7 +73,15 @@ var _sendSMSToUsersMobileNumber=function(mobileno,lang,tempname,suborder,callbac
       smstemplate=smstemplate.replaceAll("<suborder_price>",suborder.suborder_price);
       smstemplate=smstemplate.replaceAll("<sellername>",suborder.productprovider.providername);
       smstemplate=smstemplate.replaceAll("<deliverydate>",suborder.deliverydate);
-       smstemplate=smstemplate.replaceAll("<reason>",suborder.reasontocancelreject);
+      smstemplate=smstemplate.replaceAll("<reason>",suborder.reasontocancelreject);
+      var pickup_address;
+      if(suborder.pickup_address!=undefined){
+      	for(var i in suborder.pickup_address){
+     		 pickup_address+=suborder.pickup_address[i]+",";
+      	}
+      }
+       smstemplate=smstemplate.replaceAll("<pickup_address>",pickup_address);
+       
       var message=smstemplate.s;
       commonapi.sendMessage(message,mobileno,function(result){
         if(result=="failure"){
@@ -777,7 +785,8 @@ var _criteriawiseSuborders=function(self,userid,providerid,branchid,criteriastat
 				query.push({$project:{pref_deliverydatetime:{$add:["$preferred_delivery_date",60*60*1000*5.5]},pickup_address:"$suborder.pickup_address",buyerpayment:"$suborder.buyerpayment",sellerpayment:"$suborder.sellerpayment",orderinstructions:"$suborder.orderinstructions", payment:1,preferred_delivery_date:1,createdate:1,suborderid:"$suborder.suborderid",products:"$suborder.products",suborder_price:"$suborder.suborder_price",billing_address:"$suborder.billing_address",delivery_address:"$suborder.delivery_address",deliverytype:"$suborder.deliverytype",deliverydate:"$suborder.deliverydate",status:"$suborder.status",_id:0,consumer:1}})
 				query.push({$project:{pref_deliverydatetime:{day:{$dayOfMonth:'$pref_deliverydatetime'},month:{$month:'$pref_deliverydatetime'},year:{$year:'$pref_deliverydatetime'}},buyerpayment:1,sellerpayment:1,orderinstructions:1, payment:1,pickup_address:1,preferred_delivery_date:1,createdate:1,suborderid:1,products:1,suborder_price:1,billing_address:1,delivery_address:1,deliverytype:1,deliverydate:1,status:1,consumer:1}})
 				query.push({$group:{_id:"$pref_deliverydatetime",suborders:{$addToSet:{buyerpayment:"$buyerpayment",sellerpayment:"$sellerpayment",orderinstructions:"$orderinstructions", pickup_address:"$pickup_address",payment:"$payment",preferred_delivery_date:"$preferred_delivery_date",createdate:"$createdate",suborderid:"$suborderid",products:"$products",suborder_price:"$suborder_price",billing_address:"$billing_address",delivery_address:"$delivery_address",deliverytype:"$deliverytype",deliverydate:"$deliverydate",status:"$status",consumer:"$consumer"}}}})
-				query.push({$project:{deliverydatetime:"$_id",suborders:1,_id:0}})
+				query.push({$project:{deliverydatetime:"$_id",suborders:1,_id:0}});
+				query.push({$sort:{deliverydatetime:1}})
 				
 				
 			 /////////////////////////////////////////////////
@@ -790,6 +799,7 @@ var _criteriawiseSuborders=function(self,userid,providerid,branchid,criteriastat
 				query.push({$project:{pref_deliverydatetime:{day:{$dayOfMonth:'$pref_deliverydatetime'},month:{$month:'$pref_deliverydatetime'},year:{$year:'$pref_deliverydatetime'}},pickup_address:1,buyerpayment:1,sellerpayment:1,orderinstructions:1, payment:1,preferred_delivery_date:1,createdate:1,suborderid:1,products:1,suborder_price:1,billing_address:1,delivery_address:1,deliverytype:1,deliverydate:1,status:1,consumer:1}})
 				query.push({$group:{_id:"$pref_deliverydatetime",suborders:{$addToSet:{buyerpayment:"$buyerpayment",sellerpayment:"$sellerpayment",orderinstructions:"$orderinstructions", pickup_address:"$pickup_address", payment:"$payment",preferred_delivery_date:"$preferred_delivery_date",createdate:"$createdate",suborderid:"$suborderid",products:"$products",suborder_price:"$suborder_price",billing_address:"$billing_address",delivery_address:"$delivery_address",deliverytype:"$deliverytype",deliverydate:"$deliverydate",status:"$status",consumer:"$consumer"}}}})
 				query.push({$project:{deliverydatetime:"$_id",suborders:1}})
+				query.push({$sort:{deliverydatetime:1}})
 			}else{
 				query.push({$match:{"suborder.productprovider.providerid":providerid,status:{$ne:"waitforapproval"}}})
 				query.push({$unwind:"$suborder"})
@@ -1241,12 +1251,12 @@ var _manageOrder=function(self,action,user,suborder,status,order){
 					self.emit("failedManageOrder",{error:{message:"suborderid is wrong"}});
 				}else{
 					console.log("actiondddd"+action)
-					if(action.toLowerCase()=="deliver")
-					{
-						//////////////////////////////
-						 _createInvoiceForSuborder(suborder,user.userid);
-						///////////////////////////
-					}
+					// if(action.toLowerCase()=="deliver")
+					// {
+					// 	//////////////////////////////
+					// 	 _createInvoiceForSuborder(suborder,user.userid);
+					// 	///////////////////////////
+					// }
 					console.log("orderid"+order.orderid)
 					if(action.toLowerCase()=="done")
 					{
@@ -1254,6 +1264,7 @@ var _manageOrder=function(self,action,user,suborder,status,order){
 						 _makeSubOrderPaymentDone(order.orderid,suborder.suborderid);
 						///////////////////////////
 					}
+					
 					////////////////////////////////////
 					_sendNotificationToUser(suborder,status);
 					///////////////////////////////////
@@ -1292,7 +1303,7 @@ var _sendNotificationToUser=function(suborder,status){
 				          	}
 				        });
 					}else if(status == "accepted"){
-						var preferred_delivery_date = new Date(order.preferred_delivery_date.getDate());
+						var preferred_delivery_date = new Date(suborder.prefdeldtime.getDate());
 						var deliverydate = new Date(suborder.deliverydate.getDate());
 						if(preferred_delivery_date != deliverydate){
 							_sendSMSToUsersMobileNumber(user.mobileno,user.preffered_lang,"order"+status,suborder,function(result){
@@ -1303,6 +1314,26 @@ var _sendNotificationToUser=function(suborder,status){
 					          	}
 					        });
 						}
+					}else if(status.toLowerCase()=="indelivery"){
+						var tempname;
+						if(suborder.deliverytype.toLowerCase()=="home"){
+							tempname="finaldeliveryhomeonline";
+							if(suborder.buyerpayment.mode.toLowerCase()=="cod"){
+								tempname="finaldeliveryhomecod";
+							}
+						}else{//if delivery type is pickup
+							tempname="finaldeliverypickuponline";
+							if(suborder.buyerpayment.mode.toLowerCase()=="cod"){
+								tempname="finaldeliverypickupcod";
+							}
+						}
+						_sendSMSToUsersMobileNumber(user.mobileno,user.preffered_lang,tempname,suborder,function(result){
+			         	if(result.error!=undefined){
+			            	logger.emit("error",result.error.message);
+			          	}else{
+			           		logger.emit("log","order "+status+" SMS send to consumer mobileno");
+			          	}
+			        });
 					}
 					var gcmregistrationid=user.gcmregistrationid;
 					var message = {

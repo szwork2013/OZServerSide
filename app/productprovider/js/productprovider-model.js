@@ -91,7 +91,7 @@ var productProviderSchema = mongoose.Schema(
       provide:{type:Boolean,default:false},
       addresses:[
         {
-          addressid:{type:String,unique:true},
+          addressid:{type:String},
           address1:{type:String},
           address2:{type:String},
           area:{type:String},
