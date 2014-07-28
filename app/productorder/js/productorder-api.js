@@ -389,7 +389,7 @@ exports.getBranchSubOrderStatusWiseCount = function(req,res){//Add New Order
     order.removeAllListeners("successfulGetOrderStatusWiseCount");
     order.on("successfulGetOrderStatusWiseCount",function(result){
       // logger.emit("info", result.success.message);
-      logger.emit("log","generte checksum response"+JSON.stringify(result));
+      logger.emit("log","successfulGetOrderStatusWiseCount"+JSON.stringify(result));
       // order.removeAllListeners();
       res.send(JSON.stringify(result));
     });
