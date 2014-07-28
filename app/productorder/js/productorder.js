@@ -149,7 +149,6 @@ var _validateCreateOrderData = function(self,orderdata,user){
 }
 var _validatePreferredDeliveryDate=function(self,orderdata,user){
 
-
 	for(var i=0;i<orderdata.sellerdelivery.length;i++){
 		if(orderdata.sellerdelivery[i].prefdeldtime!=undefined){
 			orderdata.sellerdelivery[i].prefdeldtime=new Date(orderdata.sellerdelivery[i].prefdeldtime);
@@ -245,7 +244,7 @@ var _ProviderBranchSpecificCartsProducts=function(self,orderdata,validproductids
 				}
 				var delivery_charge=0;
 				var dilivery_type="pickup";
-        var prefdeldtime;
+        		var prefdeldtime;
 				console.log("deliverycharges"+JSON.stringify(orderdata.deliverycharges))
 			
 				// var deliverytypebranchids=[]
@@ -340,10 +339,11 @@ var _createOrder=function(self,orderobject,user){
 	// }
 	orderobject.order_placeddate = new Date();
 	orderobject.createdate = new Date();
+	console.log("_createOrder############## : "+JSON.stringify(orderobject));
 	var order=new OrderModel(orderobject);
 	order.save(function(err,orderdata){
 		if(err){
-			logger.emit("error","Database Issue _createOrder"+err)
+
 			self.emit("failedCreateOrder",{"error":{"code":"ED001","message":"Database Issue"}});
 		}else{
 			
@@ -377,11 +377,13 @@ var _createOrder=function(self,orderobject,user){
 	})
 }
 var _saveOrderDeliveryAddressHistory=function(order){
+	console.log("################_saveOrderDeliveryAddressHistory###########");
 	var deliveryaddressarray=[];
 	for(var i=0;i<order.suborder.length;i++){
 		if(order.suborder[i].delivery_address!=undefined){
 			if(order.suborder[i].delivery_address.deliveryaddressid==undefined || order.suborder[i].delivery_address.deliveryaddressid==null || order.suborder[i].delivery_address.deliveryaddressid==""){
 			    deliveryaddressarray.push({userid:order.consumer.userid,address:order.suborder[i].delivery_address}); 
+			    console.log("deliveryaddressarray : "+deliveryaddressarray);
 		    }
 		}	
 	}

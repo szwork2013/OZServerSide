@@ -49,12 +49,23 @@ LocationRefference.prototype.manageLocations = function() {
 			// });
 			var things = db.collection('things');
 
-	  		things.aggregate({$group:{_id:"$zipcode"}},function(err,doc){
+	  		things.aggregate({$group:{_id:"$zipcode",area:{$addToSet:"$location"},country:{$addToSet:"$country"},state:{$addToSet:"$state"},city:{$addToSet:"$city"}}},function(err,doc){
 				if(err){
 					logger.emit("error","Database Error : manageLocations " + err);
 					self.emit("failedManageLocation",{"error":{"code":"ED001","message":"Database Issue"}});
 				}else if(doc){
-					console.log(doc);
+					// for (var i = 0; i < doc.length; i++) {
+					// 	console.log(doc[0]._id);
+					// 	LocationModel.update({zipcode:doc[i]._id},{$addToSet:{area:{$each:doc[i].area}}},function(err,updateStatus){
+					// 		if(err){
+					// 		  	logger.emit('error',"Database Issue fun:_updateLocation "+err);
+					// 	  	}else if(updateStatus==0){
+					// 	  		logger.emit('error',"Server Issue");
+					// 	  	}else{
+					// 	  		logger.emit('info',"Location updated sucessfully");
+					// 	  	}
+					// 	});
+					// };
 					self.emit("successfulManageLocation",{"success":{"message":"Getting Things","doc":doc}});
 				}else{
 		  			self.emit("failedManageLocation",{"error":{"code":"AD001","message":"Data does not exists"}});

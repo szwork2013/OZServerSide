@@ -689,7 +689,6 @@ var _isValidProductsToChangePrice=function(self,branchid,productpricedata,sessio
 		ProductCatalogModel.findOne({productid:productprice.productid},{price:1,productid:1,branch:1},function(err,product){
 			if(err){
 				logger.emit('error',"Database Issue  _isValidProductsToChangePrice"+err,sessionuserid);
-				// self.emit("failedChangeProductPrice",{"error":{"code":"ED001","message":"Database Issue"}});
 			}else if(!product){
 				logger.emit('error',"product id is wrong");
 				_isValidProductsToChangePrice(self,branchid,productpricedata,sessionuserid,++initialvalue);
@@ -713,18 +712,14 @@ var _changeProductsPrice=function(self,branchid,productprice,initialvalue,sessio
 	ProductCatalogModel.update({productid:productprice.productid},{$set:{"price.value":productprice.newprice,"holding_price.status":"init"}},function(err,pricechangestatus){
 		if(err){
 			logger.emit('error',"Database Issue _changeProductsPrice "+err,sessionuserid);
-			// self.emit("failedChangeProductPrice",{"error":{"code":"ED001","message":"Database Issue"}});
 		}else if(pricechangestatus==0){
 			logger.emit('error',"Server Issue");
-			// self.emit("failedChangeProductPrice",{error:{message:"Server Issue"}});
 		}else{
 			ProductCatalogModel.update({productid:productprice.productid},{$push:{price_history:{oldprice:product.price.value,newprice:productprice.newprice,updatedby:sessionuserid,updatedon:new Date()}}},function(err,pricechangestatus){
 				if(err){
 					logger.emit('error',"Database Issue  _changeProductsPrice"+err,sessionuserid);
-					// self.emit("failedChangeProductPrice",{"error":{"code":"ED001","message":"Database Issue"}});
 				}else if(pricechangestatus==0){
 					logger.emit('error',"Server Issue");
-					// self.emit("failedChangeProductPrice",{error:{message:"Server Issue"}});
 				}else{
 					///////////////////////////////////////////////////////////////////////////////////////////
 					_isValidProductsToChangePrice(self,branchid,productpricedata,sessionuserid,++initialvalue);
@@ -734,8 +729,6 @@ var _changeProductsPrice=function(self,branchid,productprice,initialvalue,sessio
 		}
 	})
 }
-
-
 
 ProductCatalog.prototype.holdingProductPrice = function(branchid,productid,pricedata,sessionuserid) {
 	var self=this;
@@ -894,7 +887,7 @@ var _activateProductPrice=function(self,productid,sessionuserid,product){
 	})
 }
 var _successfulActivateProductPrice=function(self){
-	self.emit("successfulActivateProductPrice",{success:{message:"Price Activated Successfully"}});
+	self.emit("successfulActivateProductPrice",{success:{message:"Holding Price Activated Successfully"}});
 }
 
 ProductCatalog.prototype.deactivateProductPrice = function(branchid,productid,sessionuserid){
@@ -971,7 +964,7 @@ var _deactivateProductPrice=function(self,productid,sessionuserid,product){
 	})
 }
 var _successfulDeactivateProductPrice=function(self){
-	self.emit("successfulDeactivateProductPrice",{success:{message:"Price Deactivated Successfully"}});
+	self.emit("successfulDeactivateProductPrice",{success:{message:"Holding Price Deactivated Successfully"}});
 }
 
 ProductCatalog.prototype.publishUnpublishProductCatalog = function(branchid,productids,user,action){
