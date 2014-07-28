@@ -870,10 +870,10 @@ var _getDeliveryCharges=function(self,city,area,branchids){
    // }else{
    // 	branchids_array.push(branchids)
    // }
-	ProductProviderModel.aggregate({$match:{"branch.branchid":{$in:branchids_array}}},{$unwind:"$branch"},{$match:{"branch.branchid":{$in:branchids_array}}},{$unwind:"$branch.deliverycharge"},{$project:{_id:0,branchid:"$branch.branchid",charge:"$branch.deliverycharge.value",coverage:"$branch.deliverycharge.coverage",isdeliverychargeinpercent:"$branch.delivery.isdeliverychargeinpercent"}},{$match:{"coverage.area":{ $regex: area, $options: 'i' },"coverage.city":{ $regex: city, $options: 'i' }}},function(err,deliverycharges){
+	ProductProviderModel.aggregate({$match:{"branch.branchid":{$in:branchids_array}}},{$unwind:"$branch"},{$match:{"branch.branchid":{$in:branchids_array}}},{$unwind:"$branch.deliverycharge"},{$project:{_id:0,branchid:"$branch.branchid",charge:"$branch.deliverycharge.value",coverage:"$branch.deliverycharge.coverage",isdeliverychargeinpercent:"$branch.delivery.isdeliverychargeinpercent"}},{$match:{"coverage.area":area,"coverage.city":city}},function(err,deliverycharges){
 		if(err){
           logger.emit("error","Database Issue _getDeliveryCharges"+err)
-		  self.emit("failedGetDeliveryCharges",{"error":{"code":"ED001","message":"Database Issue"}});
+		  self.emit("failedGetDeliveryCharges",{"error":{"code":"ED001","message":"Database Issu
 		}else{
 			var delivery_charges_array=[];
 			var validbranchids=[];
