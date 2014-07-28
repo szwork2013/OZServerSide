@@ -794,7 +794,11 @@ var _getStaticTemplate = function(res,type,result) {
 			logger.emit("error","Database Error:_getStaticTemplate"+err);
 			res.send({"error":{"code":"ED001","message":"Database Issue"}});
 		}else if(!template){
-			res.send({"error":{"code":"AD001","message":"template does not exist"}});
+			if(result == "json"){
+				res.send({"error":{"code":"AD001","message":"template does not exist"}});
+			}else{
+				res.send("<h3>Policy does not exist</h3>");
+			}			
 		}else{
 			/////////////////////////////////////////////
 			_successfullGetStaticTemplates(res,template,result);

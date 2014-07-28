@@ -47,7 +47,7 @@ var _checkTagNamesAlreadyExist = function(self,tagnames){
 			// self.emit("failedAddTags",{"error":{"message":"tagnames does not exist"}});
 			_addTags(self,tagnames);
 		}else{			
-			_upadteTags(self,tagnames);
+			_upadateTags(self,tagnames);
 		}
 	});
 }
@@ -66,10 +66,10 @@ var _addTags = function(self,tagnames){
 		}
 	})
 }
-var _upadteTags = function(self,tagnames){
+var _upadateTags = function(self,tagnames){
 	TagSearchModel.update({},{$addToSet:{tagnames:{$each:tagnames}}},function(err,updateStatus){
 		if(err){
-		  	logger.emit('error',"Database Issue fun:_upadteTags"+err);
+		  	logger.emit('error',"Database Issue fun:_upadateTags"+err);
 		  	self.emit("failedAddTags",{"error":{"code":"ED001","message":"Database Issue"}});
 	  	}else if(updateStatus==0){
 	  		self.emit("failedAddTags",{"error":{"message":"Server Issue"}});
