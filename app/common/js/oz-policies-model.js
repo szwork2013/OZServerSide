@@ -1,6 +1,6 @@
 var mongoose = require('./db');
 
-var staticTemplateSchema = mongoose.Schema(
+var ozPoliciesSchema = mongoose.Schema(
   {
   	type:{type:String},
   	template:{type:String},
@@ -9,7 +9,7 @@ var staticTemplateSchema = mongoose.Schema(
   }
 );
 
-var StaticTemplateModel = mongoose.model('statictemplates', staticTemplateSchema);
+var ozPoliciesSchema = mongoose.model('ozpolicies', ozPoliciesSchema);
 
 //export the model
-module.exports = StaticTemplateModel;
+module.exports = ozPoliciesSchema;

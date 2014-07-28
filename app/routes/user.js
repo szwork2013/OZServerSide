@@ -21,9 +21,9 @@ exports.init = function (app) {
 
     //Api's for Admin Screen
     app.get('/api/usersorders/count',auth,api.userapi.userordersCount);
-    app.post('/api/statictemplates',auth,api.commonapi.addStaticTemplates);
-    app.get('/api/statictemplates',api.commonapi.getStaticTemplate);
-    app.put('/api/statictemplates',auth,api.commonapi.updateStaticTemplates);    
+    app.post('/api/statictemplates',auth,api.commonapi.addOZPolicies);
+    app.get('/api/statictemplates',api.commonapi.getOZPolicies);
+    app.put('/api/statictemplates',auth,api.commonapi.updateOZPolicies);    
     app.get('/api/loadsmstemplates',auth,api.commonapi.loadSMSTemplates)
     app.get('/api/mydeliveryaddresses/:userid',auth,api.userapi.getMyDeliveryAddressHistory);
 }

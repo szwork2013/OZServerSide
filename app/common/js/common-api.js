@@ -22,7 +22,7 @@ var SMSTemplateModel=require('./sms-template-model');
 // var workorderapi=require("../../workorder/js/workorder-api");
 var lngDetector = new (require('languagedetect'));
 var CountryCodeModel=require("./country-code-model");
-var StaticTemplateModel = require("./static-template-model");
+var ozPolicyModel = require("./oz-policies-model");
  var nodemailer = require("nodemailer");
  var logger=require("./logger");
  var orderapi=require("../../productorder/js/productorder-api");
@@ -716,16 +716,16 @@ exports.loaddefaultcounrycode=function(req,res){
 	res.send("default country code loaded");
 }
 
-exports.addStaticTemplates = function(req,res){
+exports.addOZPolicies = function(req,res){
 	var userid = req.user.userid;
 	var templatedata = req.body.templatedata;
 	if(req.user.isAdmin==false){
-    	res.send({"error":{"message":"You are not authorized to add static templates"}});
+    	res.send({"error":{"message":"You are not authorized to add orderzapp policies"}});
     }else{
-      	_validateAddStaticTemplates(res,templatedata,userid);
+      	_validateAddOZPolicies(res,templatedata,userid);
     }    
 }
-var _validateAddStaticTemplates = function(res,templatedata,userid){
+var _validateAddOZPolicies = function(res,templatedata,userid){
 	if(templatedata == undefined){
 		res.send({"error":{"message":"Please enter templatedata"}});
 	}else if(templatedata.type == undefined || templatedata.type == ""){
@@ -735,78 +735,77 @@ var _validateAddStaticTemplates = function(res,templatedata,userid){
 	}else if(templatedata.template == undefined || templatedata.template == ""){
 		res.send({"error":{"message":"Please enter template"}});
 	}else{
-		_checkStaticTemplateAlreadyExist(res,templatedata,userid);
+		_checkOzPolicyAlreadyExist(res,templatedata,userid);
 	}
 }
-var _checkStaticTemplateAlreadyExist = function(res,templatedata,userid){
+var _checkOzPolicyAlreadyExist = function(res,templatedata,userid){
 	var temp_type = templatedata.type.toLowerCase();
 	console.log("temp_type : "+temp_type);
-	StaticTemplateModel.findOne({type:temp_type},function(err,templatestatus){
+	ozPolicyModel.findOne({type:temp_type},function(err,templatestatus){
 		if(err){
-			logger.emit("error","Database Error:_checkStaticTemplateAlreadyExist"+err,userid);
+			logger.emit("error","Database Error:_checkOzPolicyAlreadyExist"+err,userid);
 			res.send({"error":{"code":"ED001","message":"Database Issue"}});
 		}else if(templatestatus){
-			res.send({"error":{"code":"ED001","message":"template already exist"}});
+			res.send({"error":{"code":"ED001","message":"policy already exist"}});
 		}else{
-			_addStaticTemplates(res,templatedata,userid);
+			_addOZPolicies(res,templatedata,userid);
 		}		
 	})
 }
-var _addStaticTemplates = function(res,templatedata,userid){
+var _addOZPolicies = function(res,templatedata,userid){
 	templatedata.type = templatedata.type.toLowerCase();
 	templatedata.createdate = new Date();
 	console.log("templatedata : "+JSON.stringify(templatedata));
-	var statictemplatemodel = new StaticTemplateModel(templatedata);
-	statictemplatemodel.save(function(err,temp){
+	var ozpolicymodel = new ozPolicyModel(templatedata);
+	ozpolicymodel.save(function(err,temp){
 		if(err){
-			logger.emit("error","Database Error:_addStaticTemplates : "+err,userid);
+			logger.emit("error","Database Error:_addOZPolicies : "+err,userid);
 			res.send({"error":{"code":"ED001","message":"Database Issue"}});
 		}else{
 			///////////////////////////////////
-			_successfullAddStaticTemplates(res);
+			_successfullAddOZPolicies(res);
 			///////////////////////////////////	
 		}
 	})
 }
-var _successfullAddStaticTemplates=function(res){
-	res.send({"success":{"message":"Static Template Added successfully"}});
+var _successfullAddOZPolicies=function(res){
+	res.send({"success":{"message":"OZ-Policy Added Successfully"}});
 }
 
-exports.getStaticTemplate = function(req,res){
-	// var userid = req.user.userid;
+exports.getOZPolicies = function(req,res){
 	var type = req.query.type;
 	var result = req.query.result;
-   	_validateGetStaticTemplates(res,type,result);
+   	_validateGetOZPolicies(res,type,result);
 }
-var _validateGetStaticTemplates = function (res,type,result) {
+var _validateGetOZPolicies = function (res,type,result) {
 	if(type == undefined){
 		res.send({"error":{"code":"ED001","message":"Please pass type"}});
 	}else if(["hp","au","pp","tc","sa"].indexOf(type.toLowerCase())<0){
 		res.send({"error":{"message":"type must be HP or AU or PP or TC or SA"}});
 	}else{
-		_getStaticTemplate(res,type,result);
+		_getOZPolicies(res,type,result);
 	}
 }
-var _getStaticTemplate = function(res,type,result) {
+var _getOZPolicies = function(res,type,result) {
 	var temp_type = type.toLowerCase();
-	StaticTemplateModel.findOne({type:temp_type},{type:1,template:1,_id:0},function(err,template){
+	ozPolicyModel.findOne({type:temp_type},{type:1,template:1,_id:0},function(err,template){
 		if(err){
-			logger.emit("error","Database Error:_getStaticTemplate"+err);
+			logger.emit("error","Database Error:_getOZPolicies"+err);
 			res.send({"error":{"code":"ED001","message":"Database Issue"}});
 		}else if(!template){
 			if(result == "json"){
-				res.send({"error":{"code":"AD001","message":"template does not exist"}});
+				res.send({"error":{"code":"AD001","message":"Policy does not exist"}});
 			}else{
-				res.send("<h3>Policy does not exist</h3>");
+				res.send("<p>Policy does not exist</p>");
 			}			
 		}else{
 			/////////////////////////////////////////////
-			_successfullGetStaticTemplates(res,template,result);
+			_successfullGetOZPolicies(res,template,result);
 			/////////////////////////////////////////////
 		}		
 	})	
 }
-var _successfullGetStaticTemplates=function(res,template,result){
+var _successfullGetOZPolicies=function(res,template,result){
 	console.log(result);
 	if(result==undefined){
 		res.send(template.template);
@@ -817,41 +816,41 @@ var _successfullGetStaticTemplates=function(res,template,result){
 	}
 }
 
-exports.updateStaticTemplates = function(req,res){
+exports.updateOZPolicies = function(req,res){
 	var userid = req.user.userid;
 	var type = req.query.type;
 	var templatedata = req.body.templatedata;
 	if(req.user.isAdmin==false){
-    	res.send({"error":{"message":"You are not authorized to update static templates"}});
+    	res.send({"error":{"message":"You are not authorized to do this action"}});
     }else{
     	if(type == undefined){
     		res.send({"error":{"message":"Please pass type"}});
     	}else{
-    		_validateUpdateStaticTemplates(res,type,templatedata,userid);	
+    		_validateUpdateOZPolicies(res,type,templatedata,userid);	
     	}      	
     }    
 }
-var _validateUpdateStaticTemplates = function(res,type,templatedata,userid){
+var _validateUpdateOZPolicies = function(res,type,templatedata,userid){
 	if(templatedata == undefined){
 		res.send({"error":{"message":"Please enter templatedata"}});
 	}else if(templatedata.type != undefined){	
-		res.send({"error":{"message":"Can't update template type"}});
+		res.send({"error":{"message":"Can't update policy type"}});
 	}else if(templatedata.template == undefined || templatedata.template == ""){
 		res.send({"error":{"message":"Please enter template"}});
 	}else{
-		_updateStaticTemplates(res,type,templatedata,userid);
+		_updateOZPolicies(res,type,templatedata,userid);
 	}
 }
-var _updateStaticTemplates = function(res,type,templatedata,userid){
+var _updateOZPolicies = function(res,type,templatedata,userid){
 	templatedata.updateddate = new Date();
-	StaticTemplateModel.update({type:type.toLowerCase()},{$set:templatedata},function(err,templatestatus){
+	ozPolicyModel.update({type:type.toLowerCase()},{$set:templatedata},function(err,templatestatus){
 		if(err){
 			logger.emit("error","Database Issue "+err);
 			res.send({"error":{"message":"Database Issue"}});
 		}else if(templatestatus==0){
-			res.send({"error":{"message":"type is wrong"}});
+			res.send({"error":{"message":"policy type is wrong"}});
 		}else{
-			res.send({"success":{"message":"Template type updated successfully"}});
+			res.send({"success":{"message":"OZ-Policy Updated Successfully"}});
 		}
 	})
 }
@@ -859,8 +858,7 @@ exports.sendMail = function(message,smtpconfig,callback){
   var smtpTransport = nodemailer.createTransport("SMTP",smtpconfig);
 
   message.html="<div width=500 height=100 style='background-color:black'><img width=200 height=100 src='http://ec2-54-255-211-121.ap-southeast-1.compute.amazonaws.com/assets/images/orderzapp.png'></img><h2><font color=white>Reach. Share. Know. </font></h2></div><br>"+message.html;
-  smtpTransport.sendMail(message, 
- 	  function (error, success) {
+  	smtpTransport.sendMail(message,function (error, success) {
       if(error){
         logger.error("Unable to send via Prodonus: " + error.message);
         callback("failure");
