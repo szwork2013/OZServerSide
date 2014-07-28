@@ -23,7 +23,7 @@ exports.addProductCatalog=function(req,res){
     productlogo=req.files.file;
   }
   logger.emit("log","req files"+JSON.stringify(productlogo))
-  // console.log("productcatalogdata 1: "+JSON.stringify(productcatalogdata));
+  console.log("productcatalogdata 1: "+JSON.stringify(productcatalogdata));
   var productcatalog = new ProductCatalog(productcatalogdata);
    logger.emit("log"," providerid "+providerid+" categoryid "+categoryid );
    productcatalog.removeAllListeners("failedAddProductCatalog");
