@@ -246,6 +246,7 @@ var _ProviderBranchSpecificCartsProducts=function(self,orderdata,validproductids
 							}
 							suborderproducts.push({baseprice:branchproducts[i].productcatalog[j].price.value,productconfiguration:orderdata.cart[indexofproduct].productconfiguration,messageonproduct:orderdata.cart[indexofproduct].messageonproduct,tax:branchproducts[i].productcatalog[j].tax.percent,currency:branchproducts[i].productcatalog[j].price.currency,productid:branchproducts[i].productcatalog[j].productid,productname:branchproducts[i].productcatalog[j].productname,productcode:branchproducts[i].productcatalog[j].productcode,productlogo:productlogo,qty:parseFloat(orderdata.cart[indexofproduct].qty),uom:branchproducts[i].productcatalog[j].price.uom,orderprice:parseFloat(orderdata.cart[indexofproduct].orderprice)})
 							suborderprice+=parseFloat(orderdata.cart[indexofproduct].orderprice);
+							suborderprice=Math.round(suborderprice*100)/100;
 						  // console.log("messageonproduct"+orderdata.cart[indexofproduct].messageonproduct)
 						}
 					}
@@ -300,7 +301,7 @@ var _ProviderBranchSpecificCartsProducts=function(self,orderdata,validproductids
 					}
 				
 					
-
+				delivery_charge=Math.round(delivery_charge*100)/100;
 				suborderprice+=delivery_charge;
 				suborder.deliverycharge=delivery_charge;
 				console.log("delivery_charge"+delivery_charge);
@@ -502,7 +503,7 @@ var _SubOrderInvoiceCreation=function(suborders,value,order){
 		  	   for(var j=0;j<suborder.products.length;j++){
 		  	  	var baseprice=suborder.products[j].orderprice*(1-suborder.products[j].tax*0.01);
 		  	  	var tax=suborder.products[j].orderprice*suborder.products[j].tax*0.01;
-		  	  	var orderprice=suborder.products[j].orderprice;
+		  	  	var orderprice=Math.round(suborder.products[j].orderprice*100)/100;
 		  	  	var uom=suborder.products[j].uom;
 		  	  	var qty=suborder.products[j].qty;
 		  	  	var productname=suborder.products[j].productname;
@@ -1707,9 +1708,9 @@ var _validateGetCurrentAndPastOrders=function(self,userid,criteriastatus){
 			self.emit("failedGetCurrentAndPastOrders",{error:{code:"AV001",message:"criteriastatus should be past and current"}})
 		}else{
 			if(criteriastatus=="current"){
-				query={"consumer.userid":userid,"suborder.status":{$in:["orderstart","accepted","inproduction","packing","factorytostore","storepickup","homedelivery"]}}
+				query={"consumer.userid":userid,"suborder.status":{$in:["orderreceived","accepted","inproduction","packing","factorytostore","storepickup","indelivery"]}}
 			}else{
-				query={"consumer.userid":userid,"suborder.status":{$nin:["orderstart","accepted","inproduction","packing","factorytostore","storepickup","homedelivery"]}}	
+				query={"consumer.userid":userid,"suborder.status":{$nin:["orderreceived","accepted","inproduction","packing","factorytostore","storepickup","indelivery"]}}	
 			}
 			///////////////////////////////////
 			_getCurrentAndPastOrders(self,query,criteriastatus)
