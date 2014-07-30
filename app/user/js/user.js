@@ -243,9 +243,9 @@ var _checkMobileNumberAlreadyExists=function(self,userdata){
       self.emit("failedUserRegistration",{"error":{"code":"ED001","message":"Database Issue"}});
     }else if(user){
       if(userdata.usertype=="individual"){
-       self.emit("failedUserRegistration",{"error":{"code":"AU001","message":"Mobile Number is already associated with OrderZapp"}});      
+       self.emit("failedUserRegistration",{"error":{"code":"AU001","message":"Mobile Number is already registered with OrderZapp"}});      
       }else if(user.usertype=="provider"){
-        self.emit("failedUserRegistration",{"error":{"code":"AU001","message":"Mobile Number is already associated with OrderZapp"}});     
+        self.emit("failedUserRegistration",{"error":{"code":"AU001","message":"Mobile Number is already registered with OrderZapp"}});     
       }else{
         ///////////////////////////////////////
         _createOTPForConfirmProvider(self,user);

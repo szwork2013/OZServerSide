@@ -1304,9 +1304,12 @@ var _sendNotificationToUser=function(suborder,status){
 				          	}
 				        });
 					}else if(status == "accepted"){
-						var preferred_delivery_date = new Date(suborder.prefdeldtime.getDate());
-						var deliverydate = new Date(suborder.deliverydate.getDate());
-						if(preferred_delivery_date != deliverydate){
+						var preferred_delivery_date = new Date(suborder.prefdeldtime);
+						var deliverydate = new Date(suborder.deliverydate);
+						console.log("prefdeldtime"+suborder.prefdeldtime+" ::"+preferred_delivery_date);
+						console.log("deliverydate"+suborder.deliverydate+"::"+deliverydate);
+
+						if(preferred_delivery_date.getDate()+"/"+preferred_delivery_date.getMonth()+"/"+preferred_delivery_date.getFullYear() != deliverydate.getDate()+"/"+deliverydate.getMonth()+"/"+deliverydate.getFullYear() ){
 							_sendSMSToUsersMobileNumber(user.mobileno,user.preffered_lang,"order"+status,suborder,function(result){
 					         	if(result.error!=undefined){
 					            	logger.emit("error",result.error.message);
