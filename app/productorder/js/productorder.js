@@ -1338,14 +1338,14 @@ var _sendNotificationToUser=function(suborder,status){
 							}
 						}
 						_sendSMSToUsersMobileNumber(user.mobileno,user.preffered_lang,tempname,suborder,function(result){
-			         	if(result.error!=undefined){
-			            	logger.emit("error",result.error.message);
-			          	}else{
-			           		logger.emit("log","order "+status+" SMS send to consumer mobileno");
-			          	}
-			        });
+				         	if(result.error!=undefined){
+				            	logger.emit("error",result.error.message);
+				          	}else{
+				           		logger.emit("log","order "+status+" SMS send to consumer mobileno");
+				          	}
+				        });
 					}
-					var gcmregistrationid=user.gcmregistrationid;
+					var gcmregistrationid = user.gcmregistrationid;
 					var message = {
 			          registration_id: gcmregistrationid, // required Device registration id
 			          collapse_key: 'do_not_collapse', //demo,Collapse key

@@ -241,12 +241,12 @@ var _validateProductProviderData=function(self,productproviderdata,user,provider
 		self.emit("failedProductProviderRegistration",{"error":{"code":"AV001","message":"Process Configuration should not be empty"}})
 	}else if(productproviderdata.providercode==undefined || productproviderdata.providercode==""){
 		self.emit("failedProductProviderRegistration",{"error":{"code":"AV001","message":"Please enter sellercode"}})
-	}else if(productproviderdata.tax==undefined || productproviderdata.tax==""){
-		self.emit("failedProductProviderRegistration",{"error":{"code":"AV001","message":"Please pass tax information"}})
-	}else  if(productproviderdata.tax.tino==undefined || productproviderdata.tax.tino==""){
-		self.emit("failedProductProviderRegistration",{"error":{"code":"AV001","message":"Please enter tino"}})
-	}else if(productproviderdata.tax.servicetaxno==undefined || productproviderdata.tax.servicetaxno==""){
-		self.emit("failedProductProviderRegistration",{"error":{"code":"AV001","message":"Please enter servicetaxno"}})
+	// }else if(productproviderdata.tax==undefined || productproviderdata.tax==""){
+	// 	self.emit("failedProductProviderRegistration",{"error":{"code":"AV001","message":"Please pass tax information"}})
+	// }else  if(productproviderdata.tax.tino==undefined || productproviderdata.tax.tino==""){
+	// 	self.emit("failedProductProviderRegistration",{"error":{"code":"AV001","message":"Please enter tino"}})
+	// }else if(productproviderdata.tax.servicetaxno==undefined || productproviderdata.tax.servicetaxno==""){
+	// 	self.emit("failedProductProviderRegistration",{"error":{"code":"AV001","message":"Please enter servicetaxno"}})
 	}else if(productproviderdata.paymentmode==undefined || productproviderdata.paymentmode==""){
 		self.emit("failedProductProviderRegistration",{"error":{"code":"AV001","message":"Please pass paymentmode"}})
 	}else if(providerlogo==undefined){
