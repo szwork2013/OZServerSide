@@ -162,6 +162,7 @@ exports.getDeliveryCharges=function(req,res){
   var area=req.body.area;
 
   var branchids=req.body.branchids;
+  logger.emit("log","getDeliveryCharges:city:"+city+",area:"+area)
   // logger.emit("log","getMySubOrders /providerid:"+providerid+" /branchid:"+branchid);
   order.removeAllListeners("failedGetDeliveryCharges");
     order.on("failedGetDeliveryCharges",function(err){
@@ -389,7 +390,7 @@ exports.getBranchSubOrderStatusWiseCount = function(req,res){//Add New Order
     order.removeAllListeners("successfulGetOrderStatusWiseCount");
     order.on("successfulGetOrderStatusWiseCount",function(result){
       // logger.emit("info", result.success.message);
-      logger.emit("log","generte checksum response"+JSON.stringify(result));
+      logger.emit("log","successfulGetOrderStatusWiseCount"+JSON.stringify(result));
       // order.removeAllListeners();
       res.send(JSON.stringify(result));
     });

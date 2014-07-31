@@ -241,12 +241,12 @@ var _validateProductProviderData=function(self,productproviderdata,user,provider
 		self.emit("failedProductProviderRegistration",{"error":{"code":"AV001","message":"Process Configuration should not be empty"}})
 	}else if(productproviderdata.providercode==undefined || productproviderdata.providercode==""){
 		self.emit("failedProductProviderRegistration",{"error":{"code":"AV001","message":"Please enter sellercode"}})
-	}else if(productproviderdata.tax==undefined || productproviderdata.tax==""){
-		self.emit("failedProductProviderRegistration",{"error":{"code":"AV001","message":"Please pass tax information"}})
-	}else  if(productproviderdata.tax.tino==undefined || productproviderdata.tax.tino==""){
-		self.emit("failedProductProviderRegistration",{"error":{"code":"AV001","message":"Please enter tino"}})
-	}else if(productproviderdata.tax.servicetaxno==undefined || productproviderdata.tax.servicetaxno==""){
-		self.emit("failedProductProviderRegistration",{"error":{"code":"AV001","message":"Please enter servicetaxno"}})
+	// }else if(productproviderdata.tax==undefined || productproviderdata.tax==""){
+	// 	self.emit("failedProductProviderRegistration",{"error":{"code":"AV001","message":"Please pass tax information"}})
+	// }else  if(productproviderdata.tax.tino==undefined || productproviderdata.tax.tino==""){
+	// 	self.emit("failedProductProviderRegistration",{"error":{"code":"AV001","message":"Please enter tino"}})
+	// }else if(productproviderdata.tax.servicetaxno==undefined || productproviderdata.tax.servicetaxno==""){
+	// 	self.emit("failedProductProviderRegistration",{"error":{"code":"AV001","message":"Please enter servicetaxno"}})
 	}else if(productproviderdata.paymentmode==undefined || productproviderdata.paymentmode==""){
 		self.emit("failedProductProviderRegistration",{"error":{"code":"AV001","message":"Please pass paymentmode"}})
 	}else if(providerlogo==undefined){
@@ -1163,7 +1163,7 @@ var _getAllMyProviders=function(self,providerarray){
 			providers=JSON.stringify(providers);
 				providers=JSON.parse(providers);
 			// console.log("tssss55555555555555sesddddddddtdd")
-			var actionstatus={accepted:"accept",cancelled:"cancel",rejected:"reject",inproduction:"production",factorytostore:"shiiptostore",packing:"pack",indelivery:"deliver",storepickup:"pickfromstore",ordercomplete:"done"};
+			var actionstatus={accepted:"accept",cancelled:"cancel",rejected:"reject",inproduction:"production",factorytostore:"shiptostore",packing:"pack",indelivery:"deliver",storepickup:"pickfromstore",ordercomplete:"done"};
 			for(var i=0;i<providers.length;i++){
 					var orderprocess_configuration=providers[i].orderprocess_configuration;
 					var givenindexes=[];
@@ -2292,7 +2292,7 @@ var _GetBranchDeliveryCharges=function(self,sessionuserid,branchid,zipcode,city)
 		query={$match:{"coverage.city":city}}
 	}
 	
-	ProductProviderModel.aggregate({$match:{"branch.branchid":branchid}},{$unwind:"$branch"},{$match:{"branch.branchid":branchid}},{$unwind:"$branch.deliverycharge"},{$project:{value:"$branch.deliverycharge.value",coverage:"$branch.deliverycharge.coverage",_id:0}},query,function(err,branchdeliverycharges){
+	ProductProviderModel.aggregate({$match:{"branch.branchid":branchid}},{$unwind:"$branch"},{$match:{"branch.branchid":branchid}},{$unwind:"$branch.deliverycharge"},{$project:{value:"$branch.deliverycharge.value",coverage:"$branch.deliverycharge.coverage",id:"$branch.deliverycharge._id",_id:0}},query,function(err,branchdeliverycharges){
 		if(err){
 			logger.emit('error',"Database Issue fun:_checkUserHaveProviderBranches"+err,user.userid)
 		  self.emit("failedGetBranchDeiliveryCharges",{"error":{"code":"ED001","message":"Database Issue"}});			
@@ -2307,6 +2307,55 @@ var _GetBranchDeliveryCharges=function(self,sessionuserid,branchid,zipcode,city)
 }
 var _successfullGetBranchDeliveryCharges=function(self,branchdeliverycharges){
 	self.emit("successfulGetBranchDeliveryCharges",{success:{message:"Gettin Branch Delivery Charges Successfully",branchdeliverycharges:branchdeliverycharges}})
+}
+ProductProvider.prototype.deleteDeliveryChargesArea = function(sessionuserid,branchid,deliveryareaids) {
+	var self=this;
+	if(deliveryareaids==undefined || deliveryareaids==""){
+		self.emit("failedDeleteDeliveryChargesArea",{error:{code:"AV001",message:"Please pass deliveryareaids"}})
+	}else if(!isArray(deliveryareaids)){
+		self.emit("failedDeleteDeliveryChargesArea",{error:{code:"AV001",message:"deliveryareaids should be an array"}})
+	}else if(deliveryareaids.length==0){
+		self.emit("failedDeleteDeliveryChargesArea",{error:{code:"AV001",message:"Please passs atleast one delivery area id"}})
+	}else {
+	////////////////////////////////////////////////////////////////////
+	   _isAuthorizedUserToDeleteDeliveryBranch(self,sessionuserid,branchid,deliveryareaids);
+	    ////////////////////////////////////////////////////////////////////		
+				
+	}
+}
+	
+var _isAuthorizedUserToDeleteDeliveryBranch=function(self,sessionuserid,branchid,deliveryareaids){
+	UserModel.findOne({userid:sessionuserid,"provider.branchid":branchid},{provider:1},function(err,userprovider){
+		if(err){
+			logger.emit('error',"Database Issue fun:_checkUserHaveProviderBranches"+err,user.userid)
+		  self.emit("failedDeleteDeliveryChargesArea",{"error":{"code":"ED001","message":"Database Issue"}});			
+		}else if(!userprovider){
+			self.emit("failedDeleteDeliveryChargesArea",{"error":{"message":"User does not belong to provider"}});			
+		}else{
+			
+  		////////////////////////////////////////
+  		_deleteBranchDeliveryCharges(self,sessionuserid,branchid,deliveryareaids);
+  		/////////////////////////////////
+
+		}
+	})
+}
+var _deleteBranchDeliveryCharges=function(self,sessionuserid,branchid,deliveryareaids){
+	ProductProviderModel.update({"branch.branchid":branchid},{$pull:{"branch.$.deliverycharge":{_id:{$in:deliveryareaids}}}},function(err,updatedeletedeliverarea){
+		if(err){
+			logger.emit('error',"Database Issue fun:_checkUserHaveProviderBranches"+err,user.userid)
+		  self.emit("failedDeleteDeliveryChargesArea",{"error":{"code":"ED001","message":"Database Issue"}});			
+		}else if(updatedeletedeliverarea==0){
+			self.emit("failedDeleteDeliveryChargesArea",{success:{message:"Given area and zipcode does not exists"}})
+		}else{
+			///////////////////////////////
+			_successfullDeleteBranchDeliveryCharges(self)
+			/////////////////////////////	
+		}
+	})
+}
+var _successfullDeleteBranchDeliveryCharges=function(self){
+	self.emit("successfulDeleteDeliveryChargesArea",{success:{message:"Delete Area from delivery Availibility"}})
 }
 
 ProductProvider.prototype.addPickupAddresses = function(user,providerid) {
