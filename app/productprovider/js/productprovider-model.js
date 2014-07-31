@@ -50,13 +50,14 @@ var branchSchema = mongoose.Schema(
       isdeliverychargeinpercent:{type:Boolean,default:false},
       
     },//in this case charge or percent any of this
-    //if fixedcharge is true then value means 100 and fiexed charge false means value in percentage
+    //if fixedcharge is true then value means 100 and fixed charge false means value in percentage
     deliverycharge:[{value:{type:Number},coverage:{area:String,zipcode:String,city:String}}],//if isProvideHomeDelivery is true
     contact_supports:[{type:String}],
     branch_images:[{bucket:{type:String},key:String,image:{type:String}}],
     // productcatalog:[ProductCatalogs],
     // usergrp:[usergrpSchema],
-    branch_availibility:{from:{type:Number},to:{type:Number}},//means service available form 9AM to 6 PM
+    delivery_leadtime:{min:Number},
+    branch_availibility:{from:{type:Number},to:{type:Number}},//means service available from 9AM to 6 PM
     note:{type:String,default:"none"},
     createdate:{type:Date},
     status:{type:String,default:"init"}//default init,publish,unpublish,and deactive
