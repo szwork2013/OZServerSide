@@ -289,7 +289,7 @@ var _createPDFInvocie=function(self,inoviceobject,branch){
         }
       }
       if(inoviceobject.deliverytype.toLowerCase()=="home"){
-        if(inoviceobject.deliverycharge!=undefined){
+        if(inoviceobject.deliverycharge!=undefined && inoviceobject.deliverycharge!=0){
             productshtml+="<tr>"
             productshtml+="<td></td>";
             productshtml+="<td></td>";

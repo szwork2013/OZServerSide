@@ -333,7 +333,11 @@ var _ProviderBranchSpecificCartsProducts=function(self,orderdata,validproductids
 				suborders.push(suborder);
 				// suborders.status="init";
 			}
-			var orderobject={preferred_delivery_date:orderdata.preferred_delivery_date,consumer:{userid:user.userid,name:user.firstname+" "+user.lastname,email:user.email,mobileno:user.mobileno},total_order_price:totalorderprice,suborder:suborders,payment:{mode:orderdata.paymentmode,paymentid:generateId()}}
+			var consumername=user.firstname;
+			if(user.lastname!=undefined){
+				consumername+=" "+user.lastname;
+			}
+			var orderobject={preferred_delivery_date:orderdata.preferred_delivery_date,consumer:{userid:user.userid,name:consumername,email:user.email,mobileno:user.mobileno},total_order_price:totalorderprice,suborder:suborders,payment:{mode:orderdata.paymentmode,paymentid:generateId()}}
 			orderobject.status="approved";
 			logger.emit("log","Final Order Data:"+JSON.stringify(orderobject))
 			////////////////////////////////,
