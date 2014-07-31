@@ -56,12 +56,12 @@ var branchSchema = mongoose.Schema(
     branch_images:[{bucket:{type:String},key:String,image:{type:String}}],
     // productcatalog:[ProductCatalogs],
     // usergrp:[usergrpSchema],
-    delivery_leadtime:{min:Number},
-    branch_availibility:{from:{type:String},to:{type:String}},//means service available from 9AM to 6 PM
+    delivery_leadtime:{time:String,format:String,min:Number},
+    branch_availability:{from:{type:String},to:{type:String}},//means service available from 9AM to 6 PM
     note:{type:String,default:"none"},
     createdate:{type:Date},
     status:{type:String,default:"init"}//default init,publish,unpublish,and deactive
- })   
+})   
 var productProviderSchema = mongoose.Schema(
 {
     providerid: { type: String, required: true, unique: true },
