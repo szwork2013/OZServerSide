@@ -201,7 +201,9 @@ var _validateRegisterUser = function(self,userdata) {
 		self.emit("failedUserRegistration",{"error":{"code":"AV001","message":"Please provide userdata"}});
 	}else if(userdata.mobileno==undefined){
 		self.emit("failedUserRegistration",{"error":{"code":"AV001","message":"Please provide mobileno"}});
-	} else if(userdata.mobileno.trim()==""){
+	} else if(userdata.firstname==undefined){
+    self.emit("failedUserRegistration",{"error":{"code":"AV001","message":"Please enter firstname"}});
+  } else if(userdata.mobileno.trim()==""){
 		self.emit("failedUserRegistration",{"error":{"code":"AV001","message":"Please provide mobileno"}});
 	} else if(S(userdata.mobileno).isNumeric() && userdata.mobileno.length!=12){
 		self.emit("failedUserRegistration",{"error":{"code":"AV001","message":"Mobile number should be numeric and 10 digit"}});
