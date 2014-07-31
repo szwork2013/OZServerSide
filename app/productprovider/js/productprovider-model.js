@@ -57,7 +57,7 @@ var branchSchema = mongoose.Schema(
     // productcatalog:[ProductCatalogs],
     // usergrp:[usergrpSchema],
     delivery_leadtime:{min:Number},
-    branch_availibility:{from:{type:Number},to:{type:Number}},//means service available from 9AM to 6 PM
+    branch_availibility:{from:{type:String},to:{type:String}},//means service available from 9AM to 6 PM
     note:{type:String,default:"none"},
     createdate:{type:Date},
     status:{type:String,default:"init"}//default init,publish,unpublish,and deactive
