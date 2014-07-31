@@ -1306,6 +1306,8 @@ var _sendNotificationToUser=function(suborder,status){
 					}else if(status == "accepted"){
 						var preferred_delivery_date = new Date(suborder.prefdeldtime.getDate());
 						var deliverydate = new Date(suborder.deliverydate.getDate());
+						console.log("preferred_delivery_date : "+preferred_delivery_date);
+						console.log("deliverydate : "+deliverydate);
 						if(preferred_delivery_date != deliverydate){
 							_sendSMSToUsersMobileNumber(user.mobileno,user.preffered_lang,"order"+status,suborder,function(result){
 					         	if(result.error!=undefined){
@@ -1329,14 +1331,14 @@ var _sendNotificationToUser=function(suborder,status){
 							}
 						}
 						_sendSMSToUsersMobileNumber(user.mobileno,user.preffered_lang,tempname,suborder,function(result){
-			         	if(result.error!=undefined){
-			            	logger.emit("error",result.error.message);
-			          	}else{
-			           		logger.emit("log","order "+status+" SMS send to consumer mobileno");
-			          	}
-			        });
+				         	if(result.error!=undefined){
+				            	logger.emit("error",result.error.message);
+				          	}else{
+				           		logger.emit("log","order "+status+" SMS send to consumer mobileno");
+				          	}
+				        });
 					}
-					var gcmregistrationid=user.gcmregistrationid;
+					var gcmregistrationid = user.gcmregistrationid;
 					var message = {
 			          registration_id: gcmregistrationid, // required Device registration id
 			          collapse_key: 'do_not_collapse', //demo,Collapse key
