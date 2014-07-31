@@ -937,13 +937,13 @@ var _validateBranchData=function(self,branchdata,sessionuser,providerid){
 		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please enter note "}})		
 	}else if(branchdata.delivery.isdeliverychargeinpercent==undefined){
 		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please select you provide delivery charge in percent or not "}})		
-	}else if(branchdata.branch_availibility==undefined){
+	}else if(branchdata.branch_availability==undefined){
 		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please enter branch availibility details"}});
-	}else if(branchdata.branch_availibility.from==undefined || branchdata.branch_availibility.from=="" || reg.test(branchdata.branch_availibility.from)==false){
+	}else if(branchdata.branch_availability.from==undefined || branchdata.branch_availability.from=="" || reg.test(branchdata.branch_availability.from)==false){
 		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please enter valid from time in branch availibility"}});
-	}else if(branchdata.branch_availibility.to==undefined || reg.test(branchdata.branch_availibility.to)==false){
+	}else if(branchdata.branch_availability.to==undefined || reg.test(branchdata.branch_availability.to)==false){
 		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please enter valid to time in branch availibility"}});
-	}else if(branchdata.branch_availibility.from > branchdata.branch_availibility.to){
+	}else if(branchdata.branch_availability.from > branchdata.branch_availability.to){
 		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Invalid from time in branch availibility"}});
 	}else if(branchdata.delivery_leadtime==undefined){
 		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please enter delivery leadtime"}});
@@ -1307,7 +1307,7 @@ ProductProvider.prototype.getBranch = function(providerid,branchid) {
 	////////////////////////////////////////////////////////
 };
 var _getBranch=function(self,providerid,branchid){
-	ProductProviderModel.aggregate({$match:{providerid:providerid}},{$unwind:"$branch"},{$match:{"branch.branchid":branchid}},{$project:{branchid:"$branch.branchid",branchname:"$branch.branchname",location:"$branch.location",branch_images:"$branch.branch_images",branch_availibility:"$branch.branch_availibility"}},function(err,branch){
+	ProductProviderModel.aggregate({$match:{providerid:providerid}},{$unwind:"$branch"},{$match:{"branch.branchid":branchid}},{$project:{branchid:"$branch.branchid",branchname:"$branch.branchname",location:"$branch.location",branch_images:"$branch.branch_images",branch_availibility:"$branch.branch_availibility",delivery_leadtime:"$branch.delivery_leadtime"}},function(err,branch){
 		if(err){
 			logger.emit('error',"Database Issue fun:_getBranch"+err,user.userid)
 		  self.emit("failedGetBranch",{"error":{"code":"ED001","message":"Database Issue"}});			
