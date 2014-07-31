@@ -66,6 +66,7 @@ var productProviderSchema = mongoose.Schema(
     providerid: { type: String, required: true, unique: true },
     user:{userid:{type:String,ref:"users"},name:{type:String}},//is admin
     providername: { type: String, required: true },//
+    providerbrandname:{type:String,required:true},
     providercode:{type:String,unique:true},
     brandname:{type:String},
     tax:{tino:String,servicetaxno:String,percent:Number},
@@ -84,7 +85,7 @@ var productProviderSchema = mongoose.Schema(
     branch:[branchSchema],
     deliverytimingsinstructions:{type:String,default:null},
     paymentmode:{cod:{type:Boolean,default:false},online:{type:Boolean,default:true}},
-
+    provideremail:{type:String},
     orderprocess_configuration:[{index:Number,order_status:String}],
 
     pickupaddresses:{

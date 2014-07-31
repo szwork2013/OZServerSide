@@ -217,7 +217,7 @@ var _ProviderBranchSpecificCartsProducts=function(self,orderdata,validproductids
 		productidsarray.push(orderdata.cart[i].productid);
 	}
 
-	ProductaCtalogModel.aggregate({$match:{productid:{$in:validproductids}}},{$group:{_id:{branchid:"$branch.branchid",location:"$branch.location",providername:"$provider.providername",providerid:"$provider.providerid",providercode:"$provider.providercode",providerlogo:"$provider.providerlogo",branchname:"$branch.branchname",contact_supports:"$branch.contact_supports"},productcatalog:{$addToSet:{tax:"$tax",productid:"$productid",price:"$price",productname:"$productname",productlogo:"$productlogo",productcode:"$productcode",price:"$price"}}}},function(err,branchproducts){
+	ProductaCtalogModel.aggregate({$match:{productid:{$in:validproductids}}},{$group:{_id:{branchid:"$branch.branchid",location:"$branch.location",provideremail:"$provider.provideremail",providerbrandname:"$provider.providerbrandname",providername:"$provider.providername",providerid:"$provider.providerid",providercode:"$provider.providercode",providerlogo:"$provider.providerlogo",branchname:"$branch.branchname",contact_supports:"$branch.contact_supports"},productcatalog:{$addToSet:{tax:"$tax",productid:"$productid",price:"$price",productname:"$productname",productlogo:"$productlogo",productcode:"$productcode",price:"$price"}}}},function(err,branchproducts){
 		if(err){
 			logger.emit("error","Database Issue _ProviderBranchSpecificCartsProducts"+err)
 			self.emit("failedCreateOrder",{"error":{"code":"ED001","message":"Database Issue"}});
