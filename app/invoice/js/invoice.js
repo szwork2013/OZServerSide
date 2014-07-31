@@ -105,7 +105,7 @@ var _createJSONForInvoice=function(self,suborderid){
               var selleremail=selleruser.email;
               console.log("selleruser"+selleruser.email);
               console.log("contact_supports"+contacts)
-              var inoviceobject={orderid:order.orderid,suborderid:suborder.suborderid,invoicedate:order.createdate,orderdate:order.createdate,tinno:"taxno",billing_address:suborder.billing_address,delivery_address:suborder.delivery_address,deliverytype:suborder.deliverytype}
+              var inoviceobject={orderid:suborder.suborderid,suborderid:suborder.suborderid,invoicedate:order.createdate,orderdate:order.createdate,tinno:"taxno",billing_address:suborder.billing_address,delivery_address:suborder.delivery_address,deliverytype:suborder.deliverytype}
               var products=[];
               inoviceobject.invoiceno=Math.floor(Math.random()*1000000)
               inoviceobject.buyername=order.consumer.name;
