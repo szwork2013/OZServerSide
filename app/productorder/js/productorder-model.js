@@ -18,7 +18,7 @@ var suborderSchema=mongoose.Schema({
    orderinstructions:{type:String},//conusmer gave special instruction for suborder
    products:[{baseprice:{type:Number},productid:{type:String},productlogo:{type:String},orderprice:{type:Number},qty:{type:Number},uom:{type:String},productname:{type:String},productcode:String,productlogo:{type:String},currency:{type:String},messageonproduct:{type:String},tax:Number,productconfiguration:[{prod_configtype:String,prod_configname:String,data:{type:Object},prod_configprice:{value:Number,uom:String}}]}],
    //message on product if it is cake
-   productprovider:{providerid:{type:String,ref:"Productprovider"},branchid:{type:String,ref:"Branch"},providername:{type:String},location:{type:Object},providerlogo:{type:String},contact_supports:[{type:String}]},
+   productprovider:{providerid:{type:String,ref:"Productprovider"},branchid:{type:String,ref:"Branch"},providerbrandname:String,providername:{type:String},provideremail:String,location:{type:Object},providerlogo:{type:String},contact_supports:[{type:String}]},
    deliverycharge:{type:Number},
    suborder_price:{type:Number},
    prefdeldtime:{type:Date},

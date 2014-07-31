@@ -124,9 +124,9 @@ var _isValidProviderID = function(self,branchid,providerid,categoryid,productcat
 			productcatalog.branch = {branchid:branchid,branchname:productProvider[0].branch.branchname,note:productProvider[0].branch.note,location:loc};
 
 			if(productProvider[0].providerlogo == undefined){
-				productcatalog.provider = {providerid:productProvider[0].providerid,providername:productProvider[0].providername,providercode:productProvider[0].providercode,paymentmode:productProvider[0].paymentmode};
+				productcatalog.provider = {provideremail:productProvider[0].provideremail,providerid:productProvider[0].providerid,providerbrandname:productProvider[0].providerbrandname,providername:productProvider[0].providername,providercode:productProvider[0].providercode,paymentmode:productProvider[0].paymentmode};
 			}else{
-				productcatalog.provider = {providerid:productProvider[0].providerid,providername:productProvider[0].providername,providerlogo:productProvider[0].providerlogo.image,providercode:productProvider[0].providercode,paymentmode:productProvider[0].paymentmode};
+				productcatalog.provider = {provideremail:productProvider[0].provideremail,providerid:productProvider[0].providerid,providername:productProvider[0].providername,providerbrandname:productProvider[0].providerbrandname,providerlogo:productProvider[0].providerlogo.image,providercode:productProvider[0].providercode,paymentmode:productProvider[0].paymentmode};
 			}
 
 			/************Add Tags*************/

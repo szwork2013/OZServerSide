@@ -27,7 +27,7 @@ var productcatalogSchema = mongoose.Schema({
           isdeliverychargeinpercent:{type:Boolean,default:false}
       }
     },
-    provider:{providerid:String,providername:String,providerlogo:String,providercode:String,paymentmode:{cod:{type:Boolean},online:{type:Boolean}}},
+    provider:{providerid:String,provideremail:String,providerbrandname:String,providername:String,providerlogo:String,providercode:String,paymentmode:{cod:{type:Boolean},online:{type:Boolean}}},
     price:{value:{type:Number},currency:{type:String},uom:String},//uom means no,kg,liter
     max_weight:{value:{type:Number,default:1}},
     min_weight:{value:{type:Number,default:1}},

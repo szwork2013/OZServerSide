@@ -33,7 +33,7 @@ function isArray(what) {
 }
 var _updateProductProviderDetails=function(providerid){
 	logger.emit("log","_updateProductProviderDetails")
-	ProductProviderModel.findOne({providerid:providerid},{providerid:1,providername:1,providerlogo:1,providercode:1,_id:0,paymentmode:1},function(err,provider){
+	ProductProviderModel.findOne({providerid:providerid},{providerid:1,provideremail:1,providername:1,providerbrandname:1,providerlogo:1,providercode:1,_id:0,paymentmode:1},function(err,provider){
 		if(err){
 			logger.emit("error","Database Issue :_updateProductProviderDetails "+err)
 		}else if(!provider){
@@ -220,6 +220,10 @@ var _validateProductProviderData=function(self,productproviderdata,user,provider
 		self.emit("failedProductProviderRegistration",{"error":{"code":"AV001","message":"Please pass providerdata"}})
 	}else if(productproviderdata.providername==undefined || productproviderdata.providername==undefined ){
 		self.emit("failedProductProviderRegistration",{"error":{"code":"AV001","message":"Please pass providername"}})
+	}else  if(productproviderdata.providerbrandname==undefined || productproviderdata.providerbrandname==undefined ){
+		self.emit("failedProductProviderRegistration",{"error":{"code":"AV001","message":"Please enter provider brandname"}})
+	}else  if(productproviderdata.provideremail==undefined || productproviderdata.provideremail==undefined ){
+		self.emit("failedProductProviderRegistration",{"error":{"code":"AV001","message":"Please enter provider email"}})
 	}else if(productproviderdata.category==undefined || productproviderdata.category==""){
 		self.emit("failedProductProviderRegistration",{"error":{"code":"AV001","message":"Please pass category"}})
 	}else if(productproviderdata.category.categoryid==undefined && productproviderdata.category.categoryname==undefined){

@@ -217,7 +217,7 @@ var _ProviderBranchSpecificCartsProducts=function(self,orderdata,validproductids
 		productidsarray.push(orderdata.cart[i].productid);
 	}
 
-	ProductaCtalogModel.aggregate({$match:{productid:{$in:validproductids}}},{$group:{_id:{branchid:"$branch.branchid",location:"$branch.location",providername:"$provider.providername",providerid:"$provider.providerid",providercode:"$provider.providercode",providerlogo:"$provider.providerlogo",branchname:"$branch.branchname",contact_supports:"$branch.contact_supports"},productcatalog:{$addToSet:{tax:"$tax",productid:"$productid",price:"$price",productname:"$productname",productlogo:"$productlogo",productcode:"$productcode",price:"$price"}}}},function(err,branchproducts){
+	ProductaCtalogModel.aggregate({$match:{productid:{$in:validproductids}}},{$group:{_id:{branchid:"$branch.branchid",location:"$branch.location",provideremail:"$provider.provideremail",providerbrandname:"$provider.providerbrandname",providername:"$provider.providername",providerid:"$provider.providerid",providercode:"$provider.providercode",providerlogo:"$provider.providerlogo",branchname:"$branch.branchname",contact_supports:"$branch.contact_supports"},productcatalog:{$addToSet:{tax:"$tax",productid:"$productid",price:"$price",productname:"$productname",productlogo:"$productlogo",productcode:"$productcode",price:"$price"}}}},function(err,branchproducts){
 		if(err){
 			logger.emit("error","Database Issue _ProviderBranchSpecificCartsProducts"+err)
 			self.emit("failedCreateOrder",{"error":{"code":"ED001","message":"Database Issue"}});
@@ -388,6 +388,7 @@ var _createOrder=function(self,orderobject,user){
 var _saveOrderDeliveryAddressHistory=function(order){
 	console.log("################_saveOrderDeliveryAddressHistory###########");
 	var deliveryaddressarray=[];
+	// console.log("_saveOrderDeliveryAddressHistory"+)
 	for(var i=0;i<order.suborder.length;i++){
 		if(order.suborder[i].delivery_address!=undefined){
 			if(order.suborder[i].delivery_address.deliveryaddressid==undefined || order.suborder[i].delivery_address.deliveryaddressid==null || order.suborder[i].delivery_address.deliveryaddressid==""){
@@ -396,13 +397,18 @@ var _saveOrderDeliveryAddressHistory=function(order){
 		    }
 		}	
 	}
-	DeliveryAddressModel.create(deliveryaddressarray,function(err,deliveryaddresses){
+	if(deliveryaddressarray.length==0){
+		logger.emit("log","no new delivery address saved");
+	}else{
+		DeliveryAddressModel.create(deliveryaddressarray,function(err,deliveryaddresses){
 		if(err){
 			logger.emit("error","Database Issue");
 		}else{
 			logger.emit("log","new delivery address saved");
 		}
-	})
+	})	
+	}
+	
 }
 var _successfullCreateOrder=function(self,orderobject){
 	self.emit("successfulCreateOrder",{success:{message:"Order Created Successfully",order:orderobject}});
