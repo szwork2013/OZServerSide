@@ -388,6 +388,7 @@ var _createOrder=function(self,orderobject,user){
 var _saveOrderDeliveryAddressHistory=function(order){
 	console.log("################_saveOrderDeliveryAddressHistory###########");
 	var deliveryaddressarray=[];
+	// console.log("_saveOrderDeliveryAddressHistory"+)
 	for(var i=0;i<order.suborder.length;i++){
 		if(order.suborder[i].delivery_address!=undefined){
 			if(order.suborder[i].delivery_address.deliveryaddressid==undefined || order.suborder[i].delivery_address.deliveryaddressid==null || order.suborder[i].delivery_address.deliveryaddressid==""){
@@ -396,13 +397,18 @@ var _saveOrderDeliveryAddressHistory=function(order){
 		    }
 		}	
 	}
-	DeliveryAddressModel.create(deliveryaddressarray,function(err,deliveryaddresses){
+	if(deliveryaddressarray.length==0){
+		logger.emit("log","no new delivery address saved");
+	}else{
+		DeliveryAddressModel.create(deliveryaddressarray,function(err,deliveryaddresses){
 		if(err){
 			logger.emit("error","Database Issue");
 		}else{
 			logger.emit("log","new delivery address saved");
 		}
-	})
+	})	
+	}
+	
 }
 var _successfullCreateOrder=function(self,orderobject){
 	self.emit("successfulCreateOrder",{success:{message:"Order Created Successfully",order:orderobject}});
