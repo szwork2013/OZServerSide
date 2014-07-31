@@ -172,7 +172,13 @@ var _createPDFInvocie=function(self,inoviceobject,branch){
      htmldata=htmldata.replaceAll("{{orderdate}}",orderdate.getDate()+"-"+monthNames[orderdate.getMonth()]+"-"+orderdate.getFullYear());
      htmldata=htmldata.replaceAll("{{tino}}",inoviceobject.tinno);
      htmldata=htmldata.replaceAll("{{servicetaxno}}",inoviceobject.servicetaxno);
-     htmldata=htmldata.replaceAll("{{sellercontact}}",inoviceobject.productprovider.contact_supports+"");
+     var seller_contact_supports=[];
+     for(var i=0;i<inoviceobject.productprovider.contact_supports.length;i++){
+      if(i<3){
+        seller_contact_supports.push(inoviceobject.productprovider.contact_supports[i]);
+      }
+     }
+     htmldata=htmldata.replaceAll("{{sellercontact}}",seller_contact_supports+"");
      htmldata=htmldata.replaceAll("{{selleremail}}",inoviceobject.productprovider.email);
      htmldata=htmldata.replaceAll("{{sellername}}",inoviceobject.productprovider.providername);
      //for delivery address
@@ -252,7 +258,7 @@ var _createPDFInvocie=function(self,inoviceobject,branch){
      htmldata=htmldata.replaceAll("{{billingaddress}}",billing_address);
      var buyername;
      if(inoviceobject.buyername==undefined || inoviceobject.buyername==null){
-      buyername="Sunil More";
+      buyername=" ";
      }else{
       buyername=inoviceobject.buyername;
      }
