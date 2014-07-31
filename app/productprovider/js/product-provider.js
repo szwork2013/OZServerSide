@@ -1273,7 +1273,7 @@ var _checkUserHaveProviderBranches=function(self,user,providerid){
 }
 var _getAllMyProviderBranches=function(self,providerid){
 	// db.productproviders.aggregate({$unwind:"$branch"},{$project:{branchname:"$branch.branchname",branchid:"$branch.branchid",_id:0}});
-	ProductProviderModel.aggregate({$match:{providerid:providerid,"branch.status":{$ne:"deactive"}}},{"$unwind":"$branch"},{$project:{branchname:"$branch.branchname",branchid:"$branch.branchid",branchdescription:"$branch.branchdescription",location:"$branch.location",giftwrapper:"$branch.giftwrapper",delivery:"$branch.delivery",branch_images:"$branch.branch_images",branch_availibility:"$branch.branch_availibility",branchcode:"$branch.branchcode",status:"$branch.status",_id:0,contact_supports:"$branch.contact_supports",note:"$branch.note"}},function(err,providers){
+	ProductProviderModel.aggregate({$match:{providerid:providerid,"branch.status":{$ne:"deactive"}}},{"$unwind":"$branch"},{$project:{branchname:"$branch.branchname",branchid:"$branch.branchid",branchdescription:"$branch.branchdescription",location:"$branch.location",giftwrapper:"$branch.giftwrapper",delivery:"$branch.delivery",branch_images:"$branch.branch_images",branch_availability:"$branch.branch_availability",delivery_leadtime:"$branch.delivery_leadtime",branchcode:"$branch.branchcode",status:"$branch.status",_id:0,contact_supports:"$branch.contact_supports",note:"$branch.note"}},function(err,providers){
 		if(err){
 			logger.emit('error',"Database Issue fun:_getAllMyProviders"+err,user.userid)
 		  self.emit("failedGetAllMyProviderBranches",{"error":{"code":"ED001","message":"Database Issue"}});			
