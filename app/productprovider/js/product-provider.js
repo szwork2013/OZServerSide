@@ -898,6 +898,9 @@ ProductProvider.prototype.addBranch = function(branchdata,sessionuser,providerid
 	//////////////////////////////////////////////
 };
 var _validateBranchData=function(self,branchdata,sessionuser,providerid){
+	var isNumberReg = new RegExp('^[0-9]{1,2}$');
+	var reg = /^\(?([0-9]{2})\)?[:]?([0-9]{2})$/;  
+	console.log("reg.test(branchdata.branch_availibility.from) : "+reg.test(branchdata.branch_availibility.from));
 	if(branchdata==undefined){
 		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Pleae pass branchdata"}});
 	}else if(branchdata.branchname==undefined || branchdata.branchname==""){
@@ -930,11 +933,27 @@ var _validateBranchData=function(self,branchdata,sessionuser,providerid){
 		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please select you will provide homedeliveryoptions"}})		
 	}else if(branchdata.delivery.isprovidepickup==undefined){
 		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Pickup options should be selected"}})		
-	}else  if(branchdata.note==undefined){
-			self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please enter note "}})		
-	  }else  if(branchdata.delivery.isdeliverychargeinpercent==undefined){
-			self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please select you provide delivery charge in percent or not "}})		
-	  }else{
+	}else if(branchdata.note==undefined){
+		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please enter note "}})		
+	}else if(branchdata.delivery.isdeliverychargeinpercent==undefined){
+		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please select you provide delivery charge in percent or not "}})		
+	}else if(branchdata.branch_availibility==undefined){
+		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please enter branch availibility details"}});
+	}else if(branchdata.branch_availibility.from==undefined || branchdata.branch_availibility.from=="" || reg.test(branchdata.branch_availibility.from)==false){
+		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please enter valid from time in branch availibility"}});
+	}else if(branchdata.branch_availibility.to==undefined || reg.test(branchdata.branch_availibility.to)==false){
+		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please enter valid to time in branch availibility"}});
+	}else if(branchdata.branch_availibility.from > branchdata.branch_availibility.to){
+		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Invalid from time in branch availibility"}});
+	}else if(branchdata.delivery_leadtime==undefined){
+		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please enter delivery leadtime"}});
+	}else if(branchdata.delivery_leadtime.time==undefined || branchdata.delivery_leadtime.time=="" || isNumberReg.test(branchdata.delivery_leadtime.time)==false){
+		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please enter valid delivery leadtime"}});
+	}else if(branchdata.delivery_leadtime.format==undefined || branchdata.delivery_leadtime.format==""){
+		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please enter delivery leadtime format"}});
+	}else if(["minutes","hours","weeks","days"].indexOf(branchdata.delivery_leadtime.format.toLowerCase())<0){
+		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"delivery leadtime format should be minutes,hours,weeks,days"}});
+	}else{
     	if(branchdata.delivery.isprovidehomedelivery || branchdata.delivery.isprovidepickup){	
           //////////////////////////////////////////////////////////////
 		   _isValidProductProvider(self,branchdata,sessionuser,providerid)
@@ -943,7 +962,7 @@ var _validateBranchData=function(self,branchdata,sessionuser,providerid){
     		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"You have to select atleast home or pickup option"}})			
     	}
     }  
-	}
+}
 
 var _isValidProductProvider=function(self,branchdata,sessionuser,providerid){
 	console.log("sessionuser : "+sessionuser.userid+" providerid : "+providerid);
@@ -980,6 +999,19 @@ var _checkBranchCodeIsAlreadyExist=function(self,branchdata,sessionuser,productp
 }
 
 var _addBranch=function(self,branchdata,sessionuser,productprovider){
+
+	if(branchdata.delivery_leadtime.format.toLowerCase() == "minutes"){
+		branchdata.delivery_leadtime.min = branchdata.delivery_leadtime.time;
+	}else if(branchdata.delivery_leadtime.format.toLowerCase() == "hours"){
+		branchdata.delivery_leadtime.min = branchdata.delivery_leadtime.time * 60;
+	}else if(branchdata.delivery_leadtime.format.toLowerCase() == "weeks"){
+		branchdata.delivery_leadtime.min = branchdata.delivery_leadtime.time * 7 * 24 * 60;
+	}else if(branchdata.delivery_leadtime.format.toLowerCase() == "days"){
+		branchdata.delivery_leadtime.min = branchdata.delivery_leadtime.time * 24 * 60;
+	}else{
+		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"delivery leadtime format should be minutes,hours,weeks,days"}});
+	}
+
 	branchdata.branchid=generateId();
 	branchdata.status="init";
 	branchdata.createdate=new Date();
