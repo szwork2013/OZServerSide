@@ -333,7 +333,10 @@ var _ProviderBranchSpecificCartsProducts=function(self,orderdata,validproductids
 				suborders.push(suborder);
 				// suborders.status="init";
 			}
-			var consumername=user.firstname;
+			var consumername="";
+			if(user.firstname!=undefined){
+				consumername=user.firstname
+			}
 			if(user.lastname!=undefined){
 				consumername+=" "+user.lastname;
 			}
