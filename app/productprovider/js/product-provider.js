@@ -902,7 +902,6 @@ ProductProvider.prototype.addBranch = function(branchdata,sessionuser,providerid
 var _validateBranchData=function(self,branchdata,sessionuser,providerid){
 	var isNumberReg = new RegExp('^[0-9]{1,2}$');
 	var reg = /^\(?([0-9]{2})\)?[:]?([0-9]{2})$/;  
-	console.log("reg.test(branchdata.branch_availibility.from) : "+reg.test(branchdata.branch_availibility.from));
 	if(branchdata==undefined){
 		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Pleae pass branchdata"}});
 	}else if(branchdata.branchname==undefined || branchdata.branchname==""){
@@ -947,14 +946,14 @@ var _validateBranchData=function(self,branchdata,sessionuser,providerid){
 		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please enter valid to time in branch availibility"}});
 	}else if(branchdata.branch_availability.from > branchdata.branch_availability.to){
 		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Invalid from time in branch availibility"}});
-	}else if(branchdata.delivery_leadtime==undefined){
-		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please enter delivery leadtime"}});
-	}else if(branchdata.delivery_leadtime.time==undefined || branchdata.delivery_leadtime.time=="" || isNumberReg.test(branchdata.delivery_leadtime.time)==false){
-		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please enter valid delivery leadtime"}});
-	}else if(branchdata.delivery_leadtime.format==undefined || branchdata.delivery_leadtime.format==""){
-		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please enter delivery leadtime format"}});
-	}else if(["minutes","hours","weeks","days"].indexOf(branchdata.delivery_leadtime.format.toLowerCase())<0){
-		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"delivery leadtime format should be minutes,hours,weeks,days"}});
+	// }else if(branchdata.delivery_leadtime==undefined){
+	// 	self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please enter delivery leadtime"}});
+	// }else if(branchdata.delivery_leadtime.time==undefined || branchdata.delivery_leadtime.time=="" || isNumberReg.test(branchdata.delivery_leadtime.time)==false){
+	// 	self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please enter valid delivery leadtime"}});
+	// }else if(branchdata.delivery_leadtime.format==undefined || branchdata.delivery_leadtime.format==""){
+	// 	self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please enter delivery leadtime format"}});
+	// }else if(["minutes","hours","weeks","days"].indexOf(branchdata.delivery_leadtime.format.toLowerCase())<0){
+	// 	self.emit("failedAddBranch",{"error":{"code":"AV001","message":"delivery leadtime format should be minutes,hours,weeks,days"}});
 	}else{
     	if(branchdata.delivery.isprovidehomedelivery || branchdata.delivery.isprovidepickup){	
           //////////////////////////////////////////////////////////////
@@ -1002,17 +1001,17 @@ var _checkBranchCodeIsAlreadyExist=function(self,branchdata,sessionuser,productp
 
 var _addBranch=function(self,branchdata,sessionuser,productprovider){
 
-	if(branchdata.delivery_leadtime.format.toLowerCase() == "minutes"){
-		branchdata.delivery_leadtime.min = branchdata.delivery_leadtime.time;
-	}else if(branchdata.delivery_leadtime.format.toLowerCase() == "hours"){
-		branchdata.delivery_leadtime.min = branchdata.delivery_leadtime.time * 60;
-	}else if(branchdata.delivery_leadtime.format.toLowerCase() == "weeks"){
-		branchdata.delivery_leadtime.min = branchdata.delivery_leadtime.time * 7 * 24 * 60;
-	}else if(branchdata.delivery_leadtime.format.toLowerCase() == "days"){
-		branchdata.delivery_leadtime.min = branchdata.delivery_leadtime.time * 24 * 60;
-	}else{
-		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"delivery leadtime format should be minutes,hours,weeks,days"}});
-	}
+	// if(branchdata.delivery_leadtime.format.toLowerCase() == "minutes"){
+	// 	branchdata.delivery_leadtime.min = branchdata.delivery_leadtime.time;
+	// }else if(branchdata.delivery_leadtime.format.toLowerCase() == "hours"){
+	// 	branchdata.delivery_leadtime.min = branchdata.delivery_leadtime.time * 60;
+	// }else if(branchdata.delivery_leadtime.format.toLowerCase() == "weeks"){
+	// 	branchdata.delivery_leadtime.min = branchdata.delivery_leadtime.time * 7 * 24 * 60;
+	// }else if(branchdata.delivery_leadtime.format.toLowerCase() == "days"){
+	// 	branchdata.delivery_leadtime.min = branchdata.delivery_leadtime.time * 24 * 60;
+	// }else{
+	// 	self.emit("failedAddBranch",{"error":{"code":"AV001","message":"delivery leadtime format should be minutes,hours,weeks,days"}});
+	// }
 
 	branchdata.branchid=generateId();
 	branchdata.status="init";
@@ -1361,16 +1360,14 @@ var _deleteBranch=function(self,providerid,branchid){
 	})
 }
 var _successfullDeleteBranch=function(self,branch){
-self.emit("successfulDeleteBranch",{success:{message:"Branch deleted successfully",branch:branch}})
+	self.emit("successfulDeleteBranch",{success:{message:"Branch deleted successfully",branch:branch}})
 }
+
 ProductProvider.prototype.updateBranch = function(user,providerid,branchid,branchdata) {
 	var self = this;
-
 	///////////////////////////////////////
 	_validateUpdateBranchData(self,user,providerid,branchid,branchdata)
-	////////////////////////////////////////
-	
-	
+	////////////////////////////////////////	
 };
 var _validateUpdateBranchData=function(self,user,providerid,branchid,branchdata){
 	if(branchdata==undefined){
@@ -1378,19 +1375,19 @@ var _validateUpdateBranchData=function(self,user,providerid,branchid,branchdata)
 	}else if(branchdata.status!=undefined || branchdata.usergrp!=undefined || branchdata.branch_images!=undefined ){
 		self.emit("failedUpdateBranch",{"error":{code:"AV001",message:"You can not change these details of branch"}});
 	}else{
-		if(branchdata.delivery_leadtime != undefined){
-			if(branchdata.delivery_leadtime.format.toLowerCase() == "minutes"){
-				branchdata.delivery_leadtime.min = branchdata.delivery_leadtime.time;
-			}else if(branchdata.delivery_leadtime.format.toLowerCase() == "hours"){
-				branchdata.delivery_leadtime.min = branchdata.delivery_leadtime.time * 60;
-			}else if(branchdata.delivery_leadtime.format.toLowerCase() == "weeks"){
-				branchdata.delivery_leadtime.min = branchdata.delivery_leadtime.time * 7 * 24 * 60;
-			}else if(branchdata.delivery_leadtime.format.toLowerCase() == "days"){
-				branchdata.delivery_leadtime.min = branchdata.delivery_leadtime.time * 24 * 60;
-			}else{
-				self.emit("failedUpdateBranch",{"error":{"code":"AV001","message":"delivery leadtime format should be minutes,hours,weeks,days"}});
-			}
-		}
+		// if(branchdata.delivery_leadtime != undefined){
+		// 	if(branchdata.delivery_leadtime.format.toLowerCase() == "minutes"){
+		// 		branchdata.delivery_leadtime.min = branchdata.delivery_leadtime.time;
+		// 	}else if(branchdata.delivery_leadtime.format.toLowerCase() == "hours"){
+		// 		branchdata.delivery_leadtime.min = branchdata.delivery_leadtime.time * 60;
+		// 	}else if(branchdata.delivery_leadtime.format.toLowerCase() == "weeks"){
+		// 		branchdata.delivery_leadtime.min = branchdata.delivery_leadtime.time * 7 * 24 * 60;
+		// 	}else if(branchdata.delivery_leadtime.format.toLowerCase() == "days"){
+		// 		branchdata.delivery_leadtime.min = branchdata.delivery_leadtime.time * 24 * 60;
+		// 	}else{
+		// 		self.emit("failedUpdateBranch",{"error":{"code":"AV001","message":"delivery leadtime format should be minutes,hours,weeks,days"}});
+		// 	}
+		// }
 
 		if(branchdata.delivery==undefined){
 			/////////////////////////////////////////////////////////////
