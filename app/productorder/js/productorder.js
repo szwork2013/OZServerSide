@@ -2137,5 +2137,44 @@ var _successfullGetProvierSubOrderStatusWisecount=function(self,statuswisecounta
 	self.emit("successfulGetProviderOrderStatusWiseCount",{success:{message:"Getting Suborderwisecount sucessfully",statuswisecount:statuswisecountarray}})
 }
 
-
-
+// Order.prototype.checkPreferredDeliveryDate = function(userid){
+// 	var self = this;
+// 	var data = this.order;
+// 	///////////////////////////////////////////////////////
+// 	_validateCheckPreferredDeliveryDate(self,data,userid);
+// 	///////////////////////////////////////////////////////
+// }
+// var _validateCheckPreferredDeliveryDate = function(self,data,userid){
+// 	if(data == undefined){
+// 		self.emit("failedCheckPreferredDeliveryDate",{"error":{"code":"PD001","message":"Please enter data"}});
+// 	}else if(data.preferred_delivery_date == undefined || data.preferred_delivery_date == ""){
+// 		self.emit("failedCheckPreferredDeliveryDate",{"error":{"code":"PD001","message":"Please enter preferred_delivery_date"}});
+// 	}else if(data.branchids == undefined){
+// 		self.emit("failedCheckPreferredDeliveryDate",{"error":{"code":"PD001","message":"Please enter branchids"}});
+// 	}else if(!isArray(data.branchids)){
+// 		self.emit("failedCheckPreferredDeliveryDate",{"error":{"code":"PD001","message":"branchids should be array"}});
+// 	}else if(data.branchids.length==0){
+// 		self.emit("failedCheckPreferredDeliveryDate",{"error":{"code":"PD001","message":"Please enter atleast one branchid"}});
+// 	}else{
+// 		_checkPreferredDeliveryDate(self,data,userid);
+// 	}
+// }
+// var _checkPreferredDeliveryDate = function(self,data,userid){
+// 	var current_date = new Date();
+// 	var pref_deliverydatetime = new Date(data.preferred_delivery_date);
+// 	var difference = pref_deliverydatetime - current_date;	
+// 	var dif_minutes = Math.floor((difference/1000)/60);
+// 	console.log(dif_minutes);
+// 	ProductProviderModel.find({userid:userid,"provider.providerid":providerid,"provider.confirmed":true},function(err,userprovider){
+// 		if(err){
+// 			logger.emit("error","Database Issue _IsAuthorizedToGetSuborderStatusWiseCount"+err)
+// 			self.emit("failedgetPrviderOrderStatusWiseCount",{"error":{"code":"ED001","message":"Database Issue"}});
+// 		}else if(!userprovider){
+// 			self.emit("failedgetPrviderOrderStatusWiseCount",{"error":{"message":"Branch details is not associated with user"}});
+// 		}else{
+// 			/////////////////////////////////////////////////
+// 			_getProviderSubOrderStatusWiseCount(self,userid,providerid)
+// 			////////////////////////////////////////////////////
+// 		}
+// 	})
+// }

@@ -56,7 +56,6 @@ var branchSchema = mongoose.Schema(
     branch_images:[{bucket:{type:String},key:String,image:{type:String}}],
     // productcatalog:[ProductCatalogs],
     // usergrp:[usergrpSchema],
-    delivery_leadtime:{time:String,format:String,min:Number},
     branch_availability:{from:{type:String},to:{type:String}},//means service available from 9AM to 6 PM
     note:{type:String,default:"none"},
     createdate:{type:Date},
