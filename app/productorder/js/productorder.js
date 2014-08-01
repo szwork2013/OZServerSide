@@ -333,7 +333,7 @@ var _ProviderBranchSpecificCartsProducts=function(self,orderdata,validproductids
 				suborders.push(suborder);
 				// suborders.status="init";
 			}
-			var consumername="";
+			var consumername=" ";
 			if(user.firstname!=undefined){
 				consumername=user.firstname
 			}
@@ -341,7 +341,10 @@ var _ProviderBranchSpecificCartsProducts=function(self,orderdata,validproductids
 				consumername+=" "+user.lastname;
 			}
 			var orderobject={preferred_delivery_date:orderdata.preferred_delivery_date,consumer:{userid:user.userid,name:consumername,email:user.email,mobileno:user.mobileno},total_order_price:totalorderprice,suborder:suborders,payment:{mode:orderdata.paymentmode,paymentid:generateId()}}
-			orderobject.status="approved";
+			if(orderdata.paymentmode.toLowerCase()=="cod"){
+				orderobject.status="approved";	
+			}
+			
 			logger.emit("log","Final Order Data:"+JSON.stringify(orderobject))
 			////////////////////////////////,
 			_createOrder(self,orderobject,user);
