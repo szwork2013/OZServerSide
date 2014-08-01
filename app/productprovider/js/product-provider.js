@@ -39,15 +39,16 @@ var _updateProductProviderDetails=function(providerid){
 		}else if(!provider){
 			logger.emit("error","Provider id is wrong for _updateProductProviderDetails ")
 		}else{
-			provider.providerlogo=provider.providerlogo.image;
-			var providersetdata={providerid:provider.providerid,provideremail:provider.provideremail,providername:provider.providername,providerbrandname:provider.providerbrandname,providercode:provider.providercode,providerlogo:provider.providerlogo.image,paymentmode:provider.paymentmode};
-
 			// provider.providerlogo=provider.providerlogo.image;
+			// var providersetdata={providerid:provider.providerid,provideremail:provider.provideremail,providername:provider.providername,providerbrandname:provider.providerbrandname,providercode:provider.providercode,providerlogo:provider.providerlogo.image,paymentmode:provider.paymentmode};
+
+			provider.providerlogo=provider.providerlogo.image;
 			var setdata={};
 			provider=JSON.stringify(provider);
 			provider=JSON.parse(provider);
+			console.log("providerlogo"+JSON.stringify(provider))
 			// for(i in provider){
-			ProductCatalogModel.update({"provider.providerid":providerid},{$set:{provider:providersetdata}},{multi:true},function(err,productproviderstatus){
+			ProductCatalogModel.update({"provider.providerid":providerid},{$set:{provider:provider}},{multi:true},function(err,productproviderstatus){
 				if(err){
 					logger.emit("error","Database Issue _updateProductProviderDetails"+err)
 				}else if(productproviderstatus==0){
