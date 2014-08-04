@@ -274,6 +274,8 @@ var _validateProductCatalogUpdateData = function(self,providerid,productid,produ
 		self.emit("failedUpdateProductCatalog",{"error":{"code":"AV001","message":"Please enter productname"}});
 	}else if(productcatalog.price!=undefined){
 		self.emit("failedUpdateProductCatalog",{"error":{"code":"AV001","message":"You can not change the price by this way"}});
+	}else if(productcatalog.leadtime!=undefined){
+		self.emit("failedUpdateProductCatalog",{"error":{"code":"AV001","message":"You can not change the leadtime by this way"}});
 	}else if(productcatalog.productdescription==undefined || productcatalog.productdescription==""){
 		self.emit("failedUpdateProductCatalog",{"error":{"code":"AV001","message":"Please enter productdescription"}});
 	// }else if(productcatalog.productconfiguration!=undefined){
