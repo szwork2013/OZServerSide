@@ -400,3 +400,30 @@ exports.getAllProductUserTags=function(req,res){
       productcatalog.getAllProductUserTags();
     }
 }
+exports.manageProductLeadTime=function(req,res){
+ 
+  var productcatalog = new ProductCatalog();
+  var sessionuserid=req.user.userid;
+  var productleadtimedata=req.body.productleadtimedata;
+   productcatalog.removeAllListeners("failedManageProductLeadTime");
+    productcatalog.on("failedManageProductLeadTime",function(err){
+      if(err.error.code!="ED001"){
+       logger.emit("error", err.error.message); 
+      }
+      // user.removeAllListeners();
+      res.send(err);
+    });
+    productcatalog.removeAllListeners("successfullManageProductLeadTime");
+    productcatalog.on("successfullManageProductLeadTime",function(result){
+      // if(err.error.code!="ED001"){
+      //  logger.emit("error", err.error.message); 
+      // }
+      // user.removeAllListeners();
+      res.send(result);
+    }); 
+    if(req.user.usertype!="provider"){
+      productcatalog.emit('failedManageProductLeadTime',{error:{code:"EA001",message:"You are not a provider to get Product user tags details"}});
+    }else{
+      productcatalog.manageProductLeadTime(sessionuserid,productleadtimedata);
+    }
+}

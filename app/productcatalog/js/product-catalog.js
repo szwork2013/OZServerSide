@@ -1125,3 +1125,33 @@ var _getAllProductUserTags=function(self){
 var _successfullGetAllProductUserTags=function(self,productusertags){
 	self.emit("successfullGetAllProductUserTags",{success:{message:"Getting User Product Tags Successfully",productusertags:productusertags}})
 }
+ProductCatalog.prototype.manageProductLeadTime = function(self,productleadtimedata){
+	var self = this;	
+	/////////////////////////////////////////////////////////////////////////////////////
+	_validateProductLeadTime(self,productleadtimedata);
+	/////////////////////////////////////////////////////////////////////////////////////
+};
+var _validateProductLeadTime=function(self,productleadtimedata){
+	// if(productleadtimedata==undefined){
+	// 	self.emit("failedManageProductLeadTime",{error:{message:"Please pass product lead time data"}})
+	// }else{
+	// 	var leadtime={minutes}
+	//   var validproductleadtimedata=[];
+	//   var productids=[];
+	// 	for(var i=0;i<productleadtimedata.length;i++){
+	// 		if(productleadtimedata[i].productid!=undefined && productleadtimedata[i].leadtime){
+	// 			if(productleadtimedata[i].leadtime.option && productleadtimedata[i].leadtime.value){
+	// 				productids.push(productleadtimedata[i].productid);
+	// 			  validproductleadtimedata.push(productleadtimedata)		
+	// 			}
+				
+	// 		}
+	// 	}
+	// 	if(validproductleadtimedata.length==0){
+
+	// 	}else{
+			
+	// 	}
+
+	// }
+}
