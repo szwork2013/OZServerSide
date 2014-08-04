@@ -64,20 +64,26 @@ var _validateServiceCatalogData=function(self,branchid,providerid,categoryid,pro
 		self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"Please pass foodtype"}});
 	}else if(["veg","non-veg","both"].indexOf(productcatalog.foodtype.toLowerCase())<0){
 		self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"foodtype must be veg non-veg or both"}});
-	// }else if(productcatalog.productconfiguration!=undefined){
-	// 	if(productcatalog.productconfiguration.categoryname == undefined || productcatalog.productconfiguration.categoryname == ""){
-	// 		self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"please enter categoryname in productconfiguration"}});
-	// 	}else if(productcatalog.productconfiguration.categoryid == undefined || productcatalog.productconfiguration.categoryid == ""){
-	// 		self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"please enter categoryid in productconfiguration"}});
-	// 	}else if(!isArray(productcatalog.productconfiguration.configuration)){
-	// 		self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"configuration should be an array"}});
-	// 	}else if(productcatalog.productconfiguration.configuration.length == 0){
-	// 		self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"configuration can not be empty"}});
-	// 	}else{
-	// 		//////////////////////////////////////////////////////////////////////////////////////////
-	// 		_validateProductLogo(self,branchid,providerid,categoryid,productcatalog,user,productlogo);
-	// 		//////////////////////////////////////////////////////////////////////////////////////////
-	// 	}
+	// }else if(productcatalog.delivery==undefined){
+	// 	self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"Please enter delivery details"}});
+	}else if(productcatalog.leadtime==undefined){
+		self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"Please enter leadtime details"}});
+	}else if(productcatalog.leadtime.value == undefined || productcatalog.leadtime.value == ""){
+		self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"Please enter leadtime value"}});
+	}else if(!Number(productcatalog.leadtime.value)){
+		self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"leadtime value should be numeric"}});
+	}else if(productcatalog.leadtime.option == undefined || productcatalog.leadtime.option == ""){
+		self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"Please enter leadtime option"}});
+	}else if(["minutes","hours","days","weeks"].indexOf(productcatalog.leadtime.option.toLowerCase())<0){
+		self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"option should be minutes,hours,days,weeks"}});
+	// }else if(productcatalog.delivery.availability==undefined){
+	// 	self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"Please enter availability details"}});
+	// }else if(productcatalog.delivery.availability.from == undefined || productcatalog.delivery.availability.from == ""){
+	// 	self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"Please enter availability  from time"}});
+	// }else if(productcatalog.delivery.availability.to == undefined || productcatalog.delivery.availability.to == ""){
+	// 	self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"Please enter availability to time"}});
+	// }else if(!Number(productcatalog.delivery.availability.from) || !Number(productcatalog.delivery.availability.to)){
+	// 	self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"availability time should be numeric"}});
 	}else{
 		//////////////////////////////////////////////////////////////////////////////////////////
 		_validateProductLogo(self,branchid,providerid,categoryid,productcatalog,user,productlogo);
@@ -500,7 +506,7 @@ ProductCatalog.prototype.getProductCatalog = function(branchid,productid) {
 };
 
 var _getProductCatalog = function(self,branchid,productid){
-	ProductCatalogModel.findOne({productid:productid,"branch.branchid":branchid},{productid:1,productname:1,productcode:1,price:1,foodtype:1,status:1,productlogo:1,productdescription:1,category:1,provider:1,branch:1,max_weight:1,min_weight:1,productnotavailable:1,specialinstruction:1,usertags:1,productconfiguration:1,holding_price:1,_id:0},function(err,product){
+	ProductCatalogModel.findOne({productid:productid,"branch.branchid":branchid},{productid:1,productname:1,productcode:1,price:1,foodtype:1,status:1,productlogo:1,productdescription:1,category:1,provider:1,branch:1,max_weight:1,min_weight:1,productnotavailable:1,specialinstruction:1,usertags:1,productconfiguration:1,holding_price:1,leadtime:1,_id:0},function(err,product){
 		if(err){
 			logger.emit("log","_getProductCatalog "+err);
 			self.emit("failedGetProductCatalog",{"error":{"code":"ED001","message":"Database Issue"}});
@@ -539,7 +545,7 @@ var _isValidUserToGetAllProductData = function(self,branchid,providerid,user){
 	});
 }
 var _getAllProductCatalog = function(self,branchid,providerid){
-	ProductCatalogModel.find({status:{$ne:"deactive"},"provider.providerid":providerid,"branch.branchid":branchid},{productid:1,productname:1,productdescription:1,foodtype:1,category:1,provider:1,branch:1,productlogo:1,productcode:1,price:1,status:1,max_weight:1,min_weight:1,productnotavailable:1,specialinstruction:1,usertags:1,productconfiguration:1,productnotavailable:1,holding_price:1,_id:0}).sort({createdate:-1}).exec(function(err,product){
+	ProductCatalogModel.find({status:{$ne:"deactive"},"provider.providerid":providerid,"branch.branchid":branchid},{productid:1,productname:1,productdescription:1,foodtype:1,category:1,provider:1,branch:1,productlogo:1,productcode:1,price:1,status:1,max_weight:1,min_weight:1,productnotavailable:1,specialinstruction:1,usertags:1,productconfiguration:1,productnotavailable:1,holding_price:1,leadtime:1,_id:0}).sort({createdate:-1}).exec(function(err,product){
 		if(err){
 			logger.emit("log","_getAllProductCatalog "+err);
 			self.emit("failedGetAllProductCatalog",{"error":{"code":"ED001","message":"Database Issue"}});
