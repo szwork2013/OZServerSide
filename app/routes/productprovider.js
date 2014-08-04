@@ -29,4 +29,5 @@ exports.init = function (app) {
  	app.post('/api/orderprocessconfig',auth,api.orderprocessconfig.addOrderProcessingStatus);
  	app.get('/api/orderprocessconfig',auth,api.orderprocessconfig.getOrderProcessingStatus);
  	app.delete('/api/orderprocessconfig/:index',auth,api.orderprocessconfig.deleteOrderProcessingStatus);
+ 	app.post('/api/manageproductcategoryleadtime/:providerid',auth,api.productproviderapi.manageProductCategoryLeadTime)
 }

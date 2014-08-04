@@ -52,11 +52,13 @@ var branchSchema = mongoose.Schema(
     },//in this case charge or percent any of this
     //if fixedcharge is true then value means 100 and fixed charge false means value in percentage
     deliverycharge:[{value:{type:Number},coverage:{area:String,zipcode:String,city:String}}],//if isProvideHomeDelivery is true
+    deliverytimingslots:[{from:Number,to:Number}],//in hours,
     contact_supports:[{type:String}],
     branch_images:[{bucket:{type:String},key:String,image:{type:String}}],
     // productcatalog:[ProductCatalogs],
     // usergrp:[usergrpSchema],
-    branch_availability:{from:{type:String},to:{type:String}},//means service available from 9AM to 6 PM
+
+    branch_availability:{from:{type:Number},to:{type:Number}},//means service available from 9AM to 6 PM
     note:{type:String,default:"none"},
     createdate:{type:Date},
     status:{type:String,default:"init"}//default init,publish,unpublish,and deactive
@@ -87,7 +89,7 @@ var productProviderSchema = mongoose.Schema(
     paymentmode:{cod:{type:Boolean,default:false},online:{type:Boolean,default:true}},
     provideremail:{type:String},
     orderprocess_configuration:[{index:Number,order_status:String}],
-
+    productcategoryleadtime:[{categoryid:String,leadinminute:Number}],//4th level category
     pickupaddresses:{
       provide:{type:Boolean,default:false},
       addresses:[

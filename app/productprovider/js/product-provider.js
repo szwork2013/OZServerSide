@@ -39,15 +39,12 @@ var _updateProductProviderDetails=function(providerid){
 		}else if(!provider){
 			logger.emit("error","Provider id is wrong for _updateProductProviderDetails ")
 		}else{
-			// provider.providerlogo=provider.providerlogo.image;
-			// var providersetdata={providerid:provider.providerid,provideremail:provider.provideremail,providername:provider.providername,providerbrandname:provider.providerbrandname,providercode:provider.providercode,providerlogo:provider.providerlogo.image,paymentmode:provider.paymentmode};
 
 			provider.providerlogo=provider.providerlogo.image;
 			var setdata={};
 			provider=JSON.stringify(provider);
 			provider=JSON.parse(provider);
-			console.log("providerlogo"+JSON.stringify(provider))
-			// for(i in provider){
+
 			ProductCatalogModel.update({"provider.providerid":providerid},{$set:{provider:provider}},{multi:true},function(err,productproviderstatus){
 				if(err){
 					logger.emit("error","Database Issue _updateProductProviderDetails"+err)
@@ -947,14 +944,11 @@ var _validateBranchData=function(self,branchdata,sessionuser,providerid){
 		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please enter valid to time in branch availibility"}});
 	}else if(branchdata.branch_availability.from > branchdata.branch_availability.to){
 		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Invalid from time in branch availibility"}});
-	// }else if(branchdata.delivery_leadtime==undefined){
-	// 	self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please enter delivery leadtime"}});
-	// }else if(branchdata.delivery_leadtime.time==undefined || branchdata.delivery_leadtime.time=="" || isNumberReg.test(branchdata.delivery_leadtime.time)==false){
-	// 	self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please enter valid delivery leadtime"}});
-	// }else if(branchdata.delivery_leadtime.format==undefined || branchdata.delivery_leadtime.format==""){
-	// 	self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please enter delivery leadtime format"}});
-	// }else if(["minutes","hours","weeks","days"].indexOf(branchdata.delivery_leadtime.format.toLowerCase())<0){
-	// 	self.emit("failedAddBranch",{"error":{"code":"AV001","message":"delivery leadtime format should be minutes,hours,weeks,days"}});
+
+	}else  if(branchdata.deliverytimingslots==undefined){
+		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please select delivery timing slots"}});
+	}else  if(!isArray(branchdata.deliverytimingslots)){
+		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please select delivery timing slotss"}});
 	}else{
     	if(branchdata.delivery.isprovidehomedelivery || branchdata.delivery.isprovidepickup){	
           //////////////////////////////////////////////////////////////
@@ -965,7 +959,10 @@ var _validateBranchData=function(self,branchdata,sessionuser,providerid){
     	}
     }  
 }
-
+var _validateDeliveryTimingSlotData=function(self,branchdata,sessionuser,providerid){
+	logger.emit("log","_validateDeliveryTimingSlotData")
+	_isValidProductProvider(self,branchdata,sessionuser,providerid)
+}
 var _isValidProductProvider=function(self,branchdata,sessionuser,providerid){
 	console.log("sessionuser : "+sessionuser.userid+" providerid : "+providerid);
 	ProductProviderModel.findOne({"user.userid":sessionuser.userid,providerid:providerid},function(err,productprovider){
@@ -2685,4 +2682,119 @@ var _updateIsProvidePickupAddress = function(self,user,providerid){
 }
 var _successfulDeletePickupAddress=function(self){
 	self.emit("successfulDeletePickupAddress",{"success":{"message":"Pickup Address Deleted Successfully"}});
+}
+ProductProvider.prototype.manageProductCategoryLeadTime = function(sessionuserid,providerid,productcategoryleadtimedata) {
+	var self=this;
+	
+	if(productcategoryleadtimedata==undefined){
+		self.emit("failedManageProductCategoryLeadTime",{"error":{"code":"AV001",message:"Please pass product category lead time data"}});
+	}else if(!isArray(productcategoryleadtimedata)){
+		self.emit("failedManageProductCategoryLeadTime",{"error":{"code":"AV001",message:"product category lead time should be an array"}});
+	}else{
+			////////////////////////////////////////////////////////////////////////
+	_isProivderAdminTomanageProductCategoryLeadTime(self,sessionuserid,providerid,productcategoryleadtimedata);
+	////////////////////////////////////////////////////////////////////////
+	}
+}
+var _isProivderAdminTomanageProductCategoryLeadTime = function(self,sessionuserid,providerid,productcategoryleadtimedata){
+	UserModel.findOne({userid:sessionuserid,"provider.providerid":providerid,"provider.isOwner":true},function(err,usersp){
+		if(err){
+			logger.emit('error',"Database Issue  _isProivderAdminTomanageProductCategoryLeadTime"+err,user.userid);
+			self.emit("failedManageProductCategoryLeadTime",{"error":{"code":"ED001","message":"Database Issue"}});
+		}else if(!usersp){
+			self.emit("failedManageProductCategoryLeadTime",{"error":{"message":"You are not authorized Manage Product Category Leadtime"}});
+		}else{
+			///////////////////////////////////////////////////
+	     	_validateProductCategoryLeadTime(self,sessionuserid,providerid,productcategoryleadtimedata);
+		    ///////////////////////////////////////////////////
+		}
+	})
+}
+var _validateProductCategoryLeadTime=function(self,sessionuserid,providerid,productcategoryleadtimedata){
+	ProductProviderModel.findOne({providerid:providerid},{category:1},function(err,provider){
+		if(err){
+			logger.emit('error',"Database Issue  _validateProductCategoryLeadTime"+err,user.userid);
+			self.emit("failedManageProductCategoryLeadTime",{"error":{"code":"ED001","message":"Database Issue"}});
+		}else if(!provider){
+			self.emit("failedManageProductCategoryLeadTime",{"error":{"message":"Providerid is wrong"}});
+		}else{
+			ProductCategoryModel.find({"ancestors.categoryid":provider.category.categoryid,level:4},function(err,level4categories){
+				if(err){
+					logger.emit('error',"Database Issue  _validateProductCategoryLeadTime"+err,user.userid);
+			    self.emit("failedManageProductCategoryLeadTime",{"error":{"code":"ED001","message":"Database Issue"}});
+				}else if(level4categories.length!=0){
+					///valid leadtimedata
+					var level4categoryids=[];
+					for(var j=0;j<level4categories.length;j++){
+						level4categoryids.push(level4categories[j].categoryid)
+					}
+					var leadtimecalc={week:7*24*60,days:24*60,hours:60,sec:1/60,min:1}
+					var validproductcategoryleadtimedata=[];
+					for(var i=0;i<productcategoryleadtimedata.length;i++){
+						if(level4categoryids.indexOf(productcategoryleadtimedata[i].categoryid)>=0){
+							if(productcategoryleadtimedata[i].categoryid!=undefined && productcategoryleadtimedata[i].leadtime!=undefined){
+								if(leadtimecalc[productcategoryleadtimedata[i].leadtime.format]){
+									var inminutes=leadtimecalc[productcategoryleadtimedata[i].leadtime.format]*productcategoryleadtimedata[i].leadtime.value;
+								  productcategoryleadtimedata[i].leadinminute=inminutes;
+								  console.log("leadinminute"+inminutes)
+								  validproductcategoryleadtimedata.push(productcategoryleadtimedata[i])	
+								}
+								
+						  }	
+					  }
+					}
+						if(validproductcategoryleadtimedata.length==0){
+						  self.emit("failedManageProductCategoryLeadTime",{error:{message:"Please provide valid lead time data"}})	
+						}else{
+								////////////////////////////////////
+					_manageProductCategoryLeadTimeData(self,sessionuserid,providerid,productcategoryleadtimedata)
+					// //////////////////////////////////////`		
+					}
+			
+
+
+				}else{
+					 self.emit("failedManageProductCategoryLeadTime",{"error":{"message":"No category exists for this provider"}});
+				}
+			})		
+		}
+	})
+	
+}
+var _manageProductCategoryLeadTimeData=function(self,sessionuserid,providerid,productcategoryleadtimedata){
+	ProductProviderModel.update({providerid:providerid},{$set:{productcategoryleadtime:productcategoryleadtimedata}},function(err,updatecategoryleadtime){
+		if(err){
+			logger.emit('error',"Database Issue  _manageProductCategoryLeadTimeData"+err,user.userid);
+			self.emit("failedManageProductCategoryLeadTime",{"error":{"code":"ED001","message":"Database Issue"}});
+		}else if(updatecategoryleadtime==0){
+			self.emit("failedManageProductCategoryLeadTime",{error:{message:"Provider id is wrong"}})
+		}else{
+		//////////////////////////////////////////////
+		_successfulManageCategoryLeadTimeData(self)
+		/////////////////////////////////////////////	
+		}
+	})
+}
+var _successfulManageCategoryLeadTimeData=function(self){
+	self.emit("successfulManageProductCategoryLeadTime",{success:{message:"Product Category Lead Time Managed Successfully"}})
+}
+ProductProvider.prototype.getProviderProductCategoryLeadTime = function(sessionuserid,providerid) {
+	var self=this;
+	
+	/////////////////////////////
+	_getProviderCategoryLeadTime(self,providerid)
+	/////////////////////////////
+}
+var _getProviderCategoryLeadTime=function(self,providerid){
+	ProductProviderModel.findOne({providerid:providerid},{productcategoryleadtime:1},function(err,provider){
+		if(err){
+			logger.emit('error',"Database Issue  _getProviderCategoryLeadTime"+err,user.userid);
+			self.emit("failedGetProviderProductCategoryLeadTime",{"error":{"code":"ED001","message":"Database Issue"}});	
+		}else if(!provider){
+			self.emit("failedGetProviderProductCategoryLeadTime",{"error":{"message":"providerid is wrong"}});	
+		}else{
+			var productcategoryleadtime=provider.productcategoryleadtime;
+
+		}
+	})
 }
