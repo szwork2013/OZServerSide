@@ -351,7 +351,7 @@ exports.paytmCallbackUrl = function(req,res){//Add New Order
       paytmsuccessresponse+="<div style='padding:40px; margin:40px; margin-bottom: 1px;color:rgb(80, 74, 74); letter-spacing: 1px;'' class='row'>"
       paytmsuccessresponse+="<div class='col-md-12'>";
       paytmsuccessresponse+="<div class='no-message'>";
-      paytmsuccessresponse+="<center> <div style=border:1px solid green; border-radius:50px; width:40px; height:40px;color:green;padding: 5px;'>";
+      paytmsuccessresponse+="<center> <div style='border:1px solid green; border-radius:50px; width:40px; height:40px;color:green;padding: 5px;'>";
       paytmsuccessresponse+="<i class='fa fa-check fa-2x'></i>";
       paytmsuccessresponse+="</div>"
       paytmsuccessresponse+="<div style='font-size:18px; letter-spacing: 2px; font-weight: bold; padding: 2px;'>";
@@ -364,10 +364,11 @@ exports.paytmCallbackUrl = function(req,res){//Add New Order
       // logger.emit("error", err.error.message);
       // console.log("paytmCallbackUrl"+JSON.stringify(err.error));
       var paytmsuccessresponse=S(paytmsuccessresponse);
-      paytmsuccessresponse=paytmsuccessresponse.replaceAll("{{orderamount}}",responseobject.TXNAMOUNT);
-      paytmsuccessresponse=paytmsuccessresponse.replaceAll("{{bankname}}",responseobject.BANKNAME);
+      paytmsuccessresponse=paytmsuccessresponse.replaceAll("{{orderamount}}",result.success.responseobject.TXNAMOUNT);
+      paytmsuccessresponse=paytmsuccessresponse.replaceAll("{{bankname}}",result.success.responseobject.BANKNAME);
+      paytmsuccessresponse=paytmsuccessresponse.replaceAll("{{transactionid}}",result.success.responseobject.TXNID);
 
-      htmlresponse=s(htmlresponse);
+      htmlresponse=S(htmlresponse);
       htmlresponse=htmlresponse.replaceAll("{{paytmresponse}}",paytmsuccessresponse+"")
       logger.emit("log","HTML:success:"+htmlresponse)
       res.send(htmlresponse.s);
