@@ -944,11 +944,10 @@ var _validateBranchData=function(self,branchdata,sessionuser,providerid){
 		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please enter valid to time in branch availibility"}});
 	}else if(branchdata.branch_availability.from > branchdata.branch_availability.to){
 		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Invalid from time in branch availibility"}});
-
 	}else  if(branchdata.deliverytimingslots==undefined){
 		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please select delivery timing slots"}});
 	}else  if(!isArray(branchdata.deliverytimingslots)){
-		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please select delivery timing slotss"}});
+		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"deliverytimingslots should be array"}});
 	}else{
     	if(branchdata.delivery.isprovidehomedelivery || branchdata.delivery.isprovidepickup){	
           //////////////////////////////////////////////////////////////
