@@ -361,8 +361,8 @@ exports.paytmCallbackUrl = function(req,res){//Add New Order
       paytmsuccessresponse+="<p>Amount:</p><p>Transaction Id:</p><p>Bank:</p></div>";
       paytmsuccessresponse+="<div style='text-align:left;padding:3px;font-size:12px;' class='col-md-6'>";
       paytmsuccessresponse+="<p>{{orderamount}}</p><p>{{transactionid}}</p><p>{{bankname}}</p></div></div></center></div></div></div>"
-      logger.emit("error", err.error.message);
-      console.log("paytmCallbackUrl"+JSON.stringify(err.error));
+      // logger.emit("error", err.error.message);
+      // console.log("paytmCallbackUrl"+JSON.stringify(err.error));
       var paytmsuccessresponse=S(paytmsuccessresponse);
       paytmsuccessresponse=paytmsuccessresponse.replaceAll("{{orderamount}}",responseobject.TXNAMOUNT);
       paytmsuccessresponse=paytmsuccessresponse.replaceAll("{{bankname}}",responseobject.BANKNAME);
