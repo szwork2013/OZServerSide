@@ -210,7 +210,7 @@ exports.addBranch=function (req,res){
     res.send(result);
   });
   
-  productprovider.addBranch(branchdata,sessionuser,providerid)
+  productprovider.addBranch(branchdata,sessionuser,providerid);
 }
 
 exports.uploadProviderLogo=function(req,res){
@@ -509,7 +509,7 @@ exports.addGroupToBranch=function(req,res){
     self.emit("failedAddGroupToBranch",{"error":{code:"EA001",message:"You are not an provider to add new group"}});
   } 
 }
-exports.removeGroupFromBranch=function(req,res){
+exports.removeGroupFromBranch = function(req,res){
   var productprovider = new ProductProvider();
   // var providerid=req.params.providerid;
   var branchid=req.params.branchid;

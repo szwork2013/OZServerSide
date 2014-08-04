@@ -1373,24 +1373,10 @@ var _validateUpdateBranchData=function(self,user,providerid,branchid,branchdata)
 	}else if(branchdata.status!=undefined || branchdata.usergrp!=undefined || branchdata.branch_images!=undefined ){
 		self.emit("failedUpdateBranch",{"error":{code:"AV001",message:"You can not change these details of branch"}});
 	}else{
-		// if(branchdata.delivery_leadtime != undefined){
-		// 	if(branchdata.delivery_leadtime.format.toLowerCase() == "minutes"){
-		// 		branchdata.delivery_leadtime.min = branchdata.delivery_leadtime.time;
-		// 	}else if(branchdata.delivery_leadtime.format.toLowerCase() == "hours"){
-		// 		branchdata.delivery_leadtime.min = branchdata.delivery_leadtime.time * 60;
-		// 	}else if(branchdata.delivery_leadtime.format.toLowerCase() == "weeks"){
-		// 		branchdata.delivery_leadtime.min = branchdata.delivery_leadtime.time * 7 * 24 * 60;
-		// 	}else if(branchdata.delivery_leadtime.format.toLowerCase() == "days"){
-		// 		branchdata.delivery_leadtime.min = branchdata.delivery_leadtime.time * 24 * 60;
-		// 	}else{
-		// 		self.emit("failedUpdateBranch",{"error":{"code":"AV001","message":"delivery leadtime format should be minutes,hours,weeks,days"}});
-		// 	}
-		// }
-
 		if(branchdata.delivery==undefined){
 			/////////////////////////////////////////////////////////////
-	   _isAuthorizedUserToUpdateBranch(self,user,providerid,branchid,branchdata)
-	    ////////////////////////////////////////////////////////////
+	   		_isAuthorizedUserToUpdateBranch(self,user,providerid,branchid,branchdata)
+	    	////////////////////////////////////////////////////////////
 		}else{
 			if(branchdata.delivery.isprovidehomedelivery || branchdata.delivery.isprovidepickup){
 				/////////////////////////////////////////////////////////////
