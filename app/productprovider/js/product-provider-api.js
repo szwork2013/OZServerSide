@@ -979,3 +979,49 @@ exports.deletePickupAddresses=function(req,res){
   });
   productprovider.deletePickupAddresses(req.user,providerid,addressid);
 }
+exports.manageProductCategoryLeadTime=function(req,res){
+  var sessionuserid=req.user.userid;
+  var productprovider = new ProductProvider();
+  var productcategoryleadtimedata=req.body.productcategoryleadtimedata;
+  var providerid=req.params.providerid;
+  productprovider.removeAllListeners("failedManageProductCategoryLeadTime");
+  productprovider.on("failedManageProductCategoryLeadTime",function(err){
+    if(err.error.code!="ED001"){
+     logger.emit("error", err.error.message); 
+    }
+    
+    // user.removeAllListeners();
+    res.send(err);
+  })
+  productprovider.removeAllListeners("successfulManageProductCategoryLeadTime");
+  productprovider.on("successfulManageProductCategoryLeadTime",function(result){
+    res.send(result);
+  });
+  ///////////////////////////////////////////////////////////////////////// 
+  productprovider.manageProductCategoryLeadTime(sessionuserid,providerid,productcategoryleadtimedata);
+  ///////////////////////////////////////////////////////////////////////////////
+}
+exports.getProviderProductCategoryLeadTime=function(req,res){
+  var sessionuserid=req.user.userid;
+  var productprovider = new ProductProvider();
+ 
+  var providerid=req.params.providerid;
+  productprovider.removeAllListeners("failedGetProviderProductCategoryLeadTime");
+  productprovider.on("failedGetProviderProductCategoryLeadTime",function(err){
+    if(err.error.code!="ED001"){
+     logger.emit("error", err.error.message); 
+    }
+    
+    // user.removeAllListeners();
+    res.send(err);
+  })
+  productprovider.removeAllListeners("successfulGetProviderProductCategoryLeadTime");
+  productprovider.on("successfulGetProviderProductCategoryLeadTime",function(result){
+    res.send(result);
+  });
+  ///////////////////////////////////////////////////////////////////////// 
+  productprovider.getProviderProductCategoryLeadTime(sessionuserid,providerid);
+  ///////////////////////////////////////////////////////////////////////////////
+}
+
+
