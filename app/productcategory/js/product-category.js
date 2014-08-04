@@ -165,7 +165,7 @@ var _getProviderLevelOneCategory = function(self,providerid,session_userid){
 var _getAllProductCategory = function(self,provider,session_userid){
 	// {status:{$ne:"deactive"},parent:provider.category.categoryid},{categoryid:1,categoryname:1,_id:0}
 	// {"$unwind":"$ancestors"},{$match:{"ancestors.categoryid":"2shkc9wvj1j"}},{$group:{_id:{level:"$level"},category:{$push:{categoryid:"$categoryid",categoryname:"$categoryname",parent:"$parent"}}}},{$project:{level:"$_id.level",category:"$category",_id:0}}
-	CategoryModel.aggregate({"$unwind":"$ancestors"},{$match:{"ancestors.categoryid":provider.category.categoryid}},{$group:{_id:{level:"$level"},category:{$push:{categoryid:"$categoryid",categoryname:"$categoryname",parent:"$parent"}}}},{$project:{level:"$_id.level",category:"$category",_id:0}}).exec(function(err,doc){
+	CategoryModel.aggregate({"$unwind":"$ancestors"},{$match:{"ancestors.categoryid":provider.category.categoryid}},{$group:{_id:{level:"$level"},category:{$push:{categoryid:"$categoryid",categoryname:"$categoryname",parent:"$parent"}}}},{$project:{level:"$_id.level",category:"$category",_id:0}},{$sort:{level:-1}}).exec(function(err,doc){
 		if(err){
 			logger.emit("error","Database Error : " + err);
 			self.emit("failedGetAllProductCategory",{"error":{"code":"ED001","message":"Database Issue"}});
