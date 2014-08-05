@@ -4,7 +4,7 @@ var logger = require("../../common/js/logger");
 var OrderModel = require("./productorder-model");
 var CategoryModel = require("../../productcategory/js/product-category-model");
 var ProductProviderModel = require("../../productprovider/js/productprovider-model");
-// var BranchModel=require("../../branch/js/branch-model");
+var ProductLeadTimeModel=require("../../productcatalog/js/product-leadtime-model");
 var generateId = require('time-uuid');
 var UserModel=require("../../user/js/user-model");
 var ProductaCtalogModel=require("../../productcatalog/js/product-catalog-model");
@@ -2140,44 +2140,37 @@ var _successfullGetProvierSubOrderStatusWisecount=function(self,statuswisecounta
 	self.emit("successfulGetProviderOrderStatusWiseCount",{success:{message:"Getting Suborderwisecount sucessfully",statuswisecount:statuswisecountarray}})
 }
 
-// Order.prototype.checkPreferredDeliveryDate = function(userid){
-// 	var self = this;
-// 	var data = this.order;
-// 	///////////////////////////////////////////////////////
-// 	_validateCheckPreferredDeliveryDate(self,data,userid);
-// 	///////////////////////////////////////////////////////
-// }
-// var _validateCheckPreferredDeliveryDate = function(self,data,userid){
-// 	if(data == undefined){
-// 		self.emit("failedCheckPreferredDeliveryDate",{"error":{"code":"PD001","message":"Please enter data"}});
-// 	}else if(data.preferred_delivery_date == undefined || data.preferred_delivery_date == ""){
-// 		self.emit("failedCheckPreferredDeliveryDate",{"error":{"code":"PD001","message":"Please enter preferred_delivery_date"}});
-// 	}else if(data.branchids == undefined){
-// 		self.emit("failedCheckPreferredDeliveryDate",{"error":{"code":"PD001","message":"Please enter branchids"}});
-// 	}else if(!isArray(data.branchids)){
-// 		self.emit("failedCheckPreferredDeliveryDate",{"error":{"code":"PD001","message":"branchids should be array"}});
-// 	}else if(data.branchids.length==0){
-// 		self.emit("failedCheckPreferredDeliveryDate",{"error":{"code":"PD001","message":"Please enter atleast one branchid"}});
-// 	}else{
-// 		_checkPreferredDeliveryDate(self,data,userid);
-// 	}
-// }
-// var _checkPreferredDeliveryDate = function(self,data,userid){
-// 	var current_date = new Date();
-// 	var pref_deliverydatetime = new Date(data.preferred_delivery_date);
-// 	var difference = pref_deliverydatetime - current_date;	
-// 	var dif_minutes = Math.floor((difference/1000)/60);
-// 	console.log(dif_minutes);
-// 	ProductProviderModel.find({userid:userid,"provider.providerid":providerid,"provider.confirmed":true},function(err,userprovider){
-// 		if(err){
-// 			logger.emit("error","Database Issue _IsAuthorizedToGetSuborderStatusWiseCount"+err)
-// 			self.emit("failedgetPrviderOrderStatusWiseCount",{"error":{"code":"ED001","message":"Database Issue"}});
-// 		}else if(!userprovider){
-// 			self.emit("failedgetPrviderOrderStatusWiseCount",{"error":{"message":"Branch details is not associated with user"}});
-// 		}else{
-// 			/////////////////////////////////////////////////
-// 			_getProviderSubOrderStatusWiseCount(self,userid,providerid)
-// 			////////////////////////////////////////////////////
-// 		}
-// 	})
-// }
+Order.prototype.getDeliveryTimeSlots = function(userid){
+	var self = this;
+	var productids = this.order;
+	console.log("Data : "+JSON.stringify(productids));
+	///////////////////////////////////////////////////////
+	_validateGetDeliveryTimeSlots(self,productids,userid);
+	///////////////////////////////////////////////////////
+}
+var _validateGetDeliveryTimeSlots = function(self,productids,userid){
+	if(productids == undefined){
+		self.emit("failedGetDeliveryTimeSlots",{"error":{"code":"DT001","message":"Please enter productids"}});
+	}else if(!isArray(productids)){
+		self.emit("failedGetDeliveryTimeSlots",{"error":{"code":"DT001","message":"productids should be array"}});
+	}else if(productids.length==0){
+		self.emit("failedGetDeliveryTimeSlots",{"error":{"code":"DT001","message":"Please enter atleast one productid"}});
+	}else{
+		_checkMaxLeadTime(self,productids,userid);
+	}
+}
+var _checkMaxLeadTime = function(self,productids,userid){
+	// ProductLeadTimeModel
+	ProductProviderModel.find({userid:userid,"provider.providerid":providerid,"provider.confirmed":true},function(err,userprovider){
+		if(err){
+			logger.emit("error","Database Issue _checkMaxLeadTime"+err)
+			self.emit("failedGetDeliveryTimeSlots",{"error":{"code":"ED001","message":"Database Issue"}});
+		}else if(!userprovider){
+			self.emit("failedGetDeliveryTimeSlots",{"error":{"message":"Branch details is not associated with user"}});
+		}else{
+			/////////////////////////////////////////////////
+			_getProviderSubOrderStatusWiseCount(self,userid,providerid)
+			////////////////////////////////////////////////////
+		}
+	})
+}

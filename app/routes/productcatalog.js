@@ -23,8 +23,7 @@ exports.init = function (app) {
  	app.post('/api/productconfig/:categoryid',auth,api.productconfigapi.addProductConfiguration);
  	app.put('/api/productconfig/:categoryid',auth,api.productconfigapi.updateProductConfiguration);
  	app.get('/api/productconfig',auth,api.productconfigapi.getProductConfiguration);
- 	app.delete('/api/productconfig/:configid',auth,api.productconfigapi.deleteProductConfiguration);
- 	
+ 	app.delete('/api/productconfig/:configid',auth,api.productconfigapi.deleteProductConfiguration); 	
  	app.get('/api/productconfig/:categoryid',auth,api.productconfigapi.getProductConfigurationByCategory);
 }
 
