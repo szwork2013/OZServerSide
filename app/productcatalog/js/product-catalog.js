@@ -1135,17 +1135,23 @@ var _validateProductLeadTime=function(self,sessionuserid,productleadtimedata,pro
 	console.log("branchid::::"+branchid)
 	if(productleadtimedata==undefined){
 		self.emit("failedManageProductLeadTime",{error:{message:"Please pass product lead time data"}})
-	}
-	console.log("productleadtimedata"+JSON.stringify(productleadtimedata));
+	}else if(!isArray(productleadtimedata)){
+		self.emit("failedManageProductLeadTime",{error:{message:"Productleadtimedata should be array"}})
+	}else if(productleadtimedata.length==0){
+		self.emit("failedManageProductLeadTime",{error:{message:"Productleadtimedata should not be empty"}})
+	}else{
+		console.log("productleadtimedata"+JSON.stringify(productleadtimedata));
 	  var validproductleadtimedata=[];
 	  var productids=[];
+	  var leadtimeoptions=["minutes","hours","weeks","days"];
 		for(var i=0;i<productleadtimedata.length;i++){
 			if(productleadtimedata[i].productid!=undefined && productleadtimedata[i].leadtime){
 				if(productleadtimedata[i].leadtime.option && productleadtimedata[i].leadtime.value){
-					productids.push(productleadtimedata[i].productid);
-				  validproductleadtimedata.push(productleadtimedata[i])		
+					if(leadtimeoptions.indexOf(productleadtimedata[i].leadtime.option)>=0 && S(productleadtimedata[i].leadtime.value).isNumeric()){
+						productids.push(productleadtimedata[i].productid);
+				    validproductleadtimedata.push(productleadtimedata[i])			
+					}
 				}
-				
 			}
 		}
 		if(validproductleadtimedata.length==0){
@@ -1155,6 +1161,8 @@ var _validateProductLeadTime=function(self,sessionuserid,productleadtimedata,pro
 			_isValidProviderToManageProductLeadTime(self,sessionuserid,validproductleadtimedata,providerid,branchid)
 			/////////////////////////////////////////
 		}
+	}
+	
 	}
 	var _isValidProviderToManageProductLeadTime=function(self,sessionuserid,validproductleadtimedata,providerid,branchid){
 		UserModel.findOne({userid:sessionuserid,"provider.providerid":providerid,"provider.branchid":branchid,"provider.isOwner":true},function(err,userpp){
@@ -1187,10 +1195,12 @@ var _validateProductLeadTime=function(self,sessionuserid,productleadtimedata,pro
 				//check v
 				var validbranchproductleadtimedata=[];
 				var validproductids=[];
+				var leadtimeinminutes={"hours":60,"days":24*60,"weeks":7*24*60,"minutes":1}
 				console.log("productleadtimedata"+JSON.stringify(productleadtimedata))
 				for(var j=0;j<productleadtimedata.length;j++){
 					console.log(productleadtimedata[j].productid+"ddd")
 					if(branchproductids.indexOf(productleadtimedata[j].productid)>=0){
+						productleadtimedata[j].leadtimeinminutes=leadtimeinminutes[productleadtimedata[j].leadtime.option]*productleadtimedata[j].leadtime.value;
 						branchproductids.splice(branchproductids.indexOf(productleadtimedata[j].productid),1)
 						validbranchproductleadtimedata.push(productleadtimedata[j]);
 							validproductids.push(productleadtimedata[j].productid)
@@ -1206,7 +1216,7 @@ var _validateProductLeadTime=function(self,sessionuserid,productleadtimedata,pro
 					    self.emit("failedManageProductLeadTime",{"error":{"code":"ED001","message":"Database Issue"}});
 						}else if(pullleadtimestatus==0){
 							///////////////////////////////////////
-							_addNewLeadTimeData(self,providerid,branchid,validbranchproductleadtimedata)
+							_addNewLeadTimeData(self,sessionuserid,providerid,branchid,validbranchproductleadtimedata)
 							////////////////////////////////////
 						}else{
 							ProductLeadTimeModel.update({branchid:branchid},{$push:{productleadtime:{$each:validbranchproductleadtimedata}}},function(err,pushleadtimestatus){
@@ -1227,7 +1237,7 @@ var _validateProductLeadTime=function(self,sessionuserid,productleadtimedata,pro
 			}
 		})
 	}
-	var _addNewLeadTimeData=function(self,providerid,branchid,validbranchproductleadtimedata){
+	var _addNewLeadTimeData=function(self,sessionuserid,providerid,branchid,validbranchproductleadtimedata){
 		var leadtimeobject={providerid:providerid,branchid:branchid,productleadtime:validbranchproductleadtimedata}
 		var productleadtime_object=new ProductLeadTimeModel(leadtimeobject);
 		productleadtime_object.save(function(err,productleadtime){
@@ -1244,3 +1254,12 @@ var _validateProductLeadTime=function(self,sessionuserid,productleadtimedata,pro
 	var _successfulManageProductLeadTime=function(self){
 		self.emit("successfullManageProductLeadTime",{success:{message:"Successfully Managed Products lead time"}})
 	}
+	ProductCatalog.prototype.getProductLeadTime = function(sessionuserid,providerid,branchid,category){
+	var self = this;	
+	/////////////////////////////////////////////////////////////////////////////////////
+	_getProductLeadTime(self,sessionuserid,productleadtimedata,providerid,branchid,category);
+	/////////////////////////////////////////////////////////////////////////////////////
+};
+var _getProductLeadTime=function(self,sessionuserid,productleadtimedata,providerid,branchid,category){
+
+}
