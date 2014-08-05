@@ -429,3 +429,31 @@ exports.manageProductLeadTime=function(req,res){
       productcatalog.manageProductLeadTime(sessionuserid,productleadtimedata,providerid,branchid);
     }
 }
+exports.getProductLeadTime=function(req,res){
+ 
+  var productcatalog = new ProductCatalog();
+  var sessionuserid=req.user.userid;
+  var branchid=req.params.branchid;
+  var providerid=req.params.providerid;
+  var category=req.query.category;
+ 
+   productcatalog.removeAllListeners("failedGetProductLeadTime");
+    productcatalog.on("failedManageProductLeadTime",function(err){
+      if(err.error.code!="ED001"){
+       logger.emit("error", err.error.message); 
+      }
+      // user.removeAllListeners();
+      res.send(err);
+    });
+    productcatalog.removeAllListeners("successfullGetProductLeadTime");
+    productcatalog.on("successfullGetProductLeadTime",function(result){
+      // if(err.error.code!="ED001"){
+      //  logger.emit("error", err.error.message); 
+      // }
+      // user.removeAllListeners();
+      res.send(result);
+    }); 
+    
+      productcatalog.getProductLeadTime(sessionuserid,providerid,branchid,category);
+    
+}
