@@ -422,8 +422,8 @@ exports.getProviderSubOrderStatusWiseCount = function(req,res){//Add New Order
 
 exports.getDeliveryTimeSlots = function(req,res){
   var session_userid = req.user.userid;
-  var productids = req.body.productids;
-  var order = new Order(productids);
+  var data = req.body;
+  var order = new Order(data);
   logger.emit("log","req body"+JSON.stringify(req.body));
   order.removeAllListeners("failedGetDeliveryTimeSlots");
     order.on("failedGetDeliveryTimeSlots",function(err){

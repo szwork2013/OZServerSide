@@ -1164,8 +1164,6 @@ var _validateProductLeadTime=function(self,sessionuserid,productleadtimedata,pro
 	}
 	
 	}
-	
-	}
 	var _isValidProviderToManageProductLeadTime=function(self,sessionuserid,validproductleadtimedata,providerid,branchid){
 		UserModel.findOne({userid:sessionuserid,"provider.providerid":providerid,"provider.branchid":branchid,"provider.isOwner":true},function(err,userpp){
 			if(err){
