@@ -26,6 +26,7 @@ exports.init = function (app) {
  	app.delete('/api/productconfig/:configid',auth,api.productconfigapi.deleteProductConfiguration); 	
  	app.get('/api/productconfig/:categoryid',auth,api.productconfigapi.getProductConfigurationByCategory);
  	app.post('/api/manageproductleadtime/:providerid/:branchid',auth,api.productcatalogapi.manageProductLeadTime)
+ 	app.get('/api/productleadtime/:providerid/:branchid',auth,api.productcatalogapi.getProductLeadTime)
 }
 
 

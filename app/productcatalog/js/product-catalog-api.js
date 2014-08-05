@@ -438,7 +438,7 @@ exports.getProductLeadTime=function(req,res){
   var category=req.query.category;
  
    productcatalog.removeAllListeners("failedGetProductLeadTime");
-    productcatalog.on("failedManageProductLeadTime",function(err){
+    productcatalog.on("failedGetProductLeadTime",function(err){
       if(err.error.code!="ED001"){
        logger.emit("error", err.error.message); 
       }
