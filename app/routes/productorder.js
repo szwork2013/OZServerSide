@@ -8,7 +8,7 @@ exports.init = function (app) {
 	app.get('/api/myorder',auth,api.orderapi.getAllMyOrder);
     app.post('/api/deliverycharge',api.orderapi.getDeliveryCharges);
     app.post('/api/latestproductprice',api.orderapi.getLatestProductPrices);
-    // app.post('/api/check/preferreddeliverydate',auth,api.orderapi.checkPreferredDeliveryDate);
+    app.post('/api/deliverytimeslots',auth,api.orderapi.getDeliveryTimeSlots);
 	/////////////////provider////////////////////
 	app.get('/api/suborder/:providerid/:branchid',auth,api.orderapi.getMySubOrders);
 	app.get("/api/oz",api.commonapi.LongCodeResponse);

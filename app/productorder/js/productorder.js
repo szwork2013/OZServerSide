@@ -4,7 +4,7 @@ var logger = require("../../common/js/logger");
 var OrderModel = require("./productorder-model");
 var CategoryModel = require("../../productcategory/js/product-category-model");
 var ProductProviderModel = require("../../productprovider/js/productprovider-model");
-// var BranchModel=require("../../branch/js/branch-model");
+var ProductLeadTimeModel=require("../../productcatalog/js/product-leadtime-model");
 var generateId = require('time-uuid');
 var UserModel=require("../../user/js/user-model");
 var ProductaCtalogModel=require("../../productcatalog/js/product-catalog-model");
@@ -2140,44 +2140,112 @@ var _successfullGetProvierSubOrderStatusWisecount=function(self,statuswisecounta
 	self.emit("successfulGetProviderOrderStatusWiseCount",{success:{message:"Getting Suborderwisecount sucessfully",statuswisecount:statuswisecountarray}})
 }
 
-// Order.prototype.checkPreferredDeliveryDate = function(userid){
-// 	var self = this;
-// 	var data = this.order;
-// 	///////////////////////////////////////////////////////
-// 	_validateCheckPreferredDeliveryDate(self,data,userid);
-// 	///////////////////////////////////////////////////////
-// }
-// var _validateCheckPreferredDeliveryDate = function(self,data,userid){
-// 	if(data == undefined){
-// 		self.emit("failedCheckPreferredDeliveryDate",{"error":{"code":"PD001","message":"Please enter data"}});
-// 	}else if(data.preferred_delivery_date == undefined || data.preferred_delivery_date == ""){
-// 		self.emit("failedCheckPreferredDeliveryDate",{"error":{"code":"PD001","message":"Please enter preferred_delivery_date"}});
-// 	}else if(data.branchids == undefined){
-// 		self.emit("failedCheckPreferredDeliveryDate",{"error":{"code":"PD001","message":"Please enter branchids"}});
-// 	}else if(!isArray(data.branchids)){
-// 		self.emit("failedCheckPreferredDeliveryDate",{"error":{"code":"PD001","message":"branchids should be array"}});
-// 	}else if(data.branchids.length==0){
-// 		self.emit("failedCheckPreferredDeliveryDate",{"error":{"code":"PD001","message":"Please enter atleast one branchid"}});
-// 	}else{
-// 		_checkPreferredDeliveryDate(self,data,userid);
-// 	}
-// }
-// var _checkPreferredDeliveryDate = function(self,data,userid){
-// 	var current_date = new Date();
-// 	var pref_deliverydatetime = new Date(data.preferred_delivery_date);
-// 	var difference = pref_deliverydatetime - current_date;	
-// 	var dif_minutes = Math.floor((difference/1000)/60);
-// 	console.log(dif_minutes);
-// 	ProductProviderModel.find({userid:userid,"provider.providerid":providerid,"provider.confirmed":true},function(err,userprovider){
-// 		if(err){
-// 			logger.emit("error","Database Issue _IsAuthorizedToGetSuborderStatusWiseCount"+err)
-// 			self.emit("failedgetPrviderOrderStatusWiseCount",{"error":{"code":"ED001","message":"Database Issue"}});
-// 		}else if(!userprovider){
-// 			self.emit("failedgetPrviderOrderStatusWiseCount",{"error":{"message":"Branch details is not associated with user"}});
-// 		}else{
-// 			/////////////////////////////////////////////////
-// 			_getProviderSubOrderStatusWiseCount(self,userid,providerid)
-// 			////////////////////////////////////////////////////
-// 		}
-// 	})
-// }
+Order.prototype.getDeliveryTimeSlots = function(userid){
+	var self = this;
+	var data = this.order;
+	console.log("Data : "+JSON.stringify(data));
+	///////////////////////////////////////////////////////
+	_validateGetDeliveryTimeSlots(self,data,userid);
+	///////////////////////////////////////////////////////
+}
+var _validateGetDeliveryTimeSlots = function(self,data,userid){
+	if(data == undefined){
+		self.emit("failedGetDeliveryTimeSlots",{"error":{"code":"DT001","message":"Please enter data"}});
+	}else if(data.preferred_delivery_date==undefined || data.preferred_delivery_date==""){
+		self.emit("failedGetDeliveryTimeSlots",{"error":{"code":"DT001","message":"Please enter preferred delivery date"}});
+	}else if(data.productids == undefined){
+		self.emit("failedGetDeliveryTimeSlots",{"error":{"code":"DT001","message":"Please enter productids"}});
+	}else if(!isArray(data.productids)){
+		self.emit("failedGetDeliveryTimeSlots",{"error":{"code":"DT001","message":"productids should be array"}});
+	}else if(data.productids.length==0){
+		self.emit("failedGetDeliveryTimeSlots",{"error":{"code":"DT001","message":"Please enter atleast one productid"}});
+	}else{
+		_checkMaxLeadTime(self,data,userid);
+	}
+}
+var _checkMaxLeadTime = function(self,data,userid){
+	console.log(data.productids);
+	ProductLeadTimeModel.aggregate({$unwind:"$productleadtime"},{$match:{"productleadtime.productid":{$in:data.productids}}},{$group:{_id:"$branchid",maxLeadTime:{$max:"$productleadtime.leadtimeinminutes"}}},{$project:{branchid:"$_id",maxleadtime:"$maxLeadTime",_id:0}},function(err,doc){
+		if(err){
+			logger.emit("error","Database Issue _checkMaxLeadTime"+err)
+			self.emit("failedGetDeliveryTimeSlots",{"error":{"code":"ED001","message":"Database Issue"}});
+		}else if(doc.length==0){
+			self.emit("failedGetDeliveryTimeSlots",{"error":{"message":"Wrong productids"}});
+		}else{			
+			_checkAvailableTimeSlots(self,data,doc);
+		}
+	})
+}
+var _checkAvailableTimeSlots = function(self,data,leadtimearr){
+	var branchids = [];
+	for(var i=0;i<leadtimearr.length;i++){
+		branchids.push(leadtimearr[i].branchid);
+	}
+	console.log("Branches : "+branchids);
+	ProductProviderModel.aggregate({$unwind:"$branch"},{$match:{"branch.branchid":{$in:branchids}}},{$project:{branchid:"$branch.branchid",deliverytimingslots:"$branch.deliverytimingslots",_id:0}},function(err,branchdata){
+		if(err){
+			logger.emit("error","Database Issue _checkMaxLeadTime"+err)
+			self.emit("failedGetDeliveryTimeSlots",{"error":{"code":"ED001","message":"Database Issue"}});
+		}else if(branchdata.length==0){
+			self.emit("failedGetDeliveryTimeSlots",{"error":{"message":"Wrong branchids"}});
+		}else{
+			_getDeliveryTimeSlots(self,data,leadtimearr,branchdata);
+		}
+	})
+}
+var _getDeliveryTimeSlots = function(self,data,leadtimearr,branchdata){
+	var result_arr = [];
+	var preferred_del_date = new Date(data.preferred_delivery_date);
+	for(var i=0;i<leadtimearr.length;i++){
+		var current_date = new Date();
+		var expected_date = new Date();
+		console.log("Date : "+current_date);
+		expected_date.setMinutes(current_date.getMinutes()+leadtimearr[i].maxleadtime);
+		console.log("expected_date : "+expected_date);
+		obj = __.find(branchdata, function(obj) { return obj.branchid == leadtimearr[i].branchid });
+		console.log(preferred_del_date.getDate() + " : : "+expected_date.getDate());
+		var preftestdate=preferred_del_date.getFullYear()+"/"+preferred_del_date.getMonth()+"/"+preferred_del_date.getDate();
+		var preftest=Date.parse(preftestdate)
+		var exptestdate=expected_date.getFullYear()+"/"+expected_date.getMonth()+"/"+expected_date.getDate();
+		var exptest=Date.parse(exptestdate)
+		console.log("preftest"+preftest+"   exptest"+exptest);
+
+		if(preftest > exptest){
+			console.log("prefte max");
+			if(obj == undefined){
+				result_arr.push({branchid:leadtimearr[i].branchid,expected_date:preferred_del_date,deliverytimingslots:[]});
+			}else{
+				result_arr.push({branchid:leadtimearr[i].branchid,expected_date:preferred_del_date,deliverytimingslots:obj.deliverytimingslots});
+			}
+		}else if(preftest == exptest){
+			if(obj == undefined){
+				result_arr.push({branchid:leadtimearr[i].branchid,expected_date:expected_date,deliverytimingslots:[]});
+			}else{
+				result_arr.push({branchid:leadtimearr[i].branchid,expected_date:expected_date,deliverytimingslots:obj.deliverytimingslots});
+			}
+			console.log("same date");
+		}else{//if pref delivery date <exp del date
+			console.log("no condition");
+			if(obj == undefined){
+				result_arr.push({branchid:leadtimearr[i].branchid,expected_date:expected_date,deliverytimingslots:[]});
+			}else{
+				result_arr.push({branchid:leadtimearr[i].branchid,expected_date:expected_date,deliverytimingslots:obj.deliverytimingslots});
+			}
+		}
+		
+		// if(obj == undefined){
+		// 	result_arr.push({branchid:leadtimearr[i].branchid,expected_date:expected_date,deliverytimingslots:[]});
+		// }else{
+		// 	result_arr.push({branchid:leadtimearr[i].branchid,expected_date:expected_date,deliverytimingslots:obj.deliverytimingslots});
+		// }
+		
+	}
+	//////////////////////////////////////
+	_successfulGetDeliveryTimeSlots(self,result_arr);
+	/////////////////////////////////////
+	
+}
+var _successfulGetDeliveryTimeSlots=function(self,doc){
+	self.emit("successfulGetDeliveryTimeSlots",{success:{message:"Getting Result sucessfully","doc":doc}});
+}
+
