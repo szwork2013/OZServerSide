@@ -404,6 +404,8 @@ exports.manageProductLeadTime=function(req,res){
  
   var productcatalog = new ProductCatalog();
   var sessionuserid=req.user.userid;
+  var branchid=req.params.branchid;
+  var providerid=req.params.providerid;
   var productleadtimedata=req.body.productleadtimedata;
    productcatalog.removeAllListeners("failedManageProductLeadTime");
     productcatalog.on("failedManageProductLeadTime",function(err){
@@ -424,6 +426,6 @@ exports.manageProductLeadTime=function(req,res){
     if(req.user.usertype!="provider"){
       productcatalog.emit('failedManageProductLeadTime',{error:{code:"EA001",message:"You are not a provider to get Product user tags details"}});
     }else{
-      productcatalog.manageProductLeadTime(sessionuserid,productleadtimedata);
+      productcatalog.manageProductLeadTime(sessionuserid,productleadtimedata,providerid,branchid);
     }
 }
