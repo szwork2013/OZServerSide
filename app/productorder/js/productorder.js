@@ -2160,8 +2160,8 @@ var _validateGetDeliveryTimeSlots = function(self,productids,userid){
 	}
 }
 var _checkMaxLeadTime = function(self,productids,userid){
-	// ProductLeadTimeModel
-	ProductProviderModel.find({userid:userid,"provider.providerid":providerid,"provider.confirmed":true},function(err,userprovider){
+	console.log(productids);
+	ProductLeadTimeModel.aggregate(,function(err,userprovider){
 		if(err){
 			logger.emit("error","Database Issue _checkMaxLeadTime"+err)
 			self.emit("failedGetDeliveryTimeSlots",{"error":{"code":"ED001","message":"Database Issue"}});

@@ -1135,8 +1135,8 @@ var _validateProductLeadTime=function(self,sessionuserid,productleadtimedata,pro
 	console.log("branchid::::"+branchid)
 	if(productleadtimedata==undefined){
 		self.emit("failedManageProductLeadTime",{error:{message:"Please pass product lead time data"}})
-	}
-	console.log("productleadtimedata"+JSON.stringify(productleadtimedata));
+	}else{
+		console.log("productleadtimedata"+JSON.stringify(productleadtimedata));
 	  var validproductleadtimedata=[];
 	  var productids=[];
 		for(var i=0;i<productleadtimedata.length;i++){
@@ -1154,7 +1154,9 @@ var _validateProductLeadTime=function(self,sessionuserid,productleadtimedata,pro
 			/////////////////////////////////////////////////
 			_isValidProviderToManageProductLeadTime(self,sessionuserid,validproductleadtimedata,providerid,branchid)
 			/////////////////////////////////////////
-		}
+		}	
+	}
+	
 	}
 	var _isValidProviderToManageProductLeadTime=function(self,sessionuserid,validproductleadtimedata,providerid,branchid){
 		UserModel.findOne({userid:sessionuserid,"provider.providerid":providerid,"provider.branchid":branchid,"provider.isOwner":true},function(err,userpp){
