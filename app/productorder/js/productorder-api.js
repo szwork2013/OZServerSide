@@ -419,24 +419,24 @@ exports.getProviderSubOrderStatusWiseCount = function(req,res){//Add New Order
     order.getProviderSubOrderStatusWiseCount(session_userid,providerid);
 }
 
-// exports.checkPreferredDeliveryDate = function(req,res){
-//   var session_userid = req.user.userid;
-//   var data = req.body.data;
-//   var order = new Order(data);
-//   logger.emit("log","req body"+JSON.stringify(req.body));
-//   order.removeAllListeners("failedCheckPreferredDeliveryDate");
-//     order.on("failedCheckPreferredDeliveryDate",function(err){
-//       logger.emit("error", err.error.message);
-//       //order.removeAllListeners();
-//       res.send(err);
-//     });
-//     order.removeAllListeners("successfulCheckPreferredDeliveryDate");
-//     order.on("successfulCheckPreferredDeliveryDate",function(result){
-//       // order.removeAllListeners();
-//       res.send(result);
-//     });
-//     order.checkPreferredDeliveryDate(session_userid);
-// }
+exports.getDeliveryTimeSlots = function(req,res){
+  var session_userid = req.user.userid;
+  var data = req.body.data;
+  var order = new Order(data);
+  logger.emit("log","req body"+JSON.stringify(req.body));
+  order.removeAllListeners("failedGetDeliveryTimeSlots");
+    order.on("failedGetDeliveryTimeSlots",function(err){
+      logger.emit("error", err.error.message);
+      //order.removeAllListeners();
+      res.send(err);
+    });
+    order.removeAllListeners("successfulGetDeliveryTimeSlots");
+    order.on("successfulGetDeliveryTimeSlots",function(result){
+      // order.removeAllListeners();
+      res.send(result);
+    });
+    order.getDeliveryTimeSlots(session_userid);
+}
 
 // exports.getServiceOrderRequest = function(req,res){
 //   var requestid = req.params.requestid;
