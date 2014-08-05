@@ -938,9 +938,9 @@ var _validateBranchData=function(self,branchdata,sessionuser,providerid){
 		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please select you provide delivery charge in percent or not "}})		
 	}else if(branchdata.branch_availability==undefined){
 		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please enter branch availibility details"}});
-	}else if(branchdata.branch_availability.from==undefined || branchdata.branch_availability.from=="" || reg.test(branchdata.branch_availability.from)==false){
+	}else if(branchdata.branch_availability.from==undefined || branchdata.branch_availability.from=="" || S(branchdata.branch_availability.from).isNumeric()){
 		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please enter valid from time in branch availibility"}});
-	}else if(branchdata.branch_availability.to==undefined || reg.test(branchdata.branch_availability.to)==false){
+	}else if(branchdata.branch_availability.to==undefined || !S(branchdata.branch_availability.to).isNumeric()){
 		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please enter valid to time in branch availibility"}});
 	}else if(branchdata.branch_availability.from > branchdata.branch_availability.to){
 		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Invalid from time in branch availibility"}});
