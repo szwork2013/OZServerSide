@@ -27,6 +27,7 @@ exports.init = function (app) {
  	
  	app.get('/api/productconfig/:categoryid',auth,api.productconfigapi.getProductConfigurationByCategory);
  	app.post('/api/manageproductleadtime/:providerid/:branchid',auth,api.productcatalogapi.manageProductLeadTime)
+ 	app.get('/api/productleadtime/:providerid/:branchid',auth,api.productcatalogapi.getProductLeadTime)
 }
 
 

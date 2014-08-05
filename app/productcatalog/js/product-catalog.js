@@ -1257,9 +1257,83 @@ var _validateProductLeadTime=function(self,sessionuserid,productleadtimedata,pro
 	ProductCatalog.prototype.getProductLeadTime = function(sessionuserid,providerid,branchid,category){
 	var self = this;	
 	/////////////////////////////////////////////////////////////////////////////////////
-	_getProductLeadTime(self,sessionuserid,productleadtimedata,providerid,branchid,category);
+	_getProductLeadTime(self,sessionuserid,providerid,branchid,category);
 	/////////////////////////////////////////////////////////////////////////////////////
 };
-var _getProductLeadTime=function(self,sessionuserid,productleadtimedata,providerid,branchid,category){
+var _getProductLeadTime=function(self,sessionuserid,providerid,branchid,category){
+	var query=[];
+	if(category==undefined){
+		///////////////////////////////
+		_getAllProductLeadTime(self,providerid,branchid);
+		///////////////////////////////
+		
+	}else{
+		////////////////////////////////
+		_getProductLeadTimeByCategory(self,providerid,branchid)
+		///////////////////////////////
+	}
+	
+}
+var _getProductLeadTimeByCategory=function(self,providerid,branchid){
+	ProductCatalogModel.aggregate({$match:{"branch.branchid":branchid}},{$group:{_id:{categoryid:"$category.id",categoryname:"$category.categoryname"},productids:{$addToSet:"$productid"}}},{$project:{category:"$_id",productids:1,_id:0}},function(err,categorywiseproducts){
+		if(err){
+			logger.emit('error',"Database Issue  _getProductLeadTime "+err,sessionuserid)
+			self.emit("failedGetProductLeadTime",{"error":{"code":"ED001","message":"Database Issue"}});
+		}else if(categorywiseproducts.length==0){
+			self.emit("failedGetProductLeadTime",{error:{message:"Product"}})
+		}else{
+			ProductLeadTimeModel.findOne({branchid:branchid},function(err,productleadtime){
+				if(err){
+					logger.emit('error',"Database Issue  _getProductLeadTime "+err,sessionuserid)
+			    self.emit("failedGetProductLeadTime",{"error":{"code":"ED001","message":"Database Issue"}});
+				}else if(!productleadtime){
+					self.emit("failedGetProductLeadTime",{"error":{"code":"ED001","message":"Database Issue"}});
+				}else{
+					var productleadtimedata=productleadtime.productleadtime;
+					var leadtimeproductids=[];
+					for(var i=0;i<productleadtimedata.length;i++){
+						leadtimeproductids.push(productleadtimedata[i].productid);
+					}
+					var result=[];
+					for(var j=0;j<categorywiseproducts.length;j++){
+						var resultdata={category:categorywiseproducts[j].category};
+						var productsleadtimearray=[];
+						for(var k=0;k<categorywiseproducts[j].productids.length;k++){
+							if(leadtimeproductids.indexOf(categorywiseproducts[j].productids[k])>=0){
+								var index=leadtimeproductids.indexOf(categorywiseproducts[j].productids[k]);
+								productsleadtimearray.push(productleadtimedata[index]);
+							}
+						}
+						resultdata.productleadtime=productsleadtimearray;
+						result.push(resultdata)
+					}
+					/////////////////////////////////////////
+					_successfulGetProductLeadTime(self,result)
+					////////////////////////////////////////
 
+				}
+			})
+		}
+	})
+}
+var _getAllProductLeadTime=function(self,providerid,branchid){
+	var query=[];
+	query.push({$match:{branchid:branchid}});
+	query.push({$unwind:"$productleadtime"});
+	query.push({$project:{productid:"$productleadtime.productid",leadtime:"$productleadtime.leadtime",_id:0}})
+	ProductLeadTimeModel.aggregate(query,function(err,productleadtime){
+		if(err){
+			logger.emit('error',"Database Issue  _getProductLeadTime "+err,sessionuserid)
+			 self.emit("failedGetProductLeadTime",{"error":{"code":"ED001","message":"Database Issue"}});
+		}else if(productleadtime.length==0){
+			self.emit("failedGetProductLeadTime",{"error":{"message":"branchid is wrong"}});
+		}else{
+			///////////////////////////
+			_successfulGetProductLeadTime(self,productleadtime)
+			/////////////////////////
+		}
+	})
+}
+var 		_successfulGetProductLeadTime=function(self,result){
+	self.emit("successfullGetProductLeadTime",{success:{message:"Getting Product lead time Successfully",productleadtime:result}})
 }
