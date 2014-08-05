@@ -803,7 +803,7 @@ var _criteriawiseSuborders=function(self,userid,providerid,branchid,criteriastat
 				query.push({$project:{pref_deliverydatetime:{day:{$dayOfMonth:'$pref_deliverydatetime'},month:{$month:'$pref_deliverydatetime'},year:{$year:'$pref_deliverydatetime'}},buyerpayment:1,reasontocancelreject:1,sellerpayment:1,orderinstructions:1, payment:1,pickup_address:1,preferred_delivery_date:1,createdate:1,suborderid:1,products:1,suborder_price:1,billing_address:1,delivery_address:1,deliverytype:1,deliverydate:1,status:1,consumer:1}})
 				query.push({$group:{_id:"$pref_deliverydatetime",suborders:{$addToSet:{buyerpayment:"$buyerpayment",sellerpayment:"$sellerpayment",orderinstructions:"$orderinstructions",reasontocancelreject:"$reasontocancelreject", pickup_address:"$pickup_address",payment:"$payment",preferred_delivery_date:"$preferred_delivery_date",createdate:"$createdate",suborderid:"$suborderid",products:"$products",suborder_price:"$suborder_price",billing_address:"$billing_address",delivery_address:"$delivery_address",deliverytype:"$deliverytype",deliverydate:"$deliverydate",status:"$status",consumer:"$consumer"}}}})
 				query.push({$project:{deliverydatetime:"$_id",suborders:1,_id:0}});
-				query.push({$sort:{deliverydatetime:1}})
+				// query.push({$sort:{deliverydatetime:1}})
 				
 				
 			 /////////////////////////////////////////////////
@@ -816,7 +816,7 @@ var _criteriawiseSuborders=function(self,userid,providerid,branchid,criteriastat
 				query.push({$project:{pref_deliverydatetime:{day:{$dayOfMonth:'$pref_deliverydatetime'},month:{$month:'$pref_deliverydatetime'},year:{$year:'$pref_deliverydatetime'}},pickup_address:1,reasontocancelreject:1,buyerpayment:1,sellerpayment:1,orderinstructions:1, payment:1,preferred_delivery_date:1,createdate:1,suborderid:1,products:1,suborder_price:1,billing_address:1,delivery_address:1,deliverytype:1,deliverydate:1,status:1,consumer:1}})
 				query.push({$group:{_id:"$pref_deliverydatetime",suborders:{$addToSet:{buyerpayment:"$buyerpayment",sellerpayment:"$sellerpayment",orderinstructions:"$orderinstructions",reasontocancelreject:"$reasontocancelreject", pickup_address:"$pickup_address", payment:"$payment",preferred_delivery_date:"$preferred_delivery_date",createdate:"$createdate",suborderid:"$suborderid",products:"$products",suborder_price:"$suborder_price",billing_address:"$billing_address",delivery_address:"$delivery_address",deliverytype:"$deliverytype",deliverydate:"$deliverydate",status:"$status",consumer:"$consumer"}}}})
 				query.push({$project:{deliverydatetime:"$_id",suborders:1}})
-				query.push({$sort:{deliverydatetime:1}})
+				// query.push({$sort:{deliverydatetime:1}})
 			}else{
 				query.push({$match:{"suborder.productprovider.providerid":providerid,status:{$ne:"waitforapproval"}}})
 				query.push({$unwind:"$suborder"})
