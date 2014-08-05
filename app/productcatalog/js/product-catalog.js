@@ -15,7 +15,7 @@ AWS.config.update({region:'ap-southeast-1'});
 var s3bucket = new AWS.S3();
 var S=require("string");
 var __=require("underscore")
-
+var ProductLeadTimeModel=require("./product-leadtime-model");
 var ProductCatalog = function(productcatalogdata) {
   this.productcatalog=productcatalogdata;
 };
@@ -1125,33 +1125,122 @@ var _getAllProductUserTags=function(self){
 var _successfullGetAllProductUserTags=function(self,productusertags){
 	self.emit("successfullGetAllProductUserTags",{success:{message:"Getting User Product Tags Successfully",productusertags:productusertags}})
 }
-ProductCatalog.prototype.manageProductLeadTime = function(self,productleadtimedata){
+ProductCatalog.prototype.manageProductLeadTime = function(sessionuserid,productleadtimedata,providerid,branchid){
 	var self = this;	
 	/////////////////////////////////////////////////////////////////////////////////////
-	_validateProductLeadTime(self,productleadtimedata);
+	_validateProductLeadTime(self,sessionuserid,productleadtimedata,providerid,branchid);
 	/////////////////////////////////////////////////////////////////////////////////////
 };
-var _validateProductLeadTime=function(self,productleadtimedata){
-	// if(productleadtimedata==undefined){
-	// 	self.emit("failedManageProductLeadTime",{error:{message:"Please pass product lead time data"}})
-	// }else{
-	// 	var leadtime={minutes}
-	//   var validproductleadtimedata=[];
-	//   var productids=[];
-	// 	for(var i=0;i<productleadtimedata.length;i++){
-	// 		if(productleadtimedata[i].productid!=undefined && productleadtimedata[i].leadtime){
-	// 			if(productleadtimedata[i].leadtime.option && productleadtimedata[i].leadtime.value){
-	// 				productids.push(productleadtimedata[i].productid);
-	// 			  validproductleadtimedata.push(productleadtimedata)		
-	// 			}
+var _validateProductLeadTime=function(self,sessionuserid,productleadtimedata,providerid,branchid){
+	console.log("branchid::::"+branchid)
+	if(productleadtimedata==undefined){
+		self.emit("failedManageProductLeadTime",{error:{message:"Please pass product lead time data"}})
+	}
+	console.log("productleadtimedata"+JSON.stringify(productleadtimedata));
+	  var validproductleadtimedata=[];
+	  var productids=[];
+		for(var i=0;i<productleadtimedata.length;i++){
+			if(productleadtimedata[i].productid!=undefined && productleadtimedata[i].leadtime){
+				if(productleadtimedata[i].leadtime.option && productleadtimedata[i].leadtime.value){
+					productids.push(productleadtimedata[i].productid);
+				  validproductleadtimedata.push(productleadtimedata[i])		
+				}
 				
-	// 		}
-	// 	}
-	// 	if(validproductleadtimedata.length==0){
-
-	// 	}else{
-			
-	// 	}
-
-	// }
-}
+			}
+		}
+		if(validproductleadtimedata.length==0){
+			self.emit("failedManageProductLeadTime",{error:{message:"Please pass valid productleadtime data"}})
+		}else{
+			/////////////////////////////////////////////////
+			_isValidProviderToManageProductLeadTime(self,sessionuserid,validproductleadtimedata,providerid,branchid)
+			/////////////////////////////////////////
+		}
+	}
+	var _isValidProviderToManageProductLeadTime=function(self,sessionuserid,validproductleadtimedata,providerid,branchid){
+		UserModel.findOne({userid:sessionuserid,"provider.providerid":providerid,"provider.branchid":branchid,"provider.isOwner":true},function(err,userpp){
+			if(err){
+				logger.emit('error',"Database Issue  _isValidProviderToManageProductLeadTime "+err,sessionuserid)
+				self.emit("failedManageProductLeadTime",{"error":{"code":"ED001","message":"Database Issue"}});
+			}else if(!userpp){
+				self.emit("failedManageProductLeadTime",{"error":{"message":"You are not authorized to manage products leadtime"}});
+			}else{	
+				/////////////////////////////////////////////////////////////////////////////
+		     	_manageProductLeadTimeData(self,sessionuserid,validproductleadtimedata,providerid,branchid);
+			  /////////////////////////////////////////////////////////////////////////////
+			}
+		})
+	}
+	var _manageProductLeadTimeData=function(self,sessionuserid,productleadtimedata,providerid,branchid){
+		console.log("branchid"+branchid)
+		ProductCatalogModel.find({"branch.branchid":branchid},{productid:1},function(err,products){
+			if(err){
+					logger.emit('error',"Database Issue  _manageProductLeadTimeData "+err,sessionuserid)
+				self.emit("failedManageProductLeadTime",{"error":{"code":"ED001","message":"Database Issue"}});
+			}else if(products.length==0){
+				self.emit("failedManageProductLeadTime",{"error":{"message":"No products associated with branch"}});
+			}else{
+				var branchproductids=[];
+				for(var i=0;i<products.length;i++){
+					branchproductids.push(products[i].productid)
+				}
+				console.log("branchproductids"+branchproductids)
+				//check v
+				var validbranchproductleadtimedata=[];
+				var validproductids=[];
+				console.log("productleadtimedata"+JSON.stringify(productleadtimedata))
+				for(var j=0;j<productleadtimedata.length;j++){
+					console.log(productleadtimedata[j].productid+"ddd")
+					if(branchproductids.indexOf(productleadtimedata[j].productid)>=0){
+						branchproductids.splice(branchproductids.indexOf(productleadtimedata[j].productid),1)
+						validbranchproductleadtimedata.push(productleadtimedata[j]);
+							validproductids.push(productleadtimedata[j].productid)
+					}
+				}
+					console.log("validbranchproductleadtimedata"+JSON.stringify(validbranchproductleadtimedata))
+				if(validbranchproductleadtimedata.length==0){
+					self.emit("failedManageProductLeadTime",{error:{message:"Please pass your branch products leadtime"}})
+				}else{
+					ProductLeadTimeModel.update({branchid:branchid},{$pull:{productleadtime:{productid:{$in:validproductids}}}},function(err,pullleadtimestatus){
+						if(err){
+							logger.emit('error',"Database Issue  _manageProductLeadTimeData "+err,sessionuserid)
+					    self.emit("failedManageProductLeadTime",{"error":{"code":"ED001","message":"Database Issue"}});
+						}else if(pullleadtimestatus==0){
+							///////////////////////////////////////
+							_addNewLeadTimeData(self,providerid,branchid,validbranchproductleadtimedata)
+							////////////////////////////////////
+						}else{
+							ProductLeadTimeModel.update({branchid:branchid},{$push:{productleadtime:{$each:validbranchproductleadtimedata}}},function(err,pushleadtimestatus){
+								if(err){
+									logger.emit('error',"Database Issue  _manageProductLeadTimeData "+err,sessionuserid)
+					      self.emit("failedManageProductLeadTime",{"error":{"code":"ED001","message":"Database Issue"}});
+								}else if(pushleadtimestatus==0){
+									self.emit("failedManageProductLeadTime",{"error":{"message":"branch is is wrong"}});
+								}else{
+									///////////////////////////////////
+									_successfulManageProductLeadTime(self)
+									///////////////////////////////////
+								}
+							})
+						}
+					})
+				}
+			}
+		})
+	}
+	var _addNewLeadTimeData=function(self,providerid,branchid,validbranchproductleadtimedata){
+		var leadtimeobject={providerid:providerid,branchid:branchid,productleadtime:validbranchproductleadtimedata}
+		var productleadtime_object=new ProductLeadTimeModel(leadtimeobject);
+		productleadtime_object.save(function(err,productleadtime){
+			if(err){
+					logger.emit('error',"Database Issue  _addNewLeadTimeData "+err,sessionuserid)
+					self.emit("failedManageProductLeadTime",{"error":{"code":"ED001","message":"Database Issue"}});
+			}else{
+				//////////////////////////////////
+				_successfulManageProductLeadTime(self)
+				//////////////////////////
+			}
+		})
+	}
+	var _successfulManageProductLeadTime=function(self){
+		self.emit("successfullManageProductLeadTime",{success:{message:"Successfully Managed Products lead time"}})
+	}

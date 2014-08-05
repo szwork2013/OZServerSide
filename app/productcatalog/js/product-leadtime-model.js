@@ -4,8 +4,7 @@ var generateId = require('time-uuid');
 var productLeadTimeSchema = mongoose.Schema({
     providerid:{type:String,ref:"providers"},
     branchid:{type:String,ref:"providers"},
-    productid:{type:String,ref:"productcatalogs"},
-    leadtime:{value:Number,option:String}
+    productleadtime:[{productid:String,leadtime:{option:String,value:Number}}]
 });
 
 productLeadTimeSchema.statics.findAndModify = function (query, sort, doc, options, callback) {
