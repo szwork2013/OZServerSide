@@ -282,6 +282,26 @@ exports.getProductProvider=function(req,res){
   });
   productprovider.getProductProvider(providerid);
 }
+exports.getProviderInfo=function(req,res){
+  var providerid=req.params.providerid;
+  // logger.emit("info","req updateProductProvider data"+JSON.stringify(req.body));
+  var productprovider = new ProductProvider();
+  // logger.emit("log","req body addProductProvider"+JSON.stringify(ProductProviderdata));
+  productprovider.removeAllListeners("failedGetProviderInfo");
+  productprovider.on("failedGetProviderInfo",function(err){
+    if(err.error.code!="ED001"){
+     logger.emit("error", err.error.message); 
+    }
+    
+    // //user.removeAllListeners();
+    res.send(err);
+  });
+  productprovider.removeAllListeners("successfulGetProviderInfo");
+  productprovider.on("successfulGetProviderInfo",function(result){
+    res.send(result);
+  });
+  productprovider.getProviderInfo(providerid);
+}
 
 exports.getAllProductProviders=function(req,res){
   var productprovider = new ProductProvider();

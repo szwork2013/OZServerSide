@@ -20,6 +20,7 @@ var exec = require('child_process').exec;
 AWS.config.update({accessKeyId:'AKIAJOGXRBMWHVXPSC7Q', secretAccessKey:'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'});
 AWS.config.update({region:'ap-southeast-1'});
 var s3bucket = new AWS.S3();
+var isNumeric = require("isnumeric");
 var OrderProcessConfigModel=require('./order-process-config-model');
 var ProductProvider = function(productproviderdata) {
   this.productprovider=productproviderdata;
@@ -743,7 +744,7 @@ ProductProvider.prototype.getProductProvider = function(providerid) {
 	/////////////////////////////////////
 };
 var _getProductProvider=function(self,providerid){
-	ProductProviderModel.findOne({providerid:providerid},{createdate:0},function(err,productprovider){
+	ProductProviderModel.findOne({providerid:providerid},{createdate:0,branch:0},function(err,productprovider){
 		if(err){
 			logger.emit('error',"Database Issue  _getProductProvider");
 			self.emit("failedGetProductProvider",{"error":{"code":"ED001","message":"Database Issue"}});	
@@ -758,6 +759,29 @@ var _getProductProvider=function(self,providerid){
 }
 var _successfullGetProductProvider=function(self,productprovider){
 	self.emit("successfulGetProductProvider",{"success":{"message":"Provider Details Getting successfully",productprovider:productprovider}})
+}
+ProductProvider.prototype.getProviderInfo = function(providerid) {
+	var self=this;
+	/////////////////////////////////////
+	_getProviderInfo(self,providerid);
+	/////////////////////////////////////
+};
+var _getProviderInfo=function(self,providerid){
+	ProductProviderModel.findOne({providerid:providerid},{providerid:1,providername:1,providerbrandname:1,providerdescription:1,providerlogo:1},function(err,productprovider){
+		if(err){
+			logger.emit('error',"Database Issue  _getProductProvider");
+			self.emit("failedGetProviderInfo",{"error":{"code":"ED001","message":"Database Issue"}});	
+		}else if(!productprovider){
+			self.emit("failedGetProviderInfo",{"error":{"message":"providerid is wrong"}});	
+		}else{
+			/////////////////////////////////////////////////////
+			_successfullGetProvierInfo(self,productprovider);
+			/////////////////////////////////////////////////////
+		}
+	})
+}
+var _successfullGetProvierInfo=function(self,productprovider){
+	self.emit("successfulGetProviderInfo",{"success":{"message":"Provider Info Getting successfully",productprovider:productprovider}})
 }
 
 ProductProvider.prototype.getAllProductProviders = function() {
@@ -899,7 +923,8 @@ ProductProvider.prototype.addBranch = function(branchdata,sessionuser,providerid
 };
 var _validateBranchData=function(self,branchdata,sessionuser,providerid){
 	var isNumberReg = new RegExp('^[0-9]{1,2}$');
-	var reg = /^\(?([0-9]{2})\)?[:]?([0-9]{2})$/;  
+	var reg = /^\(?([0-9]{2})\)?[:]?([0-9]{2})$/; 
+	
 	if(branchdata==undefined){
 		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Pleae pass branchdata"}});
 	}else if(branchdata.branchname==undefined || branchdata.branchname==""){
@@ -938,12 +963,12 @@ var _validateBranchData=function(self,branchdata,sessionuser,providerid){
 		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please select you provide delivery charge in percent or not "}})		
 	}else if(branchdata.branch_availability==undefined){
 		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please enter branch availibility details"}});
-	}else if(branchdata.branch_availability.from==undefined || branchdata.branch_availability.from=="" || S(branchdata.branch_availability.from).isNumeric()){
+	}else if(branchdata.branch_availability.from==undefined || branchdata.branch_availability.from=="" || !isNumeric(branchdata.branch_availability.from)){
 		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please enter valid from time in branch availibility"}});
-	}else if(branchdata.branch_availability.to==undefined || !S(branchdata.branch_availability.to).isNumeric()){
+	}else if(branchdata.branch_availability.to==undefined || !isNumeric(branchdata.branch_availability.to)){
 		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please enter valid to time in branch availibility"}});
 	}else if(branchdata.branch_availability.from > branchdata.branch_availability.to){
-		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Invalid from time in branch availibility"}});
+		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"branch from time should be less than to time"}});
 	}else  if(branchdata.deliverytimingslots==undefined){
 		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please select delivery timing slots"}});
 	}else  if(!isArray(branchdata.deliverytimingslots)){

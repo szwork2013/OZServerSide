@@ -30,4 +30,5 @@ exports.init = function (app) {
  	app.get('/api/orderprocessconfig',auth,api.orderprocessconfig.getOrderProcessingStatus);
  	app.delete('/api/orderprocessconfig/:index',auth,api.orderprocessconfig.deleteOrderProcessingStatus);
  	app.post('/api/manageproductcategoryleadtime/:providerid',auth,api.productproviderapi.manageProductCategoryLeadTime)
+ 	app.get('/api/providerinfo/:providerid',api.productproviderapi.getProviderInfo);
 }
