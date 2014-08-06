@@ -227,7 +227,7 @@ var _isProductNameIsSame=function(self,branchid,providerid,productcatalog,doc,us
 	})
 }
 var _addProductCatalog = function(self,branchid,providerid,productcatalog,doc,user,productlogo){
-	console.log("_addProductCatalog");
+	var productdata = productcatalog;
 	productcatalog.createdate = new Date();
 	var productcatalog = new ProductCatalogModel(productcatalog);
 	productcatalog.save(function(err,prod_catalog){
@@ -246,7 +246,7 @@ var _addProductCatalog = function(self,branchid,providerid,productcatalog,doc,us
 		     	});
             }
             /////////////////////////////////////////////////
-            _addProductDetailsToLeadTimeModel(branchid,providerid,productcatalog,prod_catalog);
+            _addProductDetailsToLeadTimeModel(branchid,providerid,productdata,prod_catalog);
 			/////////////////////////////////////////////////
 			_successfullAddProductCatalog(self,prod_catalog);
 			/////////////////////////////////////////////////
@@ -254,15 +254,12 @@ var _addProductCatalog = function(self,branchid,providerid,productcatalog,doc,us
 	})
 }
 
-
 var _addProductDetailsToLeadTimeModel = function(branchid,providerid,productcatalog,product){
 	var leadtimeinminutes={"hours":60,"days":24*60,"weeks":7*24*60,"minutes":1};				
 	var minutes=leadtimeinminutes[productcatalog.leadtime.option]*productcatalog.leadtime.value;
-	console.log("########### Minutes ###### "+minutes);
 	var leadtime_arr = [];
 	leadtime_arr.push({"productid":product.productid,productname:product.productname,"leadtimeinminutes":minutes,"leadtime":{"option":productcatalog.leadtime.option,"value":productcatalog.leadtime.value}});
 	var leadtimeobject={providerid:providerid,branchid:branchid,productleadtime:leadtime_arr};
-	console.log("########### leadtimeobject ###### "+leadtimeobject);
 	var productleadtime_object=new ProductLeadTimeModel(leadtimeobject);
 	productleadtime_object.save(function(err,productleadtime){
 		if(err){
