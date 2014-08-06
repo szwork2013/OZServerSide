@@ -760,6 +760,29 @@ var _getProductProvider=function(self,providerid){
 var _successfullGetProductProvider=function(self,productprovider){
 	self.emit("successfulGetProductProvider",{"success":{"message":"Provider Details Getting successfully",productprovider:productprovider}})
 }
+ProductProvider.prototype.getProviderInfo = function(providerid) {
+	var self=this;
+	/////////////////////////////////////
+	_getProviderInfo(self,providerid);
+	/////////////////////////////////////
+};
+var _getProviderInfo=function(self,providerid){
+	ProductProviderModel.findOne({providerid:providerid},{providerid:1,providername:1,providerbrandname:1,providerdescription:1,providerlogo:1},function(err,productprovider){
+		if(err){
+			logger.emit('error',"Database Issue  _getProductProvider");
+			self.emit("failedGetProviderInfo",{"error":{"code":"ED001","message":"Database Issue"}});	
+		}else if(!productprovider){
+			self.emit("failedGetProviderInfo",{"error":{"message":"providerid is wrong"}});	
+		}else{
+			/////////////////////////////////////////////////////
+			_successfullGetProvierInfo(self,productprovider);
+			/////////////////////////////////////////////////////
+		}
+	})
+}
+var _successfullGetProvierInfo=function(self,productprovider){
+	self.emit("successfulGetProviderInfo",{"success":{"message":"Provider Info Getting successfully",productprovider:productprovider}})
+}
 
 ProductProvider.prototype.getAllProductProviders = function() {
 	var self=this;
