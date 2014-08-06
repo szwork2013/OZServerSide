@@ -1339,7 +1339,7 @@ var _getAllProductLeadTime=function(self,providerid,branchid){
 	var query=[];
 	query.push({$match:{branchid:branchid}});
 	query.push({$unwind:"$productleadtime"});
-	query.push({$project:{productid:"$productleadtime.productid",leadtime:"$productleadtime.leadtime",_id:0}})
+	query.push({$project:{productid:"$productleadtime.productid",productname:"$productleadtime.productname",leadtime:"$productleadtime.leadtime",_id:0}})
 	ProductLeadTimeModel.aggregate(query,function(err,productleadtime){
 		if(err){
 			logger.emit('error',"Database Issue  _getProductLeadTime "+err,sessionuserid)
@@ -1347,9 +1347,9 @@ var _getAllProductLeadTime=function(self,providerid,branchid){
 		}else if(productleadtime.length==0){
 			self.emit("failedGetProductLeadTime",{"error":{"message":"branchid is wrong"}});
 		}else{
-			///////////////////////////
+			////////////////////////////////////////////////////
 			_successfulGetProductLeadTime(self,productleadtime)
-			/////////////////////////
+			///////////////////////////////////////////////////
 		}
 	})
 }
