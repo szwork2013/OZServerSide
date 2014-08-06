@@ -824,13 +824,13 @@ var _criteriawiseSuborders=function(self,userid,providerid,branchid,criteriastat
 				query.push({$project:{reasontocancelreject:"$suborder.reasontocancelreject",buyerpayment:"$suborder.buyerpayment",pickup_address:"$suborder.pickup_address",sellerpayment:"$suborder.sellerpayment",orderinstructions:"$suborder.orderinstructions", payment:1,preferred_delivery_date:1,createdate:1,suborderid:"$suborder.suborderid",products:"$suborder.products",suborder_price:"$suborder.suborder_price",billing_address:"$suborder.billing_address",delivery_address:"$suborder.delivery_address",deliverytype:"$suborder.deliverytype",deliverydate:"$suborder.deliverydate",status:"$suborder.status",_id:0,consumer:1}})
 				query.push({$sort:{createdate:1}})
 			}
-		 _getMySubOrders(self,userid,providerid,branchid,query)
+		 _getMySubOrders(self,userid,providerid,branchid,query,criteriastatus)
 		  ////////////////////////////////////////////////////
 		}
 	}	
 }
 
-var _getMySubOrders=function(self,userid,providerid,branchid,query){
+var _getMySubOrders=function(self,userid,providerid,branchid,query,criteriastatus){
 	// query=JSON.parse(query)
 	console.log("query"+JSON.stringify(query));
 	OrderModel.aggregate(query,function(err,suborders){
@@ -840,6 +840,16 @@ var _getMySubOrders=function(self,userid,providerid,branchid,query){
 		}else if(suborders.length==0){
 			self.emit("failedGetMySubOrders",{"error":{code:"SODR001","message":"No Order exists"}});
 		}else{
+			if(criteriastatus=="approved" || criteriastatus=="recieved"){
+				suborders=suborders.sort(function(a, b){
+					var keyA = new Date(a.deliverydatetime.year+"/"+a.deliverydatetime.month+"/"+a.deliverydatetime.day),
+					keyB = new Date(b.deliverydatetime.year+"/"+b.deliverydatetime.month+"/"+b.deliverydatetime.day);
+					// Compare the 2 dates
+					if(keyA < keyB) return -1;
+					if(keyA > keyB) return 1;
+					return 0;
+				});
+			}
 			///////////////////////////////////////
 			_successfullgetMySubOrders(self,suborders)
 			////////////////////////////////
