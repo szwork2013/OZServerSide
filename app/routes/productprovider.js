@@ -5,7 +5,7 @@ exports.init = function (app) {
 	app.post('/api/productprovider',auth,api.productproviderapi.addProductProvider);
     app.put('/api/productprovider/:providerid',auth,api.productproviderapi.updateProductProvider);
     app.delete('/api/productprovider/:providerid',auth,api.productproviderapi.deleteProductProvider);
- 	app.get('/api/productprovider/:providerid',auth,api.productproviderapi.getProductProvider);
+ 	app.get('/api/productprovider/:providerid',api.productproviderapi.getProductProvider);
  	app.get("/api/myproviders",auth,api.productproviderapi.getAllMyProviders);
  	app.get("/api/allproductprovider",auth,api.productproviderapi.getAllProductProviders);
  	app.get("/api/newproviders",auth,api.productproviderapi.getAllNewProductProviders);

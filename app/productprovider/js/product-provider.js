@@ -743,7 +743,7 @@ ProductProvider.prototype.getProductProvider = function(providerid) {
 	/////////////////////////////////////
 };
 var _getProductProvider=function(self,providerid){
-	ProductProviderModel.findOne({providerid:providerid},{createdate:0},function(err,productprovider){
+	ProductProviderModel.findOne({providerid:providerid},{createdate:0,branch:0},function(err,productprovider){
 		if(err){
 			logger.emit('error',"Database Issue  _getProductProvider");
 			self.emit("failedGetProductProvider",{"error":{"code":"ED001","message":"Database Issue"}});	
@@ -938,7 +938,7 @@ var _validateBranchData=function(self,branchdata,sessionuser,providerid){
 		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please select you provide delivery charge in percent or not "}})		
 	}else if(branchdata.branch_availability==undefined){
 		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please enter branch availibility details"}});
-	}else if(branchdata.branch_availability.from==undefined || branchdata.branch_availability.from=="" || S(branchdata.branch_availability.from).isNumeric()){
+	}else if(branchdata.branch_availability.from==undefined || branchdata.branch_availability.from=="" || !S(branchdata.branch_availability.from).isNumeric()){
 		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please enter valid from time in branch availibility"}});
 	}else if(branchdata.branch_availability.to==undefined || !S(branchdata.branch_availability.to).isNumeric()){
 		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please enter valid to time in branch availibility"}});
