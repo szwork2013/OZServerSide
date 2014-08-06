@@ -221,13 +221,14 @@ var _isProductNameIsSame=function(self,branchid,providerid,productcatalog,doc,us
 			}			
 		}else{
 			/////////////////////////////////////////////////////////////////////////////////
-			_addProductCatalog(self,branchid,providerid,productcatalog,doc,user,productlogo);			
+			_addProductCatalog(self,branchid,5,productcatalog,doc,user,productlogo);			
 			/////////////////////////////////////////////////////////////////////////////////
 		}
 	})
 }
 var _addProductCatalog = function(self,branchid,providerid,productcatalog,doc,user,productlogo){
 	var productdata = productcatalog;
+	console.log("productdata : "+JSON.stringify(productdata));
 	productcatalog.createdate = new Date();
 	var productcatalog = new ProductCatalogModel(productcatalog);
 	productcatalog.save(function(err,prod_catalog){
