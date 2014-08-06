@@ -133,7 +133,7 @@ exports.signin = function(req, res) {
     //user.removeAllListeners();
     // result=JSON.parse(result);
     if(result.success.user.usertype=="provider"){
-      console.log("isAdmin"+isAdmin)
+      
       req.session.cookie.expires=2*60*60*1000
     }else{
        req.session.cookie.expires=15*60*1000
