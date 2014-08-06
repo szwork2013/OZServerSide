@@ -2140,15 +2140,15 @@ var _successfullGetProvierSubOrderStatusWisecount=function(self,statuswisecounta
 	self.emit("successfulGetProviderOrderStatusWiseCount",{success:{message:"Getting Suborderwisecount sucessfully",statuswisecount:statuswisecountarray}})
 }
 
-Order.prototype.getDeliveryTimeSlots = function(userid){
+Order.prototype.getDeliveryTimeSlots = function(){
 	var self = this;
 	var data = this.order;
-	console.log("Data : "+JSON.stringify(data));
+	// console.log("Data : "+JSON.stringify(data));
 	///////////////////////////////////////////////////////
-	_validateGetDeliveryTimeSlots(self,data,userid);
+	_validateGetDeliveryTimeSlots(self,data);
 	///////////////////////////////////////////////////////
 }
-var _validateGetDeliveryTimeSlots = function(self,data,userid){
+var _validateGetDeliveryTimeSlots = function(self,data){
 	if(data == undefined){
 		self.emit("failedGetDeliveryTimeSlots",{"error":{"code":"DT001","message":"Please enter data"}});
 	}else if(data.preferred_delivery_date==undefined || data.preferred_delivery_date==""){
@@ -2160,11 +2160,11 @@ var _validateGetDeliveryTimeSlots = function(self,data,userid){
 	}else if(data.productids.length==0){
 		self.emit("failedGetDeliveryTimeSlots",{"error":{"code":"DT001","message":"Please enter atleast one productid"}});
 	}else{
-		_checkMaxLeadTime(self,data,userid);
+		_checkMaxLeadTime(self,data);
 	}
 }
-var _checkMaxLeadTime = function(self,data,userid){
-	console.log(data.productids);
+var _checkMaxLeadTime = function(self,data){
+	// console.log(data.productids);
 	ProductLeadTimeModel.aggregate({$unwind:"$productleadtime"},{$match:{"productleadtime.productid":{$in:data.productids}}},{$group:{_id:"$branchid",maxLeadTime:{$max:"$productleadtime.leadtimeinminutes"}}},{$project:{branchid:"$_id",maxleadtime:"$maxLeadTime",_id:0}},function(err,doc){
 		if(err){
 			logger.emit("error","Database Issue _checkMaxLeadTime"+err)
@@ -2181,7 +2181,7 @@ var _checkAvailableTimeSlots = function(self,data,leadtimearr){
 	for(var i=0;i<leadtimearr.length;i++){
 		branchids.push(leadtimearr[i].branchid);
 	}
-	console.log("Branches : "+branchids);
+	// console.log("Branches : "+branchids);
 	ProductProviderModel.aggregate({$unwind:"$branch"},{$match:{"branch.branchid":{$in:branchids}}},{$project:{branchid:"$branch.branchid",deliverytimingslots:"$branch.deliverytimingslots",_id:0}},function(err,branchdata){
 		if(err){
 			logger.emit("error","Database Issue _checkMaxLeadTime"+err)
@@ -2199,53 +2199,98 @@ var _getDeliveryTimeSlots = function(self,data,leadtimearr,branchdata){
 	for(var i=0;i<leadtimearr.length;i++){
 		var current_date = new Date();
 		var expected_date = new Date();
-		console.log("Date : "+current_date);
+		// console.log("Date : "+current_date);
 		expected_date.setMinutes(current_date.getMinutes()+leadtimearr[i].maxleadtime);
-		console.log("expected_date : "+expected_date);
+		// console.log("expected_date : "+expected_date);
 		obj = __.find(branchdata, function(obj) { return obj.branchid == leadtimearr[i].branchid });
-		console.log(preferred_del_date.getDate() + " : : "+expected_date.getDate());
-		var preftestdate=preferred_del_date.getFullYear()+"/"+preferred_del_date.getMonth()+"/"+preferred_del_date.getDate();
-		var preftest=Date.parse(preftestdate)
-		var exptestdate=expected_date.getFullYear()+"/"+expected_date.getMonth()+"/"+expected_date.getDate();
-		var exptest=Date.parse(exptestdate)
-		console.log("preftest"+preftest+"   exptest"+exptest);
-
-		if(preftest > exptest){
-			console.log("prefte max");
-			if(obj == undefined){
-				result_arr.push({branchid:leadtimearr[i].branchid,expected_date:preferred_del_date,deliverytimingslots:[]});
-			}else{
-				result_arr.push({branchid:leadtimearr[i].branchid,expected_date:preferred_del_date,deliverytimingslots:obj.deliverytimingslots});
-			}
-		}else if(preftest == exptest){
-			if(obj == undefined){
-				result_arr.push({branchid:leadtimearr[i].branchid,expected_date:expected_date,deliverytimingslots:[]});
-			}else{
-				result_arr.push({branchid:leadtimearr[i].branchid,expected_date:expected_date,deliverytimingslots:obj.deliverytimingslots});
-			}
-			console.log("same date");
-		}else{//if pref delivery date <exp del date
-			console.log("no condition");
-			if(obj == undefined){
-				result_arr.push({branchid:leadtimearr[i].branchid,expected_date:expected_date,deliverytimingslots:[]});
-			}else{
-				result_arr.push({branchid:leadtimearr[i].branchid,expected_date:expected_date,deliverytimingslots:obj.deliverytimingslots});
-			}
-		}
+		// console.log(preferred_del_date.getDate() + " : : "+expected_date.getDate());
 		
-		// if(obj == undefined){
-		// 	result_arr.push({branchid:leadtimearr[i].branchid,expected_date:expected_date,deliverytimingslots:[]});
-		// }else{
-		// 	result_arr.push({branchid:leadtimearr[i].branchid,expected_date:expected_date,deliverytimingslots:obj.deliverytimingslots});
-		// }
-		
+		_manageTimeSlots(obj,leadtimearr[i].branchid,preferred_del_date,expected_date,function(result){
+	        if(result.error!=undefined){
+	        	console.log("callback");
+	        	logger.emit("error",result.error.message);
+	        }else{
+	        	result_arr.push(result.success.doc);
+	            logger.emit("log","success "+JSON.stringify(result));
+	        }
+	    });		
 	}
 	//////////////////////////////////////
 	_successfulGetDeliveryTimeSlots(self,result_arr);
 	/////////////////////////////////////
+}
+
+var _manageTimeSlots=function(timeslots,branchid,preferred_del_date,expected_date,callback){
+	// console.log("timeslots : "+JSON.stringify(timeslots));
+	var result_arr = [];
+	var preftestdate=preferred_del_date.getFullYear()+"/"+preferred_del_date.getMonth()+"/"+preferred_del_date.getDate();
+	var preftest=Date.parse(preftestdate);
+	var exptestdate=expected_date.getFullYear()+"/"+expected_date.getMonth()+"/"+expected_date.getDate();
+	var exptest=Date.parse(exptestdate);
+	// console.log("preftest"+preftest+"   exptest"+exptest);
+
+		if(preftest > exptest){
+			console.log("prefte max");
+			if(timeslots == undefined){
+				result_arr.push({branchid:branchid,expected_date:preferred_del_date,deliverytimingslots:[]});
+				callback({"success":{"doc":result_arr[0]}});
+			}else{
+				for(var i=0;i<timeslots.deliverytimingslots.length;i++){
+					timeslots.deliverytimingslots[i].available = true;
+				}
+				result_arr.push({branchid:branchid,expected_date:preferred_del_date,deliverytimingslots:timeslots.deliverytimingslots});
+				callback({"success":{"doc":result_arr[0]}});
+			}
+		}else if(preftest == exptest){
+			console.log("same date");
+			if(timeslots == undefined){
+				result_arr.push({branchid:branchid,expected_date:preferred_del_date,deliverytimingslots:[]});
+				callback({"success":{"doc":result_arr[0]}});
+			}else{
+				for(var i=0;i<timeslots.deliverytimingslots.length;i++){
+					timeslots.deliverytimingslots[i].available = false;
+				}
+				result_arr.push({branchid:branchid,expected_date:preferred_del_date,deliverytimingslots:timeslots.deliverytimingslots});
+				callback({"success":{"doc":result_arr[0]}});
+			}		
+		}else{//if pref delivery date <exp del date
+			console.log("no condition");
+			if(timeslots == undefined){
+				result_arr.push({branchid:branchid,expected_date:expected_date,deliverytimingslots:[]});
+				callback({"success":{"doc":result_arr[0]}});
+			}else{
+				for(var i=0;i<timeslots.deliverytimingslots.length;i++){
+					timeslots.deliverytimingslots[i].available = true;
+				}
+				result_arr.push({branchid:branchid,expected_date:expected_date,deliverytimingslots:timeslots.deliverytimingslots});
+				callback({"success":{"doc":result_arr[0]}});
+			}
+		}
 	
+	// SMSTemplateModel.findOne({name:tempname,lang:lang},function(err,smstemplatedata){
+ //    if(err){
+ //      callback({"error":{"message":"error in sending SMS message"}})
+ //    }else if(smstemplatedata){
+ //      var smstemplate=S(smstemplatedata.template);
+ //      smstemplate=smstemplate.replaceAll("<orderno>",orderno);
+ //      smstemplate=smstemplate.replaceAll("<otp>",otp);
+ //      smstemplate=smstemplate.replaceAll("<longcode>",CONFIG.SMSLongCode);
+ //      var message=smstemplate.s;
+ //      commonapi.sendMessage(message,mobileno,function(result){
+ //        if(result=="failure"){
+ //          callback({"error":{"message":"error in sending SMS message"}})
+ //        }else{
+ //          callback({"success":{"message":" order confirmation messagesent"}})
+ //        }
+ //      })
+       
+ //    }else{
+ //      callback({"error":{"message":"SMS template not found "+tempname}});
+ //    }
+ //  })
 }
 var _successfulGetDeliveryTimeSlots=function(self,doc){
 	self.emit("successfulGetDeliveryTimeSlots",{success:{message:"Getting Result sucessfully","doc":doc}});
 }
 
+			

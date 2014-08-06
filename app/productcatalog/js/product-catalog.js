@@ -245,9 +245,28 @@ var _addProductCatalog = function(self,branchid,providerid,productcatalog,doc,us
 		     		}
 		     	});
             }
+            /////////////////////////////////////////////////
+            _addProductDetailsToLeadTimeModel(branchid,providerid,productcatalog,prod_catalog);
 			/////////////////////////////////////////////////
 			_successfullAddProductCatalog(self,prod_catalog);
 			/////////////////////////////////////////////////
+		}
+	})
+}
+
+
+var _addProductDetailsToLeadTimeModel = function(branchid,providerid,productcatalog,product){
+	var leadtimeinminutes={"hours":60,"days":24*60,"weeks":7*24*60,"minutes":1};				
+	var minutes=leadtimeinminutes[productcatalog.leadtime.option]*productcatalog.leadtime.value;
+	var leadtime_arr = [];
+	leadtime_arr.push({"productid":product.productid,"leadtimeinminutes":minutes,"leadtime":{"option":productcatalog.leadtime.option,"value":productcatalog.leadtime.value}});
+	var leadtimeobject={providerid:providerid,branchid:branchid,productleadtime:leadtime_arr}
+	var productleadtime_object=new ProductLeadTimeModel(leadtimeobject);
+	productleadtime_object.save(function(err,productleadtime){
+		if(err){
+			logger.emit('error',"Database Issue  _addProductDetailsToLeadTimeModel");
+		}else{
+			logger.emit('info',"product lead time details save successfully");
 		}
 	})
 }
@@ -1210,29 +1229,29 @@ var _validateProductLeadTime=function(self,sessionuserid,productleadtimedata,pro
 				if(validbranchproductleadtimedata.length==0){
 					self.emit("failedManageProductLeadTime",{error:{message:"Please pass your branch products leadtime"}})
 				}else{
-					ProductLeadTimeModel.update({branchid:branchid},{$pull:{productleadtime:{productid:{$in:validproductids}}}},function(err,pullleadtimestatus){
-						if(err){
-							logger.emit('error',"Database Issue  _manageProductLeadTimeData "+err,sessionuserid)
-					    self.emit("failedManageProductLeadTime",{"error":{"code":"ED001","message":"Database Issue"}});
-						}else if(pullleadtimestatus==0){
-							///////////////////////////////////////
-							_addNewLeadTimeData(self,sessionuserid,providerid,branchid,validbranchproductleadtimedata)
-							////////////////////////////////////
-						}else{
-							ProductLeadTimeModel.update({branchid:branchid},{$push:{productleadtime:{$each:validbranchproductleadtimedata}}},function(err,pushleadtimestatus){
-								if(err){
-									logger.emit('error',"Database Issue  _manageProductLeadTimeData "+err,sessionuserid)
-					      self.emit("failedManageProductLeadTime",{"error":{"code":"ED001","message":"Database Issue"}});
-								}else if(pushleadtimestatus==0){
-									self.emit("failedManageProductLeadTime",{"error":{"message":"branch is is wrong"}});
-								}else{
-									///////////////////////////////////
-									_successfulManageProductLeadTime(self)
-									///////////////////////////////////
-								}
-							})
-						}
-					})
+					
+					// 	if(err){
+					// 		logger.emit('error',"Database Issue  _manageProductLeadTimeData "+err,sessionuserid)
+					//     self.emit("failedManageProductLeadTime",{"error":{"code":"ED001","message":"Database Issue"}});
+					// 	}else if(pullleadtimestatus==0){
+					// 		///////////////////////////////////////
+					// 		_addNewLeadTimeData(self,sessionuserid,providerid,branchid,validbranchproductleadtimedata)
+					// 		////////////////////////////////////
+					// 	}else{
+					// 		ProductLeadTimeModel.update({branchid:branchid},{$push:{productleadtime:{$each:validbranchproductleadtimedata}}},function(err,pushleadtimestatus){
+					// 			if(err){
+					// 				logger.emit('error',"Database Issue  _manageProductLeadTimeData "+err,sessionuserid)
+					//       self.emit("failedManageProductLeadTime",{"error":{"code":"ED001","message":"Database Issue"}});
+					// 			}else if(pushleadtimestatus==0){
+					// 				self.emit("failedManageProductLeadTime",{"error":{"message":"branch is is wrong"}});
+					// 			}else{
+					// 				///////////////////////////////////
+					// 				_successfulManageProductLeadTime(self)
+					// 				///////////////////////////////////
+					// 			}
+					// 		})
+					// 	}
+					// })
 				}
 			}
 		})

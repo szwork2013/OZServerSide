@@ -421,10 +421,10 @@ exports.getProviderSubOrderStatusWiseCount = function(req,res){//Add New Order
 }
 
 exports.getDeliveryTimeSlots = function(req,res){
-  var session_userid = req.user.userid;
+  // var session_userid = req.user.userid;
   var data = req.body;
   var order = new Order(data);
-  logger.emit("log","req body"+JSON.stringify(req.body));
+  // logger.emit("log","req body"+JSON.stringify(req.body));
   order.removeAllListeners("failedGetDeliveryTimeSlots");
     order.on("failedGetDeliveryTimeSlots",function(err){
       logger.emit("error", err.error.message);
@@ -436,7 +436,7 @@ exports.getDeliveryTimeSlots = function(req,res){
       // order.removeAllListeners();
       res.send(result);
     });
-    order.getDeliveryTimeSlots(session_userid);
+    order.getDeliveryTimeSlots();
 }
 
 // exports.getServiceOrderRequest = function(req,res){

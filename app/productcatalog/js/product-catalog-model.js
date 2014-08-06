@@ -52,7 +52,6 @@ var productcatalogSchema = mongoose.Schema({
       }]
     },//it always leaf product category,
     productnotavailable:{from:{type:Date,default:null},to:{type:Date,default:null}},
-    leadtime:{value:Number,option:String},
     status:{type:String,default:"init"},
     price_history:[{oldprice:Number,newprice:Number,updatedby:String,updatedon:Date}],
     specialinstruction:{type:String},
