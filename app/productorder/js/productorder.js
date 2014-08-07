@@ -77,11 +77,23 @@ var _sendSMSToUsersMobileNumber=function(mobileno,lang,tempname,suborder,callbac
       var pickup_address;
       if(suborder.pickup_address!=undefined){
       	for(var i in suborder.pickup_address){
-     		 pickup_address+=suborder.pickup_address[i]+",";
+         if(suborder.pickup_address[i]!=undefined){
+         	 pickup_address+=suborder.pickup_address[i]+", ";
+         }
+     		
+      	}
+      }
+      var delivery_address;
+       if(suborder.delivery_address!=undefined){
+      	for(var i in suborder.delivery_address){
+      		if(suborder.delivery_address[i]!=undefined){
+         	 delivery_address+=suborder.delivery_address[i]+", ";
+         }
+     		
       	}
       }
        smstemplate=smstemplate.replaceAll("<pickup_address>",pickup_address);
-       
+         smstemplate=smstemplate.replaceAll("<delivery_address>",delivery_address);
       var message=smstemplate.s;
       commonapi.sendMessage(message,mobileno,function(result){
         if(result=="failure"){
@@ -284,7 +296,7 @@ var _ProviderBranchSpecificCartsProducts=function(self,orderdata,validproductids
 							//for setting preffered delivery time slot 
 							if(orderdata.sellerdelivery[k].prefdeltimeslot!=undefined){
 								// var slotarray=orderdata.sellerdelivery[k].prefdeltimeslot.split("-");
-											
+
 							 	prefdeltimeslot=orderdata.sellerdelivery[k].prefdeltimeslot;
 							}
 							//delivery type is pickup then set pickup address
