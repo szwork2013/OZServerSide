@@ -1294,7 +1294,7 @@ var _getProductLeadTime=function(self,sessionuserid,providerid,branchid,category
 	
 }
 var _getProductLeadTimeByCategory=function(self,providerid,branchid){
-	ProductCatalogModel.aggregate({$match:{"branch.branchid":branchid}},{$group:{_id:{categoryid:"$category.id",categoryname:"$category.categoryname"},productids:{$addToSet:"$productid"}}},{$project:{category:"$_id",productids:1,_id:0}},function(err,categorywiseproducts){
+	ProductCatalogModel.aggregate({$match:{"branch.branchid":branchid}},{$group:{_id:{categoryid:"$category.id",categoryname:"$category.categoryname"},products:{$addToSet:{productid:"$productid",productname:"$productname"}}}},{$project:{category:"$_id",products:1,_id:0}},function(err,categorywiseproducts){
 		if(err){
 			logger.emit('error',"Database Issue  _getProductLeadTime "+err,sessionuserid)
 			self.emit("failedGetProductLeadTime",{"error":{"code":"ED001","message":"Database Issue"}});
@@ -1305,22 +1305,27 @@ var _getProductLeadTimeByCategory=function(self,providerid,branchid){
 				if(err){
 					logger.emit('error',"Database Issue  _getProductLeadTime "+err,sessionuserid)
 			    self.emit("failedGetProductLeadTime",{"error":{"code":"ED001","message":"Database Issue"}});
-				}else if(!productleadtime){
-					self.emit("failedGetProductLeadTime",{"error":{"code":"ED001","message":"Database Issue"}});
 				}else{
-					var productleadtimedata=productleadtime.productleadtime;
-					var leadtimeproductids=[];
-					for(var i=0;i<productleadtimedata.length;i++){
-						leadtimeproductids.push(productleadtimedata[i].productid);
-					}
+				     var leadtimeproductids=[];
+				     if(productleadtime){
+				     	var productleadtimedata=productleadtime.productleadtime;
+					    for(var i=0;i<productleadtimedata.length;i++){
+						    leadtimeproductids.push(productleadtimedata[i].productid);
+					    }	
+				     } 
+					console.log("categorywiseproducts"+JSON.stringify(categorywiseproducts))
 					var result=[];
 					for(var j=0;j<categorywiseproducts.length;j++){
 						var resultdata={category:categorywiseproducts[j].category};
 						var productsleadtimearray=[];
-						for(var k=0;k<categorywiseproducts[j].productids.length;k++){
-							if(leadtimeproductids.indexOf(categorywiseproducts[j].productids[k])>=0){
-								var index=leadtimeproductids.indexOf(categorywiseproducts[j].productids[k]);
+						for(var k=0;k<categorywiseproducts[j].products.length;k++){
+							if(leadtimeproductids.indexOf(categorywiseproducts[j].products[k].productid)>=0){
+								var index=leadtimeproductids.indexOf(categorywiseproducts[j].products[k].productid);
 								productsleadtimearray.push(productleadtimedata[index]);
+							}else{
+
+								var leadtime_data={productid:categorywiseproducts[j].products[k].productid,productname:categorywiseproducts[j].products[k].productname,leadtime:null}
+								productsleadtimearray.push(leadtime_data)
 							}
 						}
 						resultdata.productleadtime=productsleadtimearray;
