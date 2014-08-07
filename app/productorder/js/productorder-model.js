@@ -22,6 +22,7 @@ var suborderSchema=mongoose.Schema({
    deliverycharge:{type:Number},
    suborder_price:{type:Number},
    prefdeldtime:{type:Date},
+   prefdeltimeslot:{from:Number,to:Number},
    billing_address:{
       address1:{type:String},
       address2:{type:String},
