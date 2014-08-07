@@ -221,7 +221,7 @@ var _isProductNameIsSame=function(self,branchid,providerid,productcatalog,doc,us
 			}			
 		}else{
 			/////////////////////////////////////////////////////////////////////////////////
-			_addProductCatalog(self,branchid,5,productcatalog,doc,user,productlogo);			
+			_addProductCatalog(self,branchid,providerid,productcatalog,doc,user,productlogo);			
 			/////////////////////////////////////////////////////////////////////////////////
 		}
 	})
@@ -240,9 +240,9 @@ var _addProductCatalog = function(self,branchid,providerid,productcatalog,doc,us
 	            ///////////////////////////////////////////////////////////////////
 		     	_addProductLogo(providerid,prod_catalog.productid,user,productlogo,function(err,result){
 		     		if(err){
-		     			logger.emit("productlogo not uploaded");
+		     			logger.emit("error","productlogo not uploaded");
 		     		}else{
-		     			logger.emit("productlogo added with product details");
+		     			logger.emit("log","productlogo added with product details");
 		     		}
 		     	});
             }
@@ -481,12 +481,13 @@ var _addProductLogoToAmazonServer=function(awsparams,providerid,productid,user,p
       console.log("params1  : "+JSON.stringify(params1));
       s3bucket.getSignedUrl('getObject',params1, function (err, url) {
         if(err){
+        	console.log("getSignedUrl:"+err)
           callback({"error":{"message":"_addProductLogoToAmazonServer:Error in getting getSignedUrl"+err}});
         }else{
           var newprofileurl={bucket:params1.Bucket,key:params1.Key,image:url};
           console.log("providerid "+providerid);
 
-          ProductCatalogModel.findAndModify({productid:productid,"provider.providerid":providerid},[],{$set:{productlogo:newprofileurl}},{new:false},function(err,productlogodata){
+          ProductCatalogModel.findAndModify({productid:productid},[],{$set:{productlogo:newprofileurl}},{new:false},function(err,productlogodata){
             if(err){
               callback({"error":{"code":"EDOO1","message":"_addProductLogoToAmazonServer:Dberror"+err}});
             }else if(productlogodata){
