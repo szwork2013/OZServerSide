@@ -128,9 +128,17 @@ exports.signin = function(req, res) {
   user.on("successfulUserSignin",function(result)
   {
     // logger.emit("log","Succesfull Signin")
+    console.log("req session"+JSON.stringify(req.session))
     logger.emit("info", result.success.message);
     //user.removeAllListeners();
     // result=JSON.parse(result);
+    if(result.success.user.usertype=="provider"){
+      
+      req.session.cookie.expires=2*60*60*1000
+    }else{
+       req.session.cookie.expires=15*60*1000
+    }
+    console.log("req session"+JSON.stringify(req.session))
     result.success.user.sessionid=req.sessionID;
 
     // //user.removeAllListeners("successfulUserSigninsuccessfulUserSignin",function(stream){
