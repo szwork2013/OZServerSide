@@ -221,7 +221,7 @@ var _isProductNameIsSame=function(self,branchid,providerid,productcatalog,doc,us
 			}			
 		}else{
 			/////////////////////////////////////////////////////////////////////////////////
-			_addProductCatalog(self,branchid,5,productcatalog,doc,user,productlogo);			
+			_addProductCatalog(self,branchid,providerid,productcatalog,doc,user,productlogo);			
 			/////////////////////////////////////////////////////////////////////////////////
 		}
 	})
@@ -247,7 +247,7 @@ var _addProductCatalog = function(self,branchid,providerid,productcatalog,doc,us
 		     	});
             }
             ////////////////////////////////////////////////////////////////////////////////
-            _addProductDetailsToLeadTimeModel(branchid,providerid,productdata,prod_catalog);
+            _isBranchExistInLeadTimeModel(branchid,providerid,productdata,prod_catalog);
 			////////////////////////////////////////////////////////////////////////////////
 			_successfullAddProductCatalog(self,prod_catalog);
 			/////////////////////////////////////////////////
