@@ -246,15 +246,39 @@ var _addProductCatalog = function(self,branchid,providerid,productcatalog,doc,us
 		     		}
 		     	});
             }
-            /////////////////////////////////////////////////
+            ////////////////////////////////////////////////////////////////////////////////
             _addProductDetailsToLeadTimeModel(branchid,providerid,productdata,prod_catalog);
-			/////////////////////////////////////////////////
+			////////////////////////////////////////////////////////////////////////////////
 			_successfullAddProductCatalog(self,prod_catalog);
 			/////////////////////////////////////////////////
 		}
 	})
 }
-
+var _isBranchExistInLeadTimeModel=function(branchid,providerid,productcatalog,product){
+	ProductLeadTimeModel.findOne({branchid:branchid},function (err,branchdata) {
+		if(err){
+			logger.emit("error","Database Error : _isBranchExistInLeadTimeModel " + err);
+		}else if(branchdata){
+			var leadtimeinminutes={"hours":60,"days":24*60,"weeks":7*24*60,"minutes":1};				
+			var minutes=leadtimeinminutes[productcatalog.leadtime.option]*productcatalog.leadtime.value;
+			var leadtime_obj = {"productid":product.productid,productname:product.productname,"leadtimeinminutes":minutes,"leadtime":{"option":productcatalog.leadtime.option,"value":productcatalog.leadtime.value}};
+			console.log("!!!!!!!!!!!!!!!1 : "+JSON.stringify(leadtime_obj));
+			ProductLeadTimeModel.update({branchid:branchid},{$push:{productleadtime:leadtime_obj}},function(err,updateStatus){
+				if(err){
+				  	logger.emit('error',"Database Issue fun:_updateProductCatalog");
+			  	}else if(updateStatus==0){
+			  		logger.emit('error',"Server Error");		
+			  	}else{
+			  		logger.emit('info',"product lead time details save successfully");
+			  	}
+			});	
+		}else{
+			//////////////////////////////////////////////////////////////////////////////
+			_addProductDetailsToLeadTimeModel(branchid,providerid,productcatalog,product);
+			//////////////////////////////////////////////////////////////////////////////
+		}
+	})
+}
 var _addProductDetailsToLeadTimeModel = function(branchid,providerid,productcatalog,product){
 	var leadtimeinminutes={"hours":60,"days":24*60,"weeks":7*24*60,"minutes":1};				
 	var minutes=leadtimeinminutes[productcatalog.leadtime.option]*productcatalog.leadtime.value;
@@ -1299,7 +1323,7 @@ var _getProductLeadTimeByCategory=function(self,providerid,branchid){
 			logger.emit('error',"Database Issue  _getProductLeadTime "+err,sessionuserid)
 			self.emit("failedGetProductLeadTime",{"error":{"code":"ED001","message":"Database Issue"}});
 		}else if(categorywiseproducts.length==0){
-			self.emit("failedGetProductLeadTime",{error:{message:"Product"}})
+			self.emit("failedGetProductLeadTime",{error:{message:"Product"}});
 		}else{
 			ProductLeadTimeModel.findOne({branchid:branchid},function(err,productleadtime){
 				if(err){
@@ -1353,6 +1377,6 @@ var _getAllProductLeadTime=function(self,providerid,branchid){
 		}
 	})
 }
-var 		_successfulGetProductLeadTime=function(self,result){
+var _successfulGetProductLeadTime=function(self,result){
 	self.emit("successfullGetProductLeadTime",{success:{message:"Getting Product lead time Successfully",productleadtime:result}})
 }
