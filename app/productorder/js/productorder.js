@@ -2238,7 +2238,7 @@ var _manageTimeSlots=function(timeslots,branchid,preferred_del_date,expected_dat
 	var preftest=Date.parse(preftestdate);
 	var exptestdate=expected_date.getFullYear()+"/"+expected_date.getMonth()+"/"+expected_date.getDate();
 	var exptest=Date.parse(exptestdate);
-	// console.log("preftest"+preftest+"   exptest"+exptest);
+	console.log("preftest"+preftest+"   exptest"+exptest);
 	if(timeslots == undefined){
 		result_arr.push({branchid:branchid,expected_date:expected_date,deliverytimingslots:[]});
 		callback({"error":{"message":"Delivery timing slots not available for branch ("+branchid+")","doc":result_arr[0]}});
