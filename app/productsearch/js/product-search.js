@@ -268,14 +268,18 @@ var _getrandomBranchIDs = function(self){
 
 var _randomProductSearch = function(self,branchids,boolean){
 	console.log("branchids : "+branchids);
-	var query = [{$match:{status:"publish","branch.branchid":{$in:branchids}}},{$group:{_id:{branch:"$branch",provider:"$provider"},productcatalog:{"$addToSet":{productid:"$productid",productname:"$productname",category:"$category",productdescription:"$productdescription",price:"$price",productlogo:"$productlogo",foodtype:"$foodtype",max_weight:"$max_weight",min_weight:"$min_weight",productnotavailable:"$productnotavailable",specialinstruction:"$specialinstruction",productconfiguration:"$productconfiguration"}}}},{$project:{branch:"$_id.branch",provider:"$_id.provider",productcatalog:1,_id:0}}];
-	
-	ProductCatalogModel.aggregate(query).exec(function(err,doc){
+	// var query = [{$match:{status:"publish","branch.branchid":{$in:branchids}}},{$group:{_id:{branch:"$branch",provider:"$provider"},productcatalog:{"$addToSet":{productid:"$productid",productname:"$productname",category:"$category",productdescription:"$productdescription",price:"$price",productlogo:"$productlogo",foodtype:"$foodtype",max_weight:"$max_weight",min_weight:"$min_weight",productnotavailable:"$productnotavailable",specialinstruction:"$specialinstruction",productconfiguration:"$productconfiguration"}}}},{$project:{branch:"$_id.branch",provider:"$_id.provider",productcatalog:1,_id:0}}];
+	var newQuery = [{$match:{status:"publish","branch.branchid":{$in:branchids}}},{$group:{_id:{branch:"$branch.branchid",provider:"$provider.providerid"},productcatalog:{"$addToSet":{productid:"$productid",productname:"$productname",category:"$category",productdescription:"$productdescription",price:"$price",productlogo:"$productlogo",foodtype:"$foodtype",max_weight:"$max_weight",min_weight:"$min_weight",productnotavailable:"$productnotavailable",specialinstruction:"$specialinstruction",productconfiguration:"$productconfiguration"}},array:{"$addToSet":{branch:"$branch",provider:"$provider"}}}},{$unwind:"$array"},{$project:{branch:"$array.branch",provider:"$array.provider",productcatalog:1,branchid:"$array.branch.branchid",_id:0}}];
+	ProductCatalogModel.aggregate(newQuery).exec(function(err,doc){
 		if(err){
 			self.emit("failedRandomProductSearch",{"error":{"code":"ED001","message":"Error in db to search random product"+err}});
 		}else if(doc.length==0){
 			self.emit("failedRandomProductSearch",{"error":{"message":"Product's not found"}});
 		}else{
+			// var test=[{branchid:1},{branchid:2},{branchid:1}]
+			 doc =__.uniq(doc,function(test1){
+			 	return test1.branchid;
+			 });
 			_applyLimitToProductCatalog(doc,function(err,result){
 				if(err){
 				   	self.emit("failedRandomProductSearch",{"error":{"message":err.error.message}});
@@ -400,6 +404,7 @@ ProductSearch.prototype.loadmoreProduct = function(branchid,productid){
 	var self=this;
 	_fetchingResultToLoadMoreProduct(self,branchid,productid);
 }
+
 var _fetchingResultToLoadMoreProduct = function(self,branchid,productid){
 	if(productid==undefined){
 		var query_match={status:"publish","branch.branchid":branchid};

@@ -262,7 +262,7 @@ var _isBranchExistInLeadTimeModel=function(branchid,providerid,productcatalog,pr
 			var leadtimeinminutes={"hours":60,"days":24*60,"weeks":7*24*60,"minutes":1};				
 			var minutes=leadtimeinminutes[productcatalog.leadtime.option]*productcatalog.leadtime.value;
 			var leadtime_obj = {"productid":product.productid,productname:product.productname,"leadtimeinminutes":minutes,"leadtime":{"option":productcatalog.leadtime.option,"value":productcatalog.leadtime.value}};
-			console.log("!!!!!!!!!!!!!!!1 : "+JSON.stringify(leadtime_obj));
+			// console.log("!!!!!!!!!!!!!!!1 : "+JSON.stringify(leadtime_obj));
 			ProductLeadTimeModel.update({branchid:branchid},{$push:{productleadtime:leadtime_obj}},function(err,updateStatus){
 				if(err){
 				  	logger.emit('error',"Database Issue fun:_updateProductCatalog");
@@ -398,7 +398,7 @@ var _isAlreadyDeletedProduct=function(self,providerid,productid,user){
 			}			
 		}else{
 			/////////////////////////////////////////////////////////////////
-			_deleteProductFromProductCatalog(self,providerid,productid,user);			
+			_deleteProductFromProductCatalog(self,providerid,productid,user);
 			/////////////////////////////////////////////////////////////////
 		}
 	})
@@ -1297,7 +1297,8 @@ var _validateProductLeadTime=function(self,sessionuserid,productleadtimedata,pro
 	var _successfulManageProductLeadTime=function(self){
 		self.emit("successfullManageProductLeadTime",{success:{message:"Successfully Managed Products lead time"}})
 	}
-	ProductCatalog.prototype.getProductLeadTime = function(sessionuserid,providerid,branchid,category){
+
+ProductCatalog.prototype.getProductLeadTime = function(sessionuserid,providerid,branchid,category){
 	var self = this;	
 	/////////////////////////////////////////////////////////////////////////////////////
 	_getProductLeadTime(self,sessionuserid,providerid,branchid,category);
