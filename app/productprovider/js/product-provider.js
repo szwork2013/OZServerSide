@@ -973,6 +973,8 @@ var _validateBranchData=function(self,branchdata,sessionuser,providerid){
 		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please select delivery timing slots"}});
 	}else  if(!isArray(branchdata.deliverytimingslots)){
 		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"deliverytimingslots should be array"}});
+	}else if(branchdata.deliverytimingslots.length==0){
+		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please add atleast one delivery slot"}});
 	}else{
     	if(branchdata.delivery.isprovidehomedelivery || branchdata.delivery.isprovidepickup){	
           //////////////////////////////////////////////////////////////

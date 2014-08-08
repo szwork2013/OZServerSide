@@ -92,8 +92,9 @@ var _createJSONForInvoice=function(self,suborderid){
           logger.emit("error","branchid is wrong for _createJSONForInvoice")
         }else{
           var selleruserid=branch[0].user.userid;
+          var provider=branch[0]
           var branch=branch[0].branch;
-          console.log("Branch"+JSON.stringify(branch));
+          console.log("provider"+JSON.stringify(provider));
           UserModel.findOne({userid:selleruserid},{email:1,firstname:1,lastname:1},function(err,selleruser){
             if(err){
               self.emit("failedCreateInvoice",{error:{message:"Database issue",code:"ED001"}})
@@ -105,7 +106,7 @@ var _createJSONForInvoice=function(self,suborderid){
               var selleremail=selleruser.email;
               console.log("selleruser"+selleruser.email);
               console.log("contact_supports"+contacts)
-              var inoviceobject={orderid:suborder.suborderid,suborderid:suborder.suborderid,invoicedate:order.createdate,orderdate:order.createdate,tinno:"taxno",billing_address:suborder.billing_address,delivery_address:suborder.delivery_address,deliverytype:suborder.deliverytype}
+              var inoviceobject={orderid:suborder.suborderid,suborderid:suborder.suborderid,invoicedate:order.createdate,orderdate:order.createdate,tinno:provider.tax.tino,billing_address:suborder.billing_address,delivery_address:suborder.delivery_address,deliverytype:suborder.deliverytype}
               var products=[];
               inoviceobject.invoiceno=Math.floor(Math.random()*1000000)
               inoviceobject.buyername=order.consumer.name;
@@ -270,7 +271,7 @@ var _createPDFInvocie=function(self,inoviceobject,branch){
        productshtml+="<tr>";
        productshtml+="<td><span contenteditable=''>"+j+"</span></td>";
        productshtml+="<td><span contenteditable=''>"+productsobject[i].productname+"</span></td>";
-       productshtml+="<td><span contenteditable=''>"+productsobject[i].qty+"</span></td>";
+       productshtml+="<td><span contenteditable=''>"+productsobject[i].qty+"("+productsobject[i].uom+")</span></td>";
        productshtml+="<td><span contenteditable=''>"+productsobject[i].productprice+"</span></td>";
        productshtml+="<td><span contenteditable=''>"+productsobject[i].tax+"</span></td>";
        productshtml+="<td><span contenteditable='' style='float:right'>"+productsobject[i].orderprice+"</span></td>";
@@ -280,7 +281,7 @@ var _createPDFInvocie=function(self,inoviceobject,branch){
             productshtml+="<tr>"
             productshtml+="<td></td>";
             productshtml+="<td>Above price includes product configuration Prices</td>";
-            var productconfiguration=[{prod_configname:"Photoprint",prod_configprice:{value:10}},{prod_configname:"egg",prod_configprice:{value:20}}]
+            var productconfiguration=productsobject[i].productconfiguration
             var configname="";
             var configvalue="";
             for(var j=0;j<productconfiguration.length;j++){
