@@ -133,10 +133,11 @@ exports.signin = function(req, res) {
     //user.removeAllListeners();
     // result=JSON.parse(result);
     if(result.success.user.usertype=="provider"){
-      
-      req.session.cookie.expires=2*60*60*1000
+      //session timout for 2 hours
+      req.session.cookie.expires=2*60*60*1000;
     }else{
-       req.session.cookie.expires=15*60*1000
+      //session timout for 15 minutes
+       req.session.cookie.expires=15*60*1000;
     }
     console.log("req session"+JSON.stringify(req.session))
     result.success.user.sessionid=req.sessionID;
