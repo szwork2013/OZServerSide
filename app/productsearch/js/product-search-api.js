@@ -23,11 +23,7 @@ exports.searchProduct = function(req,res){
 }
 
 exports.randomProductSearch = function(req,res){  
-  // var productsearchdata = req.params.searchcriteria;
-  // console.log(productsearchdata);  
   var productsearch = new ProductSearch();
-  var sessionuserid;//=req.user.userid;
-
     productsearch.removeAllListeners("failedRandomProductSearch");
     productsearch.on("failedRandomProductSearch",function(err){
       logger.emit("error", err.error.message,sessionuserid);
@@ -42,10 +38,8 @@ exports.randomProductSearch = function(req,res){
   productsearch.randomProductSearch();
 }
 
-exports.loadmoreProvider = function(req,res){  
-  // var productsearchdata = req.params.searchcriteria;
+exports.loadmoreProvider = function(req,res){
   var branchid = req.query.branchid;
-  // console.log(productsearchdata);  
   var productsearch = new ProductSearch();
   var sessionuserid;//=req.user.userid;
 
@@ -66,7 +60,6 @@ exports.loadmoreProvider = function(req,res){
 exports.loadmoreProduct = function(req,res){
   var branchid = req.params.branchid;
   var productid = req.query.productid;
-  // console.log(productsearchdata);  
   var productsearch = new ProductSearch();
   var sessionuserid;//=req.user.userid;
 
@@ -84,7 +77,7 @@ exports.loadmoreProduct = function(req,res){
   productsearch.loadmoreProduct(branchid,productid);
 }
 
-exports.searchProvider = function(req,res){  
+exports.searchProvider = function(req,res){
   var providername = req.body.providername;
   console.log("providername " +JSON.stringify(providername));  
   var productsearch = new ProductSearch(providername);
