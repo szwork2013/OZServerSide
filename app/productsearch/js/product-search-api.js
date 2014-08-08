@@ -22,7 +22,8 @@ exports.searchProduct = function(req,res){
 	productsearch.searchProduct(productsearchdata,foodtype);	
 }
 
-exports.randomProductSearch = function(req,res){  
+exports.randomProductSearch = function(req,res){
+  var sessionuserid;//=req.user.userid;
   var productsearch = new ProductSearch();
     productsearch.removeAllListeners("failedRandomProductSearch");
     productsearch.on("failedRandomProductSearch",function(err){

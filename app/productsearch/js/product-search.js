@@ -16,7 +16,7 @@ var ProductProviderModel = require("../../productprovider/js/productprovider-mod
 var discountModel = require("../../discount/js/discount-model");
 var events = require("events");
 var logger = require("../../common/js/logger");
-var S=require("string");
+var S = require("string");
 var __=require("underscore");
 
 var ProductSearch = function(productsearchdata) {
@@ -76,9 +76,13 @@ var _searchProductProviderArea = function(self,productsearchdata,foodtype){
 		query_match.push(match_object);
 	}
 
-	query_match.push({$group:{_id:{branch:"$branch",provider:"$provider"},productcatalog:{"$addToSet":{productid:"$productid",productname:"$productname",category:"$category",productdescription:"$productdescription",price:"$price",productlogo:"$productlogo",foodtype:"$foodtype",max_weight:"$max_weight",min_weight:"$min_weight",productnotavailable:"$productnotavailable",specialinstruction:"$specialinstruction",productconfiguration:"$productconfiguration"}}}})
-	query_match.push({$project:{branch:"$_id.branch",provider:"$_id.provider",productcatalog:1,_id:0}});
-
+	// query_match.push({$group:{_id:{branch:"$branch",provider:"$provider"},productcatalog:{"$addToSet":{productid:"$productid",productname:"$productname",category:"$category",productdescription:"$productdescription",price:"$price",productlogo:"$productlogo",foodtype:"$foodtype",max_weight:"$max_weight",min_weight:"$min_weight",productnotavailable:"$productnotavailable",specialinstruction:"$specialinstruction",productconfiguration:"$productconfiguration"}}}})
+	// query_match.push({$project:{branch:"$_id.branch",provider:"$_id.provider",productcatalog:1,_id:0}});
+	
+	query_match.push({$group:{_id:{branch:"$branch.branchid",provider:"$provider.providerid"},productcatalog:{"$addToSet":{productid:"$productid",productname:"$productname",category:"$category",productdescription:"$productdescription",price:"$price",productlogo:"$productlogo",foodtype:"$foodtype",max_weight:"$max_weight",min_weight:"$min_weight",productnotavailable:"$productnotavailable",specialinstruction:"$specialinstruction",productconfiguration:"$productconfiguration"}},array:{"$addToSet":{branch:"$branch",provider:"$provider"}}}});
+	query_match.push({$unwind:"$array"});
+	query_match.push({$project:{branch:"$array.branch",provider:"$array.provider",productcatalog:1,branchid:"$array.branch.branchid",_id:0}});
+	
 	_fetchingResult(self,query_match,5);
 }
 
@@ -98,8 +102,12 @@ var _searchProduct = function(self,productsearchdata,foodtype){
 		query_match.push(match_object);
 	}
 
-	query_match.push({$group:{_id:{branch:"$branch",provider:"$provider"},productcatalog:{"$addToSet":{productid:"$productid",productname:"$productname",category:"$category",productdescription:"$productdescription",price:"$price",productlogo:"$productlogo",foodtype:"$foodtype",max_weight:"$max_weight",min_weight:"$min_weight",productnotavailable:"$productnotavailable",specialinstruction:"$specialinstruction",productconfiguration:"$productconfiguration"}}}});
-	query_match.push({$project:{branch:"$_id.branch",provider:"$_id.provider",productcatalog:1,_id:0}});
+	// query_match.push({$group:{_id:{branch:"$branch",provider:"$provider"},productcatalog:{"$addToSet":{productid:"$productid",productname:"$productname",category:"$category",productdescription:"$productdescription",price:"$price",productlogo:"$productlogo",foodtype:"$foodtype",max_weight:"$max_weight",min_weight:"$min_weight",productnotavailable:"$productnotavailable",specialinstruction:"$specialinstruction",productconfiguration:"$productconfiguration"}}}});
+	// query_match.push({$project:{branch:"$_id.branch",provider:"$_id.provider",productcatalog:1,_id:0}});
+
+	query_match.push({$group:{_id:{branch:"$branch.branchid",provider:"$provider.providerid"},productcatalog:{"$addToSet":{productid:"$productid",productname:"$productname",category:"$category",productdescription:"$productdescription",price:"$price",productlogo:"$productlogo",foodtype:"$foodtype",max_weight:"$max_weight",min_weight:"$min_weight",productnotavailable:"$productnotavailable",specialinstruction:"$specialinstruction",productconfiguration:"$productconfiguration"}},array:{"$addToSet":{branch:"$branch",provider:"$provider"}}}});
+	query_match.push({$unwind:"$array"});
+	query_match.push({$project:{branch:"$array.branch",provider:"$array.provider",productcatalog:1,branchid:"$array.branch.branchid",_id:0}});
 
 	_fetchingResult(self,query_match,5);
 }
@@ -110,6 +118,9 @@ var _fetchingResult = function(self,query_match,count){
 		if(err){
 			self.emit("failedToSearchProduct",{"error":{"code":"ED001","message":"Error in db to search product"+err}});
 		}else if(doc.length>5){
+			doc =__.uniq(doc,function(test1){
+			 	return test1.branchid;
+			});
 			query_match.push({$limit:count});
 			ProductCatalogModel.aggregate(query_match).exec(function(err,doc){
 				if(err){
@@ -135,6 +146,9 @@ var _fetchingResult = function(self,query_match,count){
 			  	}
 			});
 		}else{
+			doc =__.uniq(doc,function(test1){
+			 	return test1.branchid;
+			});
 			// _successfulProductSearch(self,doc,false);
 			_applyLimitToProductCatalog(doc,function(err,result){
 				if(err){
@@ -276,10 +290,9 @@ var _randomProductSearch = function(self,branchids,boolean){
 		}else if(doc.length==0){
 			self.emit("failedRandomProductSearch",{"error":{"message":"Product's not found"}});
 		}else{
-			// var test=[{branchid:1},{branchid:2},{branchid:1}]
-			 doc =__.uniq(doc,function(test1){
+			doc =__.uniq(doc,function(test1){
 			 	return test1.branchid;
-			 });
+			});
 			_applyLimitToProductCatalog(doc,function(err,result){
 				if(err){
 				   	self.emit("failedRandomProductSearch",{"error":{"message":err.error.message}});
@@ -328,8 +341,14 @@ var _getAllBranchIds = function(self,branchid){
 			var query_match = [];
 			var match_object={$match:{status:"publish","branch.branchid":{$in:branchid_arr}}};
 			query_match.push(match_object);
-			query_match.push({$group:{_id:{branch:"$branch",provider:"$provider"},productcatalog:{"$addToSet":{productid:"$productid",productname:"$productname",category:"$category",productdescription:"$productdescription",price:"$price",productlogo:"$productlogo",foodtype:"$foodtype",max_weight:"$max_weight",min_weight:"$min_weight",productnotavailable:"$productnotavailable",specialinstruction:"$specialinstruction",productconfiguration:"$productconfiguration"}}}})
-			query_match.push({$project:{branch:"$_id.branch",provider:"$_id.provider",productcatalog:1,_id:0}});
+
+			// query_match.push({$group:{_id:{branch:"$branch",provider:"$provider"},productcatalog:{"$addToSet":{productid:"$productid",productname:"$productname",category:"$category",productdescription:"$productdescription",price:"$price",productlogo:"$productlogo",foodtype:"$foodtype",max_weight:"$max_weight",min_weight:"$min_weight",productnotavailable:"$productnotavailable",specialinstruction:"$specialinstruction",productconfiguration:"$productconfiguration"}}}})
+			// query_match.push({$project:{branch:"$_id.branch",provider:"$_id.provider",productcatalog:1,_id:0}});
+			
+			query_match.push({$group:{_id:{branch:"$branch.branchid",provider:"$provider.providerid"},productcatalog:{"$addToSet":{productid:"$productid",productname:"$productname",category:"$category",productdescription:"$productdescription",price:"$price",productlogo:"$productlogo",foodtype:"$foodtype",max_weight:"$max_weight",min_weight:"$min_weight",productnotavailable:"$productnotavailable",specialinstruction:"$specialinstruction",productconfiguration:"$productconfiguration"}},array:{"$addToSet":{branch:"$branch",provider:"$provider"}}}});
+			query_match.push({$unwind:"$array"});
+			query_match.push({$project:{branch:"$array.branch",provider:"$array.provider",productcatalog:1,branchid:"$array.branch.branchid",_id:0}});
+
 			_fetchingResultToLoadMoreProvider(self,query_match);
 	  	}
 	});
@@ -360,8 +379,14 @@ var _loadmoreProvider = function(self,branchid){
 					var query_match = [];
 					var match_object={$match:{status:"publish","branch.branchid":{$in:branchid_arr}}};
 					query_match.push(match_object);
-					query_match.push({$group:{_id:{branch:"$branch",provider:"$provider"},productcatalog:{"$addToSet":{productid:"$productid",productname:"$productname",category:"$category",productdescription:"$productdescription",price:"$price",productlogo:"$productlogo",foodtype:"$foodtype",max_weight:"$max_weight",min_weight:"$min_weight",productnotavailable:"$productnotavailable",specialinstruction:"$specialinstruction",productconfiguration:"$productconfiguration"}}}})
-					query_match.push({$project:{branch:"$_id.branch",provider:"$_id.provider",productcatalog:1,_id:0}});
+
+					// query_match.push({$group:{_id:{branch:"$branch",provider:"$provider"},productcatalog:{"$addToSet":{productid:"$productid",productname:"$productname",category:"$category",productdescription:"$productdescription",price:"$price",productlogo:"$productlogo",foodtype:"$foodtype",max_weight:"$max_weight",min_weight:"$min_weight",productnotavailable:"$productnotavailable",specialinstruction:"$specialinstruction",productconfiguration:"$productconfiguration"}}}})
+					// query_match.push({$project:{branch:"$_id.branch",provider:"$_id.provider",productcatalog:1,_id:0}});
+					
+					query_match.push({$group:{_id:{branch:"$branch.branchid",provider:"$provider.providerid"},productcatalog:{"$addToSet":{productid:"$productid",productname:"$productname",category:"$category",productdescription:"$productdescription",price:"$price",productlogo:"$productlogo",foodtype:"$foodtype",max_weight:"$max_weight",min_weight:"$min_weight",productnotavailable:"$productnotavailable",specialinstruction:"$specialinstruction",productconfiguration:"$productconfiguration"}},array:{"$addToSet":{branch:"$branch",provider:"$provider"}}}});
+					query_match.push({$unwind:"$array"});
+					query_match.push({$project:{branch:"$array.branch",provider:"$array.provider",productcatalog:1,branchid:"$array.branch.branchid",_id:0}});
+					
 					_fetchingResultToLoadMoreProvider(self,query_match);
 			  	}
 			});			
@@ -378,6 +403,9 @@ var _fetchingResultToLoadMoreProvider = function(self,query_match){
 			console.log("doc : "+JSON.stringify(doc));
 			self.emit("failedLoadMoreProvider",{"error":{"message":"No more provider"}});
 		}else{
+			doc =__.uniq(doc,function(test1){
+			 	return test1.branchid;
+			});
 			_applyLimitToProductCatalog(doc,function(err,result){
 				if(err){
 				   	self.emit("failedLoadMoreProvider",{"error":{"message":"No more provider"}});
