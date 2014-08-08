@@ -701,6 +701,7 @@ var _validateUpdateUProductProviderData=function(self,ProductProviderdata,user,p
 	}
 }
 var _isServiceProivderAdminToUpdate=function(self,ProductProviderdata,user,providerid){
+
 	UserModel.findOne({userid:user.userid,"provider.providerid":providerid,"provider.isOwner":true},function(err,usersp){
 		if(err){
 			logger.emit('error',"Database Issue  _isServiceProivderAdminToUpdate"+err,user.userid)
@@ -716,21 +717,40 @@ var _isServiceProivderAdminToUpdate=function(self,ProductProviderdata,user,provi
 
 }
 var _updateProductProviderData=function(self,ProductProviderdata,user,providerid){
-	ProductProviderModel.update({providerid:providerid},{$set:ProductProviderdata},function(err,spupdatestatus){
+	ProductProviderModel.findOne({providerid:providerid},{providerid:1,trial:1},function(err,provider){
 		if(err){
 			logger.emit('error',"Database Issue ,function:_updateProductProviderData"+err,user.userid)
 			self.emit("failedProductProviderUpdation",{"error":{"code":"ED001","message":"Database Issue"}});
-		}else if(spupdatestatus==0){
-		    self.emit("failedProductProviderUpdation",{"error":{"message":"Please pass providerid"}});
+		}else if(!provider){
+			 self.emit("failedProductProviderUpdation",{"error":{"message":"providerid is wrong"}});
 		}else{
-			////////////////////////////////////////////
-			 _updateProductProviderDetails(providerid)
-			///////////////////////////////////////////
-			///////////////////////////////////////////////////////////////////////
-			_successfulUpdateProductProvider(self,ProductProviderdata,user,providerid);
-			///////////////////////////////////////////////////////////////////////
+			var expirydate=new Date();
+      expirydate.setMonth(expirydate.getMonth() + 3);
+      provider=JSON.stringify(provider);
+      provider=JSON.parse(provider);
+			if(provider.trial==undefined){
+				console.log("test1");
+				ProductProviderdata.trial={startdate:new Date(),expirydate:expirydate};
+			}
+			console.log("provider"+JSON.stringify(provider))
+			ProductProviderModel.update({providerid:providerid},{$set:ProductProviderdata},function(err,spupdatestatus){
+				if(err){
+					logger.emit('error',"Database Issue ,function:_updateProductProviderData"+err,user.userid)
+					self.emit("failedProductProviderUpdation",{"error":{"code":"ED001","message":"Database Issue"}});
+				}else if(spupdatestatus==0){
+				    self.emit("failedProductProviderUpdation",{"error":{"message":"Please pass providerid"}});
+				}else{
+					////////////////////////////////////////////
+					 _updateProductProviderDetails(providerid)
+					///////////////////////////////////////////
+					///////////////////////////////////////////////////////////////////////
+					_successfulUpdateProductProvider(self,ProductProviderdata,user,providerid);
+					///////////////////////////////////////////////////////////////////////
+				}
+		})	
 		}
 	})
+	
 }
 
 var _successfulUpdateProductProvider=function(self,ProductProviderdata,user,providerid){

@@ -240,6 +240,7 @@ exports.manageOrder=function(req,res){
   var suborderid=req.params.suborderid;
   var action=req.query.action;
   var deliverydate=req.query.deliverydate;
+  console.log("deliverydate"+deliverydate)
   var remark=req.query.remark;
   order.removeAllListeners("failedManageOrder");
   order.on("failedManageOrder",function(err){
