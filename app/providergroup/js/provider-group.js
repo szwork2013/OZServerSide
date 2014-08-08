@@ -259,7 +259,9 @@ var _addUserGrpDetailsToServiceBranch=function(self,branch,sessionuser,members,g
      			if(grpname.toLowerCase()=="admin"){
      				newuserproviderdata=[{providerid:branch.providerid,branchid:branch.branchid,isOwner:true,confirmed:false}]
      			}
-			    userdata.push({mobileno:newusers[i].mobileno,password:Math.floor(Math.random()*1000000),usertype:"provider",username:newusers[i].email ,email:newusers[i].email, provider:newuserproviderdata});
+     			var password=Math.floor(Math.random()*1000000);
+     			newusers[i].password=password
+			    userdata.push({mobileno:newusers[i].mobileno,password:password,usertype:"provider",username:newusers[i].email ,email:newusers[i].email, provider:newuserproviderdata});
      		}
       
       	console.log("userdata"+JSON.stringify(userdata));
