@@ -117,18 +117,21 @@ var _fetchingResult = function(self,query_match,count){
 	ProductCatalogModel.aggregate(query_match).exec(function(err,doc){
 		if(err){
 			self.emit("failedToSearchProduct",{"error":{"code":"ED001","message":"Error in db to search product"+err}});
-		}else if(doc.length>5){
+		}else if(doc.length>0){
 			doc =__.uniq(doc,function(test1){
 			 	return test1.branchid;
 			});
-			query_match.push({$limit:count});
-			ProductCatalogModel.aggregate(query_match).exec(function(err,doc){
-				if(err){
-					self.emit("failedToSearchProduct",{"error":{"code":"ED001","message":"Error in db to search product"+err}});
-				}else if(doc.length == 0){
-					self.emit("failedToSearchProduct",{"error":{"message":"No product found for specified criteria"}});
-				}else{
-					// _successfulProductSearch(self,doc,true);
+			// query_match.push({$limit:count});
+			// ProductCatalogModel.aggregate(query_match).exec(function(err,doc){
+			// 	if(err){
+			// 		self.emit("failedToSearchProduct",{"error":{"code":"ED001","message":"Error in db to search product"+err}});
+			// 	}else if(doc.length == 0){
+			// 		self.emit("failedToSearchProduct",{"error":{"message":"No product found for specified criteria"}});
+			// 	}else{
+			// 		// _successfulProductSearch(self,doc,true);
+				if(doc.length>count){
+					console.log("###############################################");
+					doc.splice(count,doc.length);
 			  		_applyLimitToProductCatalog(doc,function(err,result){
 				        if(err){
 				        	self.emit("failedToSearchProduct",{"error":{"message":+err.error.message}});
@@ -143,27 +146,45 @@ var _fetchingResult = function(self,query_match,count){
 						    })
 				        }
 				    })
-			  	}
-			});
-		}else{
-			doc =__.uniq(doc,function(test1){
-			 	return test1.branchid;
-			});
-			// _successfulProductSearch(self,doc,false);
-			_applyLimitToProductCatalog(doc,function(err,result){
-				if(err){
-				   	self.emit("failedToSearchProduct",{"error":{"message":err.error.message}});
-				}else{
-				    // _successfulProductSearch(self,result,false);
-				    _applyDiscountCodesToProductCatalog(result,function(err,result1){
+			  	}else{
+			  		console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+			  		_applyLimitToProductCatalog(doc,function(err,result){
 						if(err){
 						   	self.emit("failedToSearchProduct",{"error":{"message":err.error.message}});
 						}else{
-						    _successfulProductSearch(self,result1,false);
+						    // _successfulProductSearch(self,result,false);
+						    _applyDiscountCodesToProductCatalog(result,function(err,result1){
+								if(err){
+								   	self.emit("failedToSearchProduct",{"error":{"message":err.error.message}});
+								}else{
+								    _successfulProductSearch(self,result1,false);
+							    }
+							})
 					    }
 					})
-			    }
-			})
+			  	}
+			//   	}
+			// });
+		}else{
+			self.emit("failedToSearchProduct",{"error":{"message":"Product not found"}});
+			// doc =__.uniq(doc,function(test1){
+			//  	return test1.branchid;
+			// });
+			// // _successfulProductSearch(self,doc,false);
+			// _applyLimitToProductCatalog(doc,function(err,result){
+			// 	if(err){
+			// 	   	self.emit("failedToSearchProduct",{"error":{"message":err.error.message}});
+			// 	}else{
+			// 	    // _successfulProductSearch(self,result,false);
+			// 	    _applyDiscountCodesToProductCatalog(result,function(err,result1){
+			// 			if(err){
+			// 			   	self.emit("failedToSearchProduct",{"error":{"message":err.error.message}});
+			// 			}else{
+			// 			    _successfulProductSearch(self,result1,false);
+			// 		    }
+			// 		})
+			//     }
+			// })
 	  	}
 	});
 }
