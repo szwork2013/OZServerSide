@@ -12,6 +12,8 @@
 */
 var mongoose = require('../../common/js/db');
 var generateId = require('time-uuid');
+var expirydate=new Date();
+expirydate.setMonth(expirydate.getMonth() + 3);
 var usergrpSchema =  mongoose.Schema({
   groupid:{type:String,unique:true},
   grpname:String,
@@ -57,7 +59,7 @@ var branchSchema = mongoose.Schema(
     branch_images:[{bucket:{type:String},key:String,image:{type:String}}],
     // productcatalog:[ProductCatalogs],
     // usergrp:[usergrpSchema],
-    
+
     branch_availability:{from:{type:Number},to:{type:Number}},//means service available from 9AM to 6 PM
     note:{type:String,default:"none"},
     createdate:{type:Date},
@@ -104,6 +106,10 @@ var productProviderSchema = mongoose.Schema(
           country:{type:String}
         }
       ]
+    },
+    trial:{
+      startdate:{type:Date,default:Date.now()},
+      expirydate:{type:Date,default:expirydate}
     }
 
 
