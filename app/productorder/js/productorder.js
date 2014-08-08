@@ -108,6 +108,58 @@ var _sendSMSToUsersMobileNumber=function(mobileno,lang,tempname,suborder,callbac
   })
 }
 
+var _sendSuccessfulOrderCreationNotificationToSeller=function(orderid){
+	OrderModel.findOne({orderid:orderid},function(err,order){
+		if(err){
+			logger.emit("error","Database Issue"+err)
+		}else if(!order){
+			logger.emit("error","Order id is wrong for _sendSuccessfulOrderCreationNotificationToSeller")
+		}else{
+			
+			///////////////////////////////
+			sendOrderReceivedNotificationToSeller(order.suborder,0);
+			////////////////////////////////
+		}
+	})
+}
+var sendOrderReceivedNotificationToSeller=function(suborders,index){
+	if(suborders.length>index){
+		var suborder=suborders[index];
+		ProductProviderModel.findOne({providerid:suborder.productprovider.providerid},{providerid:1,provideremail:1},function(err,provider){
+			if(err){
+				logger.emit("error","Database Issue"+err)
+			}else if(!provider){
+				logger.emit("error","providerid is wrong");
+			}else{
+				
+			  
+				var selleremail=provider.provideremail;
+				console.log('selleremail'+selleremail);
+				var subject="You have recieved new Order.Order No:<suborderid>";
+				subject=S(subject);
+				subject=subject.replaceAll("<suborderid>",suborder.suborderid);
+				var html="You have recieved new Order.<br><b>Order No</b>:<suborderid>.<br>So Please goto Seller Web Application for more Order details";
+				html=S(html);
+				html=html.replaceAll("<suborderid>",suborder.suborderid);
+				var emailmessage = {
+          from: "OrderZapp  <noreply@orderzapp.com>", // sender address
+          to: selleremail, // list of receivers
+          subject:subject.s, // Subject line
+          html: html.s
+         };
+        commonapi.sendMail(emailmessage,CONFIG.smtp_general, function (result){
+          if(result=="failure"){
+            logger.emit("error","Order(suborderid:"+suborder.suborderid+") creation notification not sent to "+emailmessage.to);
+          }else{
+            logger.emit("log","Order(suborderid:"+suborder.suborderid+") creation notification sent to seller email "+emailmessage.to);
+          }
+        });
+      }
+		})
+	}else{
+		logger.emit("log","Successfully Order Creation Notification send to seller");
+	}
+}
 Order.prototype.createOrder = function(user){
 	var self = this;
 	var orderdata = this.order;
@@ -265,8 +317,8 @@ var _ProviderBranchSpecificCartsProducts=function(self,orderdata,validproductids
 				}
 				var delivery_charge=0;
 				var dilivery_type="pickup";
-        		var prefdeldtime;
-        		var prefdeltimeslot;
+        var prefdeldtime;
+        var prefdeltimeslot;
 				console.log("deliverycharges"+JSON.stringify(orderdata.deliverycharges))
 			
 				// var deliverytypebranchids=[]
@@ -395,11 +447,17 @@ var _createOrder=function(self,orderobject,user){
 			//////////////////////////////////////////////
 
 			///////////////////////////////
-			_successfullCreateOrder(self,orderdata)
+			// _successfullCreateOrder(self,orderdata)
 			////////////////////////////////
 			//////////////////////////////////////////////
 			// _SubOrderInvoiceCreation(orderdata.suborder,0,orderdata);
 			/////////////////////////////////////////////
+			if(orderobject.payment.mode.toLowerCase()=="cod"){
+				 /////////////////////////////////////////
+		    	_sendSuccessfulOrderCreationNotificationToSeller(orderdata.orderid)
+			  /////////////////////////////////////	
+			}
+		
 			///////////////////////////////////////////
 			_saveOrderDeliveryAddressHistory(orderobject);
 			//////////////////////////////////////////////
@@ -833,7 +891,7 @@ var _criteriawiseSuborders=function(self,userid,providerid,branchid,criteriastat
 				query.push({$unwind:"$suborder"})
 				query.push({$sort:{createdate:1}})
 				query.push({$match:{"suborder.productprovider.branchid":branchid,"suborder.status":{$in:statusarray[criteriastatus]}}})
-				query.push({$project:{pref_deliverydatetime:{$add:["$suborder.deliverydate",60*60*1000*5.5]},reasontocancelreject:"$suborder.reasontocancelreject",buyerpayment:"$suborder.buyerpayment", pickup_address:"$pickup_address",sellerpayment:"$suborder.sellerpayment",orderinstructions:"$suborder.orderinstructions", payment:1,preferred_delivery_date:"$suborder.prefdeldtime",prefdeltimeslot:"$suborder.prefdeltimeslot",createdate:1,suborderid:"$suborder.suborderid",products:"$suborder.products",suborder_price:"$suborder.suborder_price",billing_address:"$suborder.billing_address",delivery_address:"$suborder.delivery_address",deliverytype:"$suborder.deliverytype",deliverydate:"$suborder.deliverydate",status:"$suborder.status",_id:0,consumer:1}})
+				query.push({$project:{pref_deliverydatetime:{$add:["$suborder.deliverydate",60*60*1000*5.5]},reasontocancelreject:"$suborder.reasontocancelreject",buyerpayment:"$suborder.buyerpayment", pickup_address:"$suborder.pickup_address",sellerpayment:"$suborder.sellerpayment",orderinstructions:"$suborder.orderinstructions", payment:1,preferred_delivery_date:"$suborder.prefdeldtime",prefdeltimeslot:"$suborder.prefdeltimeslot",createdate:1,suborderid:"$suborder.suborderid",products:"$suborder.products",suborder_price:"$suborder.suborder_price",billing_address:"$suborder.billing_address",delivery_address:"$suborder.delivery_address",deliverytype:"$suborder.deliverytype",deliverydate:"$suborder.deliverydate",status:"$suborder.status",_id:0,consumer:1}})
 				query.push({$project:{pref_deliverydatetime:{day:{$dayOfMonth:'$pref_deliverydatetime'},month:{$month:'$pref_deliverydatetime'},year:{$year:'$pref_deliverydatetime'}},pickup_address:1,reasontocancelreject:1,buyerpayment:1,sellerpayment:1,orderinstructions:1, payment:1,preferred_delivery_date:1,createdate:1,suborderid:1,products:1,suborder_price:1,billing_address:1,delivery_address:1,prefdeltimeslot:1,deliverytype:1,deliverydate:1,status:1,consumer:1}})
 				query.push({$group:{_id:"$pref_deliverydatetime",suborders:{$addToSet:{buyerpayment:"$buyerpayment",sellerpayment:"$sellerpayment",orderinstructions:"$orderinstructions",reasontocancelreject:"$reasontocancelreject", pickup_address:"$pickup_address", payment:"$payment",preferred_delivery_date:"$preferred_delivery_date",createdate:"$createdate",suborderid:"$suborderid",products:"$products",prefdeltimeslot:"$prefdeltimeslot",suborder_price:"$suborder_price",billing_address:"$billing_address",delivery_address:"$delivery_address",deliverytype:"$deliverytype",deliverydate:"$deliverydate",status:"$status",consumer:"$consumer"}}}})
 				query.push({$project:{deliverydatetime:"$_id",suborders:1}})
@@ -1999,7 +2057,10 @@ var _validateCheckSumPayTm=function(self,paytmresponsedata,responseobject){
   			responseobject.IS_CHECKSUM_VALID="Y";
   			/////////////////////////////////////
 			 _successfullPaytmCallbackUrl(self,responseobject)
+
 			////////////////////////////////////
+			_sendSuccessfulOrderCreationNotificationToSeller(responseobject.ORDERID)
+			/////////////////////////////////////////////
  			
   		}else{
   			self.emit("failedPaytmCallbackUrl",{error:{message:"CHECKSUMHASH IS NOT VALID",responseobject:responseobject}})
