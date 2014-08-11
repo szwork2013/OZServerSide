@@ -1217,7 +1217,7 @@ var _checkSubOrderIsExistOrNot=function(self,user,suborderid,action,deliverydate
 						var deliverydate1=new Date(deliverydate);
 						 deliverydate1=deliverydate1.getFullYear()+"/"+(deliverydate1.getMonth()+1)+"/"+deliverydate1.getDate();
 						suborder.suborder.deliverydate=deliverydate1;
-						
+						deliverytimeslot=deliverytimeslot.split("-");
 						var timeslot={from:deliverytimeslot[0],to:deliverytimeslot[1]}
 						suborder.suborder.deliverytimeslot=timeslot
 			 			///////////////////////////////////////////////////
