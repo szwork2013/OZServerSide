@@ -43,6 +43,8 @@ var _validateSearchData = function(self,productsearchdata,foodtype){
 	if(!productsearchdata.match(regex)){
 		self.emit("failedToSearchProduct",{"error":{"message":"Please pass valid search criteria"}});
 	}else if(S(productsearchdata).contains(",")){
+		// console.log("productsearchdata "+ productsearchdata);
+		// S(productsearchdata).replace(/,\s*$/, "");
 		if(S(productsearchdata).charAt(S(productsearchdata).length-1) == ","){
 			self.emit("failedToSearchProduct",{"error":{"message":"Please enter valid search criteria"}});
 		}else{
@@ -55,8 +57,8 @@ var _validateSearchData = function(self,productsearchdata,foodtype){
 
 var _searchProductProviderArea = function(self,productsearchdata,foodtype){
 	var prod_name_arr = [];
-	var query_match=[];
-	var product_or_name_array=[];
+	var query_match = [];
+	var product_or_name_array = [];
 
 	if(S(productsearchdata).contains(",")){
 		prod_name_arr=productsearchdata.split(",");
