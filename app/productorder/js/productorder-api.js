@@ -242,6 +242,7 @@ exports.manageOrder=function(req,res){
   var deliverydate=req.query.deliverydate;
   console.log("deliverydate"+deliverydate)
   var remark=req.query.remark;
+  var deliverytimeslot=req.query.deliverytimeslot;
   order.removeAllListeners("failedManageOrder");
   order.on("failedManageOrder",function(err){
     logger.emit("error", err.error.message);
@@ -254,7 +255,7 @@ exports.manageOrder=function(req,res){
      // order.removeAllListeners();
     res.send(result);
   });
-  order.manageOrder(req.user,suborderid,action,deliverydate,remark);
+  order.manageOrder(req.user,suborderid,action,deliverydate,remark,deliverytimeslot);
 }
 exports.suborderpaymentdone=function(req,res){
   var order = new Order();

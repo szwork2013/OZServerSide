@@ -74,6 +74,7 @@ var suborderSchema=mongoose.Schema({
     },
     tracking:[{status:String,datetime:Date,updatedby:String}],//eg.[{accept:true,datetime:},{accept:pack,datetime:},{accept:pickup,datetime:}]
     deliverydate:{type:Date},//when provider accept then provider will define when order will be delivered
+    deliverytimeslot:{from:Number,to:Number},
     deliverytype:{type:String},//home or pickup if delivery type is pickup then no shipping_address
     status:{type:String},//accept,pick and pick up,delivery if suborder type is home,pickup for pickup order,delivered
     isinvoicegenerate:{type:Boolean,default:false},

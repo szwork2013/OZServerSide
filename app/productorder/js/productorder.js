@@ -74,7 +74,7 @@ var _sendSMSToUsersMobileNumber=function(mobileno,lang,tempname,suborder,callbac
       smstemplate=smstemplate.replaceAll("<sellername>",suborder.productprovider.providername);
       smstemplate=smstemplate.replaceAll("<deliverydate>",suborder.deliverydate);
       smstemplate=smstemplate.replaceAll("<reason>",suborder.reasontocancelreject);
-      var pickup_address;
+      var pickup_address="";
       if(suborder.pickup_address!=undefined){
       	for(var i in suborder.pickup_address){
          if(suborder.pickup_address[i]!=undefined){
@@ -83,7 +83,8 @@ var _sendSMSToUsersMobileNumber=function(mobileno,lang,tempname,suborder,callbac
      		
       	}
       }
-      var delivery_address;
+      var delivery_address="";
+      console.log("delivery address:::::"+JSON.stringify(suborder.delivery_address));
        if(suborder.delivery_address!=undefined){
       	for(var i in suborder.delivery_address){
       		if(suborder.delivery_address[i]!=undefined){
@@ -1178,23 +1179,23 @@ var _successfullConfirmOrderByWeb=function(self){
 	self.emit("successfulConfirmOrderByWeb",{success:{message:"Order Confirmed successfully"}});
 }
 
-Order.prototype.manageOrder = function(user,suborderid,action,deliverydate,remark){
+Order.prototype.manageOrder = function(user,suborderid,action,deliverydate,remark,deliverytimeslot){
 	var self=this;
 	///////////////////////////////////////////////////////////////
-	_validateOrderAction(self,user,suborderid,action,deliverydate,remark);
+	_validateOrderAction(self,user,suborderid,action,deliverydate,remark,deliverytimeslot);
 	///////////////////////////////////////////////////////////////
 }
-var _validateOrderAction=function(self,user,suborderid,action,deliverydate,remark){
+var _validateOrderAction=function(self,user,suborderid,action,deliverydate,remark,deliverytimeslot){
 	console.log("action"+action);
 	if(["accept","reject","cancel","production","factoytostore","pack","shiptostore","deliver","done"].indexOf(action)<0){
 		self.emit("failedManageOrder",{error:{message:"Order Action should be accept,reject,pack,deliver,pickup,cancel,delivered"}})
 	}else{
 		/////////////////////////////////////////////////////
-		_checkSubOrderIsExistOrNot(self,user,suborderid,action,deliverydate,remark)
+		_checkSubOrderIsExistOrNot(self,user,suborderid,action,deliverydate,remark,deliverytimeslot)
 		///////////////////////////////////////////////////
 	}
 }
-var _checkSubOrderIsExistOrNot=function(self,user,suborderid,action,deliverydate,remark){
+var _checkSubOrderIsExistOrNot=function(self,user,suborderid,action,deliverydate,remark,deliverytimeslot){
 	OrderModel.aggregate([{$unwind:"$suborder"},{$match:{"suborder.suborderid":suborderid}}],function(err,suborders){
 		if(err){
 			logger.emit("error","Database Issue:/_checkSubOffrderIsExistOrNot "+err)
@@ -1206,9 +1207,14 @@ var _checkSubOrderIsExistOrNot=function(self,user,suborderid,action,deliverydate
 			if(action=="accept"){
 					if(deliverydate==undefined || deliverydate==""){
 						self.emit("failedManageOrder",{error:{message:"please pass deliverydate"}})
+					}else if(deliverytimeslot==undefined || deliverytimeslot==""){
+						self.emit("failedManageOrder",{error:{message:"please pass delivery time slot"}})
 					}else{
 						// suborder=JSON
 						suborder.suborder.deliverydate=new Date(deliverydate);
+						deliverytimeslot=deliverytimeslot.split("-");
+						var timeslot={from:deliverytimeslot[0],to:deliverytimeslot[1]}
+						suborder.suborder.deliverytimeslot=timeslot
 			 			///////////////////////////////////////////////////
 				    _isAuthorizeToManageOrder(self,user,suborder,action)
 				    ////////////////////////////////////////////////////
@@ -1341,6 +1347,9 @@ var _manageOrder=function(self,action,user,suborder,status,order){
 	var suborderdata={"suborder.$.status":status,"suborder.$.deliverydate":new Date(suborder.deliverydate)}
 	if(suborder.reasontocancelreject!=undefined){
 		suborderdata["suborder.$.reasontocancelreject"]=suborder.reasontocancelreject
+	}
+	if(action="accept"){
+		suborderdata["suborder.$.deliverytimeslot"]=suborder.deliverytimeslot;
 	}
 	OrderModel.update({suborder:{$elemMatch:{suborderid:suborder.suborderid}}},{$set:suborderdata},function(err,suborderupdatestatus){
 		if(err){
