@@ -725,7 +725,7 @@ var _updateProductProviderData=function(self,ProductProviderdata,user,providerid
 			 self.emit("failedProductProviderUpdation",{"error":{"message":"providerid is wrong"}});
 		}else{
 			var expirydate=new Date();
-      expirydate.setMonth(expirydate.getDate() + 90);
+      expirydate.setDate(expirydate.getDate() + 90);
       provider=JSON.stringify(provider);
       provider=JSON.parse(provider);
 			if(provider.trial==undefined){
