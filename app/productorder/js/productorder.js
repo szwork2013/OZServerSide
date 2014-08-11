@@ -1190,12 +1190,14 @@ var _validateOrderAction=function(self,user,suborderid,action,deliverydate,remar
 	if(["accept","reject","cancel","production","factoytostore","pack","shiptostore","deliver","done"].indexOf(action)<0){
 		self.emit("failedManageOrder",{error:{message:"Order Action should be accept,reject,pack,deliver,pickup,cancel,delivered"}})
 	}else{
+		console.log("dddddd"+deliverydate)
 		/////////////////////////////////////////////////////
 		_checkSubOrderIsExistOrNot(self,user,suborderid,action,deliverydate,remark,deliverytimeslot)
 		///////////////////////////////////////////////////
 	}
 }
 var _checkSubOrderIsExistOrNot=function(self,user,suborderid,action,deliverydate,remark,deliverytimeslot){
+	console.log("dddddd::::"+deliverydate)
 	OrderModel.aggregate([{$unwind:"$suborder"},{$match:{"suborder.suborderid":suborderid}}],function(err,suborders){
 		if(err){
 			logger.emit("error","Database Issue:/_checkSubOffrderIsExistOrNot "+err)
@@ -1205,14 +1207,17 @@ var _checkSubOrderIsExistOrNot=function(self,user,suborderid,action,deliverydate
 		}else{
 			var suborder=suborders[0];
 			if(action=="accept"){
+				console.log("dddddd:::111:"+deliverydate)
 					if(deliverydate==undefined || deliverydate==""){
 						self.emit("failedManageOrder",{error:{message:"please pass deliverydate"}})
 					}else if(deliverytimeslot==undefined || deliverytimeslot==""){
 						self.emit("failedManageOrder",{error:{message:"please pass delivery time slot"}})
 					}else{
 						// suborder=JSON
-						suborder.suborder.deliverydate=new Date(deliverydate);
-						deliverytimeslot=deliverytimeslot.split("-");
+						var deliverydate1=new Date(deliverydate);
+						 deliverydate1=deliverydate1.getFullYear()+"/"+(deliverydate1.getMonth()+1)+"/"+deliverydate1.getDate();
+						suborder.suborder.deliverydate=deliverydate1;
+						
 						var timeslot={from:deliverytimeslot[0],to:deliverytimeslot[1]}
 						suborder.suborder.deliverytimeslot=timeslot
 			 			///////////////////////////////////////////////////

@@ -13,7 +13,7 @@
 var mongoose = require('../../common/js/db');
 var generateId = require('time-uuid');
 var expirydate=new Date();
-expirydate.setMonth(expirydate.getMonth() + 3);
+expirydate.setMonth(expirydate.getDate() + 90);
 var usergrpSchema =  mongoose.Schema({
   groupid:{type:String,unique:true},
   grpname:String,

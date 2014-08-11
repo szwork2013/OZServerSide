@@ -725,7 +725,7 @@ var _updateProductProviderData=function(self,ProductProviderdata,user,providerid
 			 self.emit("failedProductProviderUpdation",{"error":{"message":"providerid is wrong"}});
 		}else{
 			var expirydate=new Date();
-      expirydate.setMonth(expirydate.getMonth() + 3);
+      expirydate.setMonth(expirydate.getDate() + 90);
       provider=JSON.stringify(provider);
       provider=JSON.parse(provider);
 			if(provider.trial==undefined){
@@ -1234,7 +1234,7 @@ var _checkUserHaveProvider=function(self,user){
 }
 var _getAllMyProviders=function(self,providerarray){
     console.log("providerarray"+providerarray)
-	ProductProviderModel.find({providerid:{$in:providerarray}},{_id:0,providerid:1,providerlogo:1,providername:1,providercode:1,status:1,provideremail:1,providerbrandname:1,providerdescription:1,category:1,deliverytimingsinstructions:1,tax:1,paymentmode:1,orderprocess_configuration:1,trial:1},function(err,providers){
+	ProductProviderModel.find({providerid:{$in:providerarray},status:{$ne:"reject"}},{_id:0,providerid:1,providerlogo:1,providername:1,providercode:1,status:1,provideremail:1,providerbrandname:1,providerdescription:1,category:1,deliverytimingsinstructions:1,tax:1,paymentmode:1,orderprocess_configuration:1,trial:1},function(err,providers){
 		if(err){
 			logger.emit('error',"Database Issue fun:_getAllMyProviders"+err)
 		  self.emit("failedGetAllMyProviders",{"error":{"code":"ED001","message":"Database Issue"}});			
