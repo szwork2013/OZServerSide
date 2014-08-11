@@ -1432,6 +1432,7 @@ var _getProductLeadTimeByCategory=function(self,providerid,branchid){
 						for(var k=0;k<categorywiseproducts[j].products.length;k++){
 							if(leadtimeproductids.indexOf(categorywiseproducts[j].products[k].productid)>=0){
 								var index=leadtimeproductids.indexOf(categorywiseproducts[j].products[k].productid);
+								productleadtimedata[index].productname=categorywiseproducts[j].products[k].productname
 								productsleadtimearray.push(productleadtimedata[index]);
 							}else{
 

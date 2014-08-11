@@ -74,7 +74,7 @@ var _sendSMSToUsersMobileNumber=function(mobileno,lang,tempname,suborder,callbac
       smstemplate=smstemplate.replaceAll("<sellername>",suborder.productprovider.providername);
       smstemplate=smstemplate.replaceAll("<deliverydate>",suborder.deliverydate);
       smstemplate=smstemplate.replaceAll("<reason>",suborder.reasontocancelreject);
-      var pickup_address;
+      var pickup_address="";
       if(suborder.pickup_address!=undefined){
       	for(var i in suborder.pickup_address){
          if(suborder.pickup_address[i]!=undefined){
@@ -83,7 +83,8 @@ var _sendSMSToUsersMobileNumber=function(mobileno,lang,tempname,suborder,callbac
      		
       	}
       }
-      var delivery_address;
+      var delivery_address="";
+      console.log("delivery address:::::"+JSON.stringify(suborder.delivery_address));
        if(suborder.delivery_address!=undefined){
       	for(var i in suborder.delivery_address){
       		if(suborder.delivery_address[i]!=undefined){
@@ -891,16 +892,16 @@ var _criteriawiseSuborders=function(self,userid,providerid,branchid,criteriastat
 				query.push({$unwind:"$suborder"})
 				query.push({$sort:{createdate:1}})
 				query.push({$match:{"suborder.productprovider.branchid":branchid,"suborder.status":{$in:statusarray[criteriastatus]}}})
-				query.push({$project:{pref_deliverydatetime:{$add:["$suborder.deliverydate",60*60*1000*5.5]},reasontocancelreject:"$suborder.reasontocancelreject",buyerpayment:"$suborder.buyerpayment", pickup_address:"$suborder.pickup_address",sellerpayment:"$suborder.sellerpayment",orderinstructions:"$suborder.orderinstructions", payment:1,preferred_delivery_date:"$suborder.prefdeldtime",prefdeltimeslot:"$suborder.prefdeltimeslot",createdate:1,suborderid:"$suborder.suborderid",products:"$suborder.products",suborder_price:"$suborder.suborder_price",billing_address:"$suborder.billing_address",delivery_address:"$suborder.delivery_address",deliverytype:"$suborder.deliverytype",deliverydate:"$suborder.deliverydate",status:"$suborder.status",_id:0,consumer:1}})
-				query.push({$project:{pref_deliverydatetime:{day:{$dayOfMonth:'$pref_deliverydatetime'},month:{$month:'$pref_deliverydatetime'},year:{$year:'$pref_deliverydatetime'}},pickup_address:1,reasontocancelreject:1,buyerpayment:1,sellerpayment:1,orderinstructions:1, payment:1,preferred_delivery_date:1,createdate:1,suborderid:1,products:1,suborder_price:1,billing_address:1,delivery_address:1,prefdeltimeslot:1,deliverytype:1,deliverydate:1,status:1,consumer:1}})
-				query.push({$group:{_id:"$pref_deliverydatetime",suborders:{$addToSet:{buyerpayment:"$buyerpayment",sellerpayment:"$sellerpayment",orderinstructions:"$orderinstructions",reasontocancelreject:"$reasontocancelreject", pickup_address:"$pickup_address", payment:"$payment",preferred_delivery_date:"$preferred_delivery_date",createdate:"$createdate",suborderid:"$suborderid",products:"$products",prefdeltimeslot:"$prefdeltimeslot",suborder_price:"$suborder_price",billing_address:"$billing_address",delivery_address:"$delivery_address",deliverytype:"$deliverytype",deliverydate:"$deliverydate",status:"$status",consumer:"$consumer"}}}})
+				query.push({$project:{pref_deliverydatetime:{$add:["$suborder.deliverydate",60*60*1000*5.5]},reasontocancelreject:"$suborder.reasontocancelreject",buyerpayment:"$suborder.buyerpayment",deliverytimeslot:"$suborder.deliverytimeslot", pickup_address:"$suborder.pickup_address",sellerpayment:"$suborder.sellerpayment",orderinstructions:"$suborder.orderinstructions", payment:1,preferred_delivery_date:"$suborder.prefdeldtime",prefdeltimeslot:"$suborder.prefdeltimeslot",createdate:1,suborderid:"$suborder.suborderid",products:"$suborder.products",suborder_price:"$suborder.suborder_price",billing_address:"$suborder.billing_address",delivery_address:"$suborder.delivery_address",deliverytype:"$suborder.deliverytype",deliverydate:"$suborder.deliverydate",status:"$suborder.status",_id:0,consumer:1}})
+				query.push({$project:{pref_deliverydatetime:{day:{$dayOfMonth:'$pref_deliverydatetime'},month:{$month:'$pref_deliverydatetime'},year:{$year:'$pref_deliverydatetime'}},pickup_address:1,reasontocancelreject:1,deliverytimeslot:1,buyerpayment:1,sellerpayment:1,orderinstructions:1, payment:1,preferred_delivery_date:1,createdate:1,suborderid:1,products:1,suborder_price:1,billing_address:1,delivery_address:1,prefdeltimeslot:1,deliverytype:1,deliverydate:1,status:1,consumer:1}})
+				query.push({$group:{_id:"$pref_deliverydatetime",suborders:{$addToSet:{buyerpayment:"$buyerpayment",sellerpayment:"$sellerpayment",orderinstructions:"$orderinstructions",reasontocancelreject:"$reasontocancelreject",deliverytimeslot:"$deliverytimeslot", pickup_address:"$pickup_address", payment:"$payment",preferred_delivery_date:"$preferred_delivery_date",createdate:"$createdate",suborderid:"$suborderid",products:"$products",prefdeltimeslot:"$prefdeltimeslot",suborder_price:"$suborder_price",billing_address:"$billing_address",delivery_address:"$delivery_address",deliverytype:"$deliverytype",deliverydate:"$deliverydate",status:"$status",consumer:"$consumer"}}}})
 				query.push({$project:{deliverydatetime:"$_id",suborders:1}})
 				// query.push({$sort:{deliverydatetime:1}})
 			}else{
 				query.push({$match:{"suborder.productprovider.providerid":providerid,status:{$ne:"waitforapproval"}}})
 				query.push({$unwind:"$suborder"})
 				query.push({$match:{"suborder.productprovider.branchid":branchid,"suborder.status":{$in:statusarray[criteriastatus]}}})
-				query.push({$project:{reasontocancelreject:"$suborder.reasontocancelreject",buyerpayment:"$suborder.buyerpayment",pickup_address:"$suborder.pickup_address",sellerpayment:"$suborder.sellerpayment",orderinstructions:"$suborder.orderinstructions", payment:1,preferred_delivery_date:"$suborder.prefdeldtime",prefdeltimeslot:"$suborder.prefdeltimeslot",createdate:1,suborderid:"$suborder.suborderid",products:"$suborder.products",suborder_price:"$suborder.suborder_price",billing_address:"$suborder.billing_address",delivery_address:"$suborder.delivery_address",deliverytype:"$suborder.deliverytype",deliverydate:"$suborder.deliverydate",status:"$suborder.status",_id:0,consumer:1}})
+				query.push({$project:{reasontocancelreject:"$suborder.reasontocancelreject",buyerpayment:"$suborder.buyerpayment",pickup_address:"$suborder.pickup_address",sellerpayment:"$suborder.sellerpayment",orderinstructions:"$suborder.orderinstructions", payment:1,preferred_delivery_date:"$suborder.prefdeldtime",prefdeltimeslot:"$suborder.prefdeltimeslot",createdate:1,suborderid:"$suborder.suborderid",products:"$suborder.products",suborder_price:"$suborder.suborder_price",billing_address:"$suborder.billing_address",delivery_address:"$suborder.delivery_address",deliverytype:"$suborder.deliverytype",deliverytimeslot:"$suborder.deliverytimeslot", deliverydate:"$suborder.deliverydate",status:"$suborder.status",_id:0,consumer:1}})
 				query.push({$sort:{createdate:1}})
 			}
 		 _getMySubOrders(self,userid,providerid,branchid,query,criteriastatus)
@@ -1178,23 +1179,23 @@ var _successfullConfirmOrderByWeb=function(self){
 	self.emit("successfulConfirmOrderByWeb",{success:{message:"Order Confirmed successfully"}});
 }
 
-Order.prototype.manageOrder = function(user,suborderid,action,deliverydate,remark){
+Order.prototype.manageOrder = function(user,suborderid,action,deliverydate,remark,deliverytimeslot){
 	var self=this;
 	///////////////////////////////////////////////////////////////
-	_validateOrderAction(self,user,suborderid,action,deliverydate,remark);
+	_validateOrderAction(self,user,suborderid,action,deliverydate,remark,deliverytimeslot);
 	///////////////////////////////////////////////////////////////
 }
-var _validateOrderAction=function(self,user,suborderid,action,deliverydate,remark){
+var _validateOrderAction=function(self,user,suborderid,action,deliverydate,remark,deliverytimeslot){
 	console.log("action"+action);
 	if(["accept","reject","cancel","production","factoytostore","pack","shiptostore","deliver","done"].indexOf(action)<0){
 		self.emit("failedManageOrder",{error:{message:"Order Action should be accept,reject,pack,deliver,pickup,cancel,delivered"}})
 	}else{
 		/////////////////////////////////////////////////////
-		_checkSubOrderIsExistOrNot(self,user,suborderid,action,deliverydate,remark)
+		_checkSubOrderIsExistOrNot(self,user,suborderid,action,deliverydate,remark,deliverytimeslot)
 		///////////////////////////////////////////////////
 	}
 }
-var _checkSubOrderIsExistOrNot=function(self,user,suborderid,action,deliverydate,remark){
+var _checkSubOrderIsExistOrNot=function(self,user,suborderid,action,deliverydate,remark,deliverytimeslot){
 	OrderModel.aggregate([{$unwind:"$suborder"},{$match:{"suborder.suborderid":suborderid}}],function(err,suborders){
 		if(err){
 			logger.emit("error","Database Issue:/_checkSubOffrderIsExistOrNot "+err)
@@ -1206,9 +1207,14 @@ var _checkSubOrderIsExistOrNot=function(self,user,suborderid,action,deliverydate
 			if(action=="accept"){
 					if(deliverydate==undefined || deliverydate==""){
 						self.emit("failedManageOrder",{error:{message:"please pass deliverydate"}})
+					}else if(deliverytimeslot==undefined || deliverytimeslot==""){
+						self.emit("failedManageOrder",{error:{message:"please pass delivery time slot"}})
 					}else{
 						// suborder=JSON
 						suborder.suborder.deliverydate=new Date(deliverydate);
+						deliverytimeslot=deliverytimeslot.split("-");
+						var timeslot={from:deliverytimeslot[0],to:deliverytimeslot[1]}
+						suborder.suborder.deliverytimeslot=timeslot
 			 			///////////////////////////////////////////////////
 				    _isAuthorizeToManageOrder(self,user,suborder,action)
 				    ////////////////////////////////////////////////////
@@ -1341,6 +1347,9 @@ var _manageOrder=function(self,action,user,suborder,status,order){
 	var suborderdata={"suborder.$.status":status,"suborder.$.deliverydate":new Date(suborder.deliverydate)}
 	if(suborder.reasontocancelreject!=undefined){
 		suborderdata["suborder.$.reasontocancelreject"]=suborder.reasontocancelreject
+	}
+	if(action="accept"){
+		suborderdata["suborder.$.deliverytimeslot"]=suborder.deliverytimeslot;
 	}
 	OrderModel.update({suborder:{$elemMatch:{suborderid:suborder.suborderid}}},{$set:suborderdata},function(err,suborderupdatestatus){
 		if(err){
