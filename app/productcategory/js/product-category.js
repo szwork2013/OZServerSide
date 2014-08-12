@@ -2,7 +2,8 @@ var events = require("events");
 var logger = require("../../common/js/logger");
 var CategoryModel = require("./product-category-model");
 var ProductProvider = require("../../productprovider/js/productprovider-model");
-
+var ProductCatalogModel = require("../../productcatalog/js/product-catalog-model");
+var S=require("string");
 var ProductCategory = function(productcategorydata) {
   this.productcategory = productcategorydata;
 };
@@ -207,12 +208,36 @@ var _successfulGetAllLevelsProductCategory = function(self,doc){
 
 ProductCategory.prototype.updateProductCategory = function(categoryid) {
 	var self=this;
+	console.log("updateProductCategory");
 	////////////////////////////////////////////////////////////////
-	_updateProductCategory(self,this.productcategory,categoryid);
+	_validateUpdateProductCategoryData(self,this.productcategory,categoryid);
 	////////////////////////////////////////////////////////////////
 };
-
-var _updateProductCategory = function(self,categorydata,categoryid){
+var _validateUpdateProductCategoryData = function(self,productcategory,categoryid){
+	if(productcategory == undefined){
+		self.emit("failedUpdateProductCategory",{"error":{"code":"AV001","message":"Please provide categorydata"}});
+	}else if(productcategory.categoryname == undefined || productcategory.categoryname == ""){
+		self.emit("failedUpdateProductCategory",{"error":{"code":"AV001","message":"Please provide categoryname"}});
+	}else if(productcategory.categoryid != undefined){
+		self.emit("failedUpdateProductCategory",{"error":{"code":"AV001","message":"Can't update categoryid"}});
+	}else{
+		_isValidCategory(self,productcategory,categoryid);		
+	}
+}
+var _isValidCategory = function(self,categorydata,categoryid){
+	CategoryModel.findOne({categoryid:categoryid},{categoryname:1,_id:0}).exec(function(err,olddata){
+		if(err){
+			logger.emit("error","Database Error : " + err);
+			self.emit("failedUpdateProductCategory",{"error":{"code":"ED001","message":"Database Issue"}});
+		}else if(olddata){
+			console.log("categorydata "+JSON.stringify(olddata));
+			_updateProductCategory(self,categorydata,categoryid,olddata.categoryname);
+		}else{
+			self.emit("failedUpdateProductCategory",{"error":{"code":"AD001","message":"categoryid is wrong"}});
+	  	}
+	});
+}
+var _updateProductCategory = function(self,categorydata,categoryid,oldcategoryname){
 	// console.log("CategoryID " + categoryid + " categorydata" + categorydata);
 	categorydata.slug = categorydata.categoryname.toLowerCase();
 	CategoryModel.update({categoryid:categoryid},{$set:categorydata},function(err,categorystatus){
@@ -220,11 +245,12 @@ var _updateProductCategory = function(self,categorydata,categoryid){
 			logger.emit("error","Database Error on updation product category : " + err);
 			self.emit("failedUpdateProductCategory",{"error":{"code":"ED001","message":"Database Issue"}});
 		}else if(categorystatus==1){
-			CategoryModel.update({"ancestors.categoryid":categoryid},{$set:{ancestors:{categoryid:categoryid,categoryname:categorydata.categoryname,slug:categorydata.categoryname.toLowerCase()}}},{multi:true},function(err,subcategorystatus){
+			CategoryModel.update({"ancestors.categoryid":categoryid},{$set:{"ancestors.$.categoryname":categorydata.categoryname,"ancestors.$.slug":categorydata.categoryname.toLowerCase()}},{multi:true},function(err,subcategorystatus){
 				if(err){
 					logger.emit("error","Database Error : " + err);
 					self.emit("failedUpdateProductCategory",{"error":{"code":"ED001","message":"Database Issue"}});
 				}else{
+					_updateCategorynameInProductsModel(categoryid,categorydata.categoryname,oldcategoryname);
 					_successfulUpdateProductCategory(self);
 				}
 			})
@@ -233,7 +259,58 @@ var _updateProductCategory = function(self,categorydata,categoryid){
 		}
 	})
 }
-
+var _updateCategorynameInProductsModel = function(categoryid,newcategoryname,oldcategoryname){
+	var categorytags = [];
+	categorytags.push(oldcategoryname);
+	if(S(oldcategoryname).contains(" ")){
+	    categorytags=oldcategoryname.split(" ");
+		categorytags.push(oldcategoryname);
+	}else{
+		categorytags.push(oldcategoryname);
+	}
+	var newcategorytags = [];
+	newcategorytags.push(newcategoryname);
+	if(S(newcategoryname).contains(" ")){
+	    newcategorytags=newcategoryname.split(" ");
+		newcategorytags.push(newcategoryname);
+	}else{
+		newcategorytags.push(newcategoryname);
+	}
+	console.log("categorytags : "+categorytags);
+	ProductCatalogModel.update({"category.id":categoryid},{$set:{"category.categoryname":newcategoryname},"$pullAll":{"categorytags":categorytags}},{multi:true},function(err,productupdatestatus){
+		if(err){
+			logger.emit("error","Database Error : " + err);
+		}else{			
+			console.log("newcategorytags : "+newcategorytags);
+			// logger.emit("info","category information updated successfully in products model");
+			ProductCatalogModel.update({"category.id":categoryid},{$addToSet:{"categorytags":{$each:newcategorytags}}},{multi:true},function(err,productupdatestatus){
+				if(err){
+					logger.emit("error","Database Error : " + err);
+				}else{
+					logger.emit("info","category information updated successfully in products model");
+					_updateAncestorsCategorynameInProductsModel(categoryid,newcategoryname,categorytags,newcategorytags);
+				}
+			})
+		}
+	})
+}
+var _updateAncestorsCategorynameInProductsModel = function(categoryid,newcategoryname,categorytags,newcategorytags){
+	console.log("categorytags : "+categorytags);
+	ProductCatalogModel.update({"category.ancestors.categoryid":categoryid},{$set:{"category.ancestors.$.categoryname":newcategoryname,"category.ancestors.$.slug":newcategoryname.toLowerCase()},"$pullAll":{"categorytags":categorytags}},{multi:true},function(err,productupdatestatus){
+		if(err){
+			logger.emit("error","Database Error : " + err);
+		}else{			
+			// logger.emit("info","category information updated successfully in products model");
+			ProductCatalogModel.update({"category.ancestors.categoryid":categoryid},{$set:{"category.ancestors.$.categoryname":newcategoryname,"category.ancestors.$.slug":newcategoryname.toLowerCase()},$addToSet:{"categorytags":{$each:newcategorytags}}},{multi:true},function(err,productupdatestatus){
+				if(err){
+					logger.emit("error","Database Error : " + err);
+				}else{
+					logger.emit("info","ancestors category information updated successfully in products model");
+				}
+			})
+		}
+	})
+}
 var _successfulUpdateProductCategory = function(self){
 	logger.emit("log","successfulUpdateProductCategory");
 	self.emit("successfulUpdateProductCategory", {"success":{"message":"Product Category Updated Successfully"}});
