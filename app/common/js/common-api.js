@@ -37,6 +37,7 @@ var SALT_WORK_FACTOR = 10;
 var punycode=require("punycode");
 // var LocationModel=require("./location-model");
  var SMSHistoryModel=require("./sms-history-model");
+ var FeedbackModel=require("./feedback-model");
 //   var StateLangModel=require("./state-lang-model"); 
 function trim(stringToTrim) {
 	return stringToTrim.replace(/^\s+|\s+$/g,"");
@@ -880,3 +881,24 @@ exports.getPayTMConfiguration=function(req,res){
 		res.send({success:{message:"Getting Paytm confguration Successfully",paytmcongiguration:paytmcongiguration}})
 	}
 }
+exports.giveFeedback=function(req,res){
+	var feedbacktext=req.body.feedbacktext;
+	if(feedbacktext==undefined || feedbacktext==""){
+		res.send({error:{code:"AV001",message:"Please enter feedback text"}})
+	}else{
+		var mobileno=req.user.mobileno;
+		var email=req.user.email;
+		var userid=req.user.userid;
+		var feddbackobject={mobileno:mobileno,userid:userid,email:email,feedbacktext:feedbacktext}
+		var feedback=new FeedbackModel(feddbackobject);
+		feedback.save(function(err,feedback){
+			if(err){
+				logger.emit("error","Database Issue: giveFeedback"+err)
+				res.send({error:{code:"ED001",message:"Database Issue"}});
+			}else{
+				res.send({success:{message:"Successfully gave feedback"}})
+			}
+		})
+	}
+}
+
