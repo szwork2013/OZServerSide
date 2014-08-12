@@ -109,6 +109,7 @@ exports.signin = function(req, res) {
      // res.send({status:true,sessionid:req.sessionID,userid:req.user.userid});
      req.logout();
     }
+    console.log("req date"+req._startTime);
    var  userdata = req.body;
   //req.body=req.body;
   logger.emit("log","req body signin"+JSON.stringify(userdata));
