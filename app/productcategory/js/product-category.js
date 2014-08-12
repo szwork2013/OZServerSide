@@ -207,11 +207,22 @@ var _successfulGetAllLevelsProductCategory = function(self,doc){
 
 ProductCategory.prototype.updateProductCategory = function(categoryid) {
 	var self=this;
+	console.log("updateProductCategory");
 	////////////////////////////////////////////////////////////////
-	_updateProductCategory(self,this.productcategory,categoryid);
+	_validateUpdateProductCategoryData(self,this.productcategory,categoryid);
 	////////////////////////////////////////////////////////////////
 };
-
+var _validateUpdateProductCategoryData = function(self,productcategory,categoryid){
+	if(productcategory == undefined){
+		self.emit("failedUpdateProductCategory",{"error":{"code":"AV001","message":"Please provide categorydata"}});
+	}else if(productcategory.categoryname == undefined || productcategory.categoryname == ""){
+		self.emit("failedUpdateProductCategory",{"error":{"code":"AV001","message":"Please provide categoryname"}});
+	}else if(productcategory.categoryid != undefined){
+		self.emit("failedUpdateProductCategory",{"error":{"code":"AV001","message":"Can't update categoryid"}});
+	}else{
+		_updateProductCategory(self,productcategory,categoryid);
+	}
+}
 var _updateProductCategory = function(self,categorydata,categoryid){
 	// console.log("CategoryID " + categoryid + " categorydata" + categorydata);
 	categorydata.slug = categorydata.categoryname.toLowerCase();
@@ -220,7 +231,7 @@ var _updateProductCategory = function(self,categorydata,categoryid){
 			logger.emit("error","Database Error on updation product category : " + err);
 			self.emit("failedUpdateProductCategory",{"error":{"code":"ED001","message":"Database Issue"}});
 		}else if(categorystatus==1){
-			CategoryModel.update({"ancestors.categoryid":categoryid},{$set:{ancestors:{categoryid:categoryid,categoryname:categorydata.categoryname,slug:categorydata.categoryname.toLowerCase()}}},{multi:true},function(err,subcategorystatus){
+			CategoryModel.update({"ancestors.categoryid":categoryid},{$set:{"ancestors.$.categoryname":categorydata.categoryname,"ancestors.$.slug":categorydata.categoryname.toLowerCase()}},{multi:true},function(err,subcategorystatus){
 				if(err){
 					logger.emit("error","Database Error : " + err);
 					self.emit("failedUpdateProductCategory",{"error":{"code":"ED001","message":"Database Issue"}});

@@ -406,6 +406,7 @@ var _getCategoryDataToUpdateProductCatalog = function(self,providerid,productid,
 		}else if(doc){
 			productcatalog.category = {id:doc.categoryid,categoryname:doc.categoryname,ancestors:doc.ancestors};
 			var categorytags = [];
+			categorytags.push(doc.categoryname);
 			for(var i=0;i<doc.ancestors.length;i++){
 				if(S(doc.ancestors[i].categoryname).contains(" ")){
 	                var categorytags1=doc.ancestors[i].categoryname.split(" ");
@@ -413,7 +414,6 @@ var _getCategoryDataToUpdateProductCatalog = function(self,providerid,productid,
 					categorytags=categorytags.concat(categorytags1);					
 				}else{
 					categorytags.push(doc.ancestors[i].categoryname);
-					categorytags.push(doc.categoryname);
 				}
 			}
 			if(S(doc.categoryname).contains(" ")){
@@ -449,7 +449,7 @@ var _updateProductCatalog = function(self,providerid,productid,productcatalog,us
 		  	logger.emit('error',"Database Issue fun:_updateProductCatalog"+err,user.userid);
 		  	self.emit("failedUpdateProductCatalog",{"error":{"code":"ED001","message":"Database Issue"}});		
 	  	}else if(updateStatus==0){
-	  		self.emit("failedUpdateProductCatalog",{"error":{"message":"providerid or productid is wrong"}});		
+	  		self.emit("failedUpdateProductCatalog",{"error":{"message":"productid is wrong"}});		
 	  	}else{
 	  		//////////////////////////////////////
         	_successfullUpdateProductCatalog(self);

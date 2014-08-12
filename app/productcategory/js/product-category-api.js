@@ -5,7 +5,7 @@ var ProductCategory = require("./product-category");
 
 exports.createProductCategory = function(req, res){
 	console.log("createProductCategory");
-	var session_userid ;//= req.user.userid;
+	var session_userid = req.user.userid;
 	var categorydata = req.body.categorydata;
 	var product_category = new ProductCategory(categorydata);
 	product_category.removeAllListeners("failedAddProductCategory");
@@ -98,7 +98,6 @@ exports.getAllLevelsProductCategory = function(req,res){
 }
 
 exports.updateProductCategory = function(req,res){
-	console.log("updateProductCategory");
 	var session_userid;// = req.user.userid;
 	var categoryid = req.params.categoryid;
 	var categorydata = req.body.categorydata;
