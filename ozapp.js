@@ -46,7 +46,7 @@ var logger = require('express-logger');
 //app.use(express.favicon());
 // app.use(express.multipart({ uploadDir: './tmp/uploads' }));
 app.use(logger({path: "./logfile.txt"}));
-app.use(cookieParser());
+app.use(cookieParser("hhsid"));
 app.use(bodyParser());
 //app.use(express.json());
 //app.use(express.urlencoded());
