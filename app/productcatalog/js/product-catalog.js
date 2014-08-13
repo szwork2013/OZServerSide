@@ -361,26 +361,36 @@ var _isAuthorizedUserToUpdateProduct=function(self,providerid,productid,productc
 		}else if(!usersp){
 			self.emit("failedUpdateProductCatalog",{"error":{"message":"You are not authorized to update product details"}});
 		}else{
-			ProductCatalogModel.findOne({productid:productid},{category:1,_id:0}).exec(function(err,product){
-				if(err){
-					logger.emit("error","Database Error : _isAuthorizedUserToUpdateProduct " + err);
-					self.emit("failedUpdateProductCatalog",{"error":{"code":"ED001","message":"Database Issue"}});
-				}else if(product){
-					if(product.category.id == productcatalog.categoryid){
-						console.log("same category");
-						/////////////////////////////////////////////////////////////////////
-				     	_updateProductCatalog(self,providerid,productid,productcatalog,user);
-					    /////////////////////////////////////////////////////////////////////
-					}else{
-						console.log("different category");
-						/////////////////////////////////////////////////////////////////////////////////
-						_isValidProviderIDToUpdateProduct(self,providerid,productid,productcatalog,user);
-						/////////////////////////////////////////////////////////////////////////////////
-					}
-				}else{
-			  		self.emit("failedUpdateProductCatalog",{"error":{"code":"AD001","message":"Wrong productid"}});
-			  	}
-			});
+			if(productcatalog.categoryid == undefined){
+				/////////////////////////////////////////////////////////////////////
+				_updateProductCatalog(self,providerid,productid,productcatalog,user);
+				/////////////////////////////////////////////////////////////////////
+			}else{
+				/////////////////////////////////////////////////////////////////////////////////
+				_isValidProviderIDToUpdateProduct(self,providerid,productid,productcatalog,user);
+				/////////////////////////////////////////////////////////////////////////////////
+			}
+
+		// 	ProductCatalogModel.findOne({productid:productid},{category:1,_id:0}).exec(function(err,product){
+		// 		if(err){
+		// 			logger.emit("error","Database Error : _isAuthorizedUserToUpdateProduct " + err);
+		// 			self.emit("failedUpdateProductCatalog",{"error":{"code":"ED001","message":"Database Issue"}});
+		// 		}else if(product){
+		// 			if(product.category.id == productcatalog.categoryid){
+		// 				console.log("same category");
+		// 				/////////////////////////////////////////////////////////////////////
+		// 		     	_updateProductCatalog(self,providerid,productid,productcatalog,user);
+		// 			    /////////////////////////////////////////////////////////////////////
+		// 			}else{
+		// 				console.log("different category");
+						// /////////////////////////////////////////////////////////////////////////////////
+						// _isValidProviderIDToUpdateProduct(self,providerid,productid,productcatalog,user);
+						// /////////////////////////////////////////////////////////////////////////////////
+		// 			}
+		// 		}else{
+		// 	  		self.emit("failedUpdateProductCatalog",{"error":{"code":"AD001","message":"Wrong productid"}});
+		// 	  	}
+		// 	});
 		}
 	})
 }
@@ -454,6 +464,7 @@ var _getCategoryDataToUpdateProductCatalog = function(self,providerid,productid,
 	});
 }
 var _updateProductCatalog = function(self,providerid,productid,productcatalog,user){
+	console.log("_updateProductCatalog");
 	var producttags_array;
 	if(S(productcatalog.productname).contains(" ")){
         producttags_array=productcatalog.productname.split(" ");
