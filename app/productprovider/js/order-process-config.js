@@ -84,7 +84,7 @@ var _addOrderProcessingStatus = function(self,process,user){
 }
 var _successfulAddOrderProcessingStatus = function(self){
 	self.emit("successfulAddOrderProcessingStatus",{"success":{"message":"Order Process Configuration Added Successfully"}});
-}Error
+}
 
 OrderProcessConfig.prototype.getOrderProcessingStatus = function(user) {
 	var self = this;
