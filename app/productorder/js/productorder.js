@@ -1834,9 +1834,9 @@ var _validateGetCurrentAndPastOrders=function(self,userid,criteriastatus){
 			self.emit("failedGetCurrentAndPastOrders",{error:{code:"AV001",message:"criteriastatus should be past and current"}})
 		}else{
 			if(criteriastatus=="current"){
-				query={"consumer.userid":userid,"suborder.status":{$in:["orderreceived","accepted","inproduction","packing","factorytostore","storepickup","indelivery"]}}
+				query={status:{$ne:"waitforapproval"},"consumer.userid":userid,"suborder.status":{$in:["orderreceived","accepted","inproduction","packing","factorytostore","storepickup","indelivery"]}}
 			}else{
-				query={"consumer.userid":userid,"suborder.status":{$nin:["orderreceived","accepted","inproduction","packing","factorytostore","storepickup","indelivery"]}}	
+				query={status:{$ne:"waitforapproval"},"consumer.userid":userid,"suborder.status":{$nin:["orderreceived","accepted","inproduction","packing","factorytostore","storepickup","indelivery"]}}	
 			}
 			///////////////////////////////////
 			_getCurrentAndPastOrders(self,query,criteriastatus)
@@ -2044,6 +2044,10 @@ var _validateCheckSumPayTm=function(self,paytmresponsedata,responseobject){
 	var STATUS=paytmresponsedata.STATUS;
 	var RESPCODE=paytmresponsedata.RESPCODE;
 	var TXNAMOUNT=paytmresponsedata.TXNAMOUNT;
+	var txndate=null;
+	if(paytmresponsedata.TXNDATE){
+		txndate=new Date(paytmresponsedata.TXNDATE)
+	}
 	var responseobject={
 	    "TXNID": TXNID,
 	    "BANKTXNID": BANKTXNID,
@@ -2058,7 +2062,7 @@ var _validateCheckSumPayTm=function(self,paytmresponsedata,responseobject){
 	    "MID": MID,
 	    "PAYMENTMODE":paytmresponsedata.PAYMENTMODE ,
 	    "REFUNDAMT": paytmresponsedata.REFUNDAMT,
-	    "TXNDATE":new Date(paytmresponsedata.TXNDATE),
+	    "TXNDATE":txndate,
 	    "IS_CHECKSUM_VALID": "N"
  		}
  	
@@ -2103,8 +2107,14 @@ var _updateOrderPaymentDatails=function(self,responseobject){
   // paymentsetdata.mode="paytm";
   // paymentsetdata.paymentid=generateId()
 	// paymentsetdata.status="approved";//if payment is done order status should set to approved
-	console.log(paymentsetdata)
-	OrderModel.update({orderid:responseobject.ORDERID},{$set:{status:"approved",payment:paymentsetdata}},function(err,paymentupdatestatus){
+	console.log(paymentsetdata);
+	var ordersetdata={};
+	if(responseobject.STATUS.toLowerCase()=="txn_success"){//if payment success then order status change to approved
+		ordersetdata={status:"approved",payment:paymentsetdata}
+	}else{
+		ordersetdata={payment:paymentsetdata}
+	}
+	OrderModel.update({orderid:responseobject.ORDERID},{$set:ordersetdata},function(err,paymentupdatestatus){
 		if(err){
 			logger.emit("error",{error:{code:"ED001",message:"Database Issue err::"+err}})
 		}else if(paymentupdatestatus==0){
@@ -2121,7 +2131,7 @@ var _updateOrderPaymentDatails=function(self,responseobject){
 					for(var i=0;i<order.suborder.length;i++){
 						// suborderids.push({order.suborder[i].suborderid});
 							//////////////////////////////////
-					_makeSubOrderPaymentDone(order.orderid,order.suborder[i].suborderid)
+					_makeSubOrderPaymentDone(order.orderid,order.suborder[i].suborderid,responseobject)
 					////////////////////////////////
 					}
 				}
@@ -2132,9 +2142,14 @@ var _updateOrderPaymentDatails=function(self,responseobject){
 		}
 	})
 }
-var _makeSubOrderPaymentDone=function(orderid,suborderid){
-
-	OrderModel.update({orderid:orderid,"suborder.suborderid":suborderid},{$set:{"suborder.$.buyerpayment.status":"done","suborder.$.buyerpayment.paiddate":new Date()}},function(err,suborderpaymentstaus){
+var _makeSubOrderPaymentDone=function(orderid,suborderid,responseobject){
+	var suborderpaymentdata={};
+	if(responseobject.STATUS.toLowerCase()=="txn_success"){
+		suborderpaymentdata={"suborder.$.buyerpayment.status":"done","suborder.$.buyerpayment.paiddate":new Date()}
+	}else{
+		suborderpaymentdata={"suborder.$.buyerpayment.status":"fail"}	
+	}
+	OrderModel.update({orderid:orderid,"suborder.suborderid":suborderid},{$set:suborderpaymentdata},function(err,suborderpaymentstaus){
 		if(err){
 			logger.emit("error","Database Issue :_makeSubOrderPaymentDone"+err)
 		}else if(suborderpaymentstaus==0){

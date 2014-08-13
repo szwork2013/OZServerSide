@@ -16,6 +16,7 @@ var s3bucket = new AWS.S3();
 var S=require("string");
 var __=require("underscore")
 var ProductLeadTimeModel=require("./product-leadtime-model");
+
 var ProductCatalog = function(productcatalogdata) {
   this.productcatalog=productcatalogdata;
 };
@@ -51,7 +52,7 @@ var _validateServiceCatalogData=function(self,branchid,providerid,categoryid,pro
 	}else if(productcatalog.price.value==undefined || productcatalog.price.value==""){
 		self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"Please enter value in price"}})
 	}else if(!isNumber(S(productcatalog.price.value))){
-		self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"price should be numeric"}})
+		self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"price should be numeric"}});
 	}else if(productcatalog.price.uom==undefined || productcatalog.price.uom==""){
 		self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"Please enter unit of measurement"}})
 	}else  if(["kg","no","ltr","lb","gm"].indexOf(productcatalog.price.uom.toLowerCase())<0){
@@ -127,7 +128,7 @@ var _isValidProviderID = function(self,branchid,providerid,categoryid,productcat
 		}else if(productProvider.length>0){
 			var loc = {address1:productProvider[0].branch.location.address1,address2:productProvider[0].branch.location.address2,address3:productProvider[0].branch.location.address3,area:productProvider[0].branch.location.area,geo:productProvider[0].branch.location.geo,city:productProvider[0].branch.location.city,district:productProvider[0].branch.location.district,state:productProvider[0].branch.location.state,country:productProvider[0].branch.location.country,zipcode:productProvider[0].branch.location.zipcode};
 			console.log("productProvider[0].branch @#@# "+JSON.stringify(productProvider[0].branch));
-			productcatalog.branch = {branchid:branchid,branchname:productProvider[0].branch.branchname,note:productProvider[0].branch.note,location:loc};
+			productcatalog.branch = {branchid:branchid,branchname:productProvider[0].branch.branchname,note:productProvider[0].branch.note,location:loc,contact_supports:productProvider[0].branch.contact_supports};
 
 			if(productProvider[0].providerlogo == undefined){
 				productcatalog.provider = {provideremail:productProvider[0].provideremail,providerid:productProvider[0].providerid,providerbrandname:productProvider[0].providerbrandname,providername:productProvider[0].providername,providercode:productProvider[0].providercode,paymentmode:productProvider[0].paymentmode};
@@ -160,7 +161,7 @@ var _isValidProviderID = function(self,branchid,providerid,categoryid,productcat
 }
 
 var _isValidCategoryID = function(self,branchid,providerid,categoryid,productcatalog,productProvider,user,productlogo){
-	console.log("_isValidCategoryID ");
+	console.log("_isValidCategoryID "+JSON.stringify(productProvider));
 	CategoryModel.find({status:{$ne:"deactive"},$or:[{"ancestors.categoryid":productProvider.category.categoryid},{categoryid:productProvider.category.categoryid}]},{categoryid:1,_id:0}).exec(function(err,doc){
 		if(err){
 			logger.emit("error","Database Error : _isValidCategoryID " + err);
@@ -189,17 +190,26 @@ var _getCategoryDataForProductCatalog = function(self,branchid,providerid,catego
 			self.emit("failedAddProductCatalog",{"error":{"code":"ED001","message":"Database Issue"}});
 		}else if(doc){
 			productcatalog.category = {id:doc.categoryid,categoryname:doc.categoryname,ancestors:doc.ancestors};
+			
 			var categorytags = [];
 			categorytags.push(doc.categoryname);
 			for(var i=0;i<doc.ancestors.length;i++){
 				if(S(doc.ancestors[i].categoryname).contains(" ")){
-	                categorytags=doc.ancestors[i].categoryname.split(" ");
+	                var categorytags1=doc.ancestors[i].categoryname.split(" ");
 					categorytags.push(doc.ancestors[i].categoryname);
+					categorytags=categorytags.concat(categorytags1);					
 				}else{
 					categorytags.push(doc.ancestors[i].categoryname);
 				}
-			}			
+			}
+			if(S(doc.categoryname).contains(" ")){
+	            var categorytags2=doc.categoryname.split(" ");
+				categorytags=categorytags.concat(categorytags2);
+			}else{
+				categorytags.push(doc.categoryname);
+			}
 			productcatalog.categorytags = categorytags;
+
 			///////////////////////////////////////////////////////////////////////////////////
 			_isProductNameIsSame(self,branchid,providerid,productcatalog,doc,user,productlogo);
 			///////////////////////////////////////////////////////////////////////////////////
@@ -353,12 +363,34 @@ var _isAuthorizedUserToUpdateProduct=function(self,providerid,productid,productc
 		}else{
 			if(productcatalog.categoryid == undefined){
 				/////////////////////////////////////////////////////////////////////
-		     	_updateProductCatalog(self,providerid,productid,productcatalog,user);
-			    /////////////////////////////////////////////////////////////////////
+				_updateProductCatalog(self,providerid,productid,productcatalog,user);
+				/////////////////////////////////////////////////////////////////////
 			}else{
+				/////////////////////////////////////////////////////////////////////////////////
 				_isValidProviderIDToUpdateProduct(self,providerid,productid,productcatalog,user);
+				/////////////////////////////////////////////////////////////////////////////////
 			}
-			
+
+		// 	ProductCatalogModel.findOne({productid:productid},{category:1,_id:0}).exec(function(err,product){
+		// 		if(err){
+		// 			logger.emit("error","Database Error : _isAuthorizedUserToUpdateProduct " + err);
+		// 			self.emit("failedUpdateProductCatalog",{"error":{"code":"ED001","message":"Database Issue"}});
+		// 		}else if(product){
+		// 			if(product.category.id == productcatalog.categoryid){
+		// 				console.log("same category");
+		// 				/////////////////////////////////////////////////////////////////////
+		// 		     	_updateProductCatalog(self,providerid,productid,productcatalog,user);
+		// 			    /////////////////////////////////////////////////////////////////////
+		// 			}else{
+		// 				console.log("different category");
+						// /////////////////////////////////////////////////////////////////////////////////
+						// _isValidProviderIDToUpdateProduct(self,providerid,productid,productcatalog,user);
+						// /////////////////////////////////////////////////////////////////////////////////
+		// 			}
+		// 		}else{
+		// 	  		self.emit("failedUpdateProductCatalog",{"error":{"code":"AD001","message":"Wrong productid"}});
+		// 	  	}
+		// 	});
 		}
 	})
 }
@@ -432,6 +464,7 @@ var _getCategoryDataToUpdateProductCatalog = function(self,providerid,productid,
 	});
 }
 var _updateProductCatalog = function(self,providerid,productid,productcatalog,user){
+	console.log("_updateProductCatalog");
 	var producttags_array;
 	if(S(productcatalog.productname).contains(" ")){
         producttags_array=productcatalog.productname.split(" ");
