@@ -25,7 +25,8 @@ var productcatalogSchema = mongoose.Schema({
           isprovidehomedelivery:{type:Boolean,default:false},
           isprovidepickup:{type:Boolean,default:true},
           isdeliverychargeinpercent:{type:Boolean,default:false}
-      }
+      },
+      contact_supports:[{type:String}]
     },
     provider:{providerid:String,provideremail:String,providerbrandname:String,providername:String,providerlogo:String,providercode:String,paymentmode:{cod:{type:Boolean},online:{type:Boolean}}},
     price:{value:{type:Number},currency:{type:String},uom:String},//uom means no,kg,liter

@@ -66,7 +66,7 @@ var _updateBranchProductsDetails=function(branchid){
 			logger.emit("error","Branch id is wrong");
 		}else{
 			var branch=providerbranch[0].branch;
-			var branchsetdata={branchid:branch.branchid,branchname:branch.branchname,note:branch.note,location:branch.location,delivery:branch.delivery}
+			var branchsetdata={branchid:branch.branchid,branchname:branch.branchname,note:branch.note,location:branch.location,delivery:branch.delivery,contact_supports:branch.contact_supports}
 			ProductCatalogModel.update({"branch.branchid":branchid},{$set:{branch:branchsetdata}},{multi:true},function(err,productproviderstatus){
 				if(err){
 					logger.emit("error","Database Issue _updateProductProviderDetails"+err)

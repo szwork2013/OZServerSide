@@ -292,7 +292,7 @@ exports.isLoggedIn=function(req,res){
     if(req.isAuthenticated()){
       user.emit("successfulIsLoggedIn",{success:{message:"User is in session",user:req.user}})
     }else{
-       user.emit("failedIsLoggedIn",{"error":{"code":"AL001","message":"Please login to coninue this operation"}});
+       user.emit("failedIsLoggedIn",{"error":{"code":"AL001","message":"Please login to continue this operation"}});
     }
 }
 exports.forgotPassword = function(req, res) {

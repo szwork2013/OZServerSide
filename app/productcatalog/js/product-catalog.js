@@ -128,7 +128,7 @@ var _isValidProviderID = function(self,branchid,providerid,categoryid,productcat
 		}else if(productProvider.length>0){
 			var loc = {address1:productProvider[0].branch.location.address1,address2:productProvider[0].branch.location.address2,address3:productProvider[0].branch.location.address3,area:productProvider[0].branch.location.area,geo:productProvider[0].branch.location.geo,city:productProvider[0].branch.location.city,district:productProvider[0].branch.location.district,state:productProvider[0].branch.location.state,country:productProvider[0].branch.location.country,zipcode:productProvider[0].branch.location.zipcode};
 			console.log("productProvider[0].branch @#@# "+JSON.stringify(productProvider[0].branch));
-			productcatalog.branch = {branchid:branchid,branchname:productProvider[0].branch.branchname,note:productProvider[0].branch.note,location:loc};
+			productcatalog.branch = {branchid:branchid,branchname:productProvider[0].branch.branchname,note:productProvider[0].branch.note,location:loc,contact_supports:productProvider[0].branch.contact_supports};
 
 			if(productProvider[0].providerlogo == undefined){
 				productcatalog.provider = {provideremail:productProvider[0].provideremail,providerid:productProvider[0].providerid,providerbrandname:productProvider[0].providerbrandname,providername:productProvider[0].providername,providercode:productProvider[0].providercode,paymentmode:productProvider[0].paymentmode};
