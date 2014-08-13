@@ -2044,6 +2044,10 @@ var _validateCheckSumPayTm=function(self,paytmresponsedata,responseobject){
 	var STATUS=paytmresponsedata.STATUS;
 	var RESPCODE=paytmresponsedata.RESPCODE;
 	var TXNAMOUNT=paytmresponsedata.TXNAMOUNT;
+	var txndate=null;
+	if(paytmresponsedata.TXNDATE){
+		txndate=new Date(paytmresponsedata.TXNDATE)
+	}
 	var responseobject={
 	    "TXNID": TXNID,
 	    "BANKTXNID": BANKTXNID,
@@ -2058,7 +2062,7 @@ var _validateCheckSumPayTm=function(self,paytmresponsedata,responseobject){
 	    "MID": MID,
 	    "PAYMENTMODE":paytmresponsedata.PAYMENTMODE ,
 	    "REFUNDAMT": paytmresponsedata.REFUNDAMT,
-	    "TXNDATE":new Date(paytmresponsedata.TXNDATE),
+	    "TXNDATE":txndate,
 	    "IS_CHECKSUM_VALID": "N"
  		}
  	
