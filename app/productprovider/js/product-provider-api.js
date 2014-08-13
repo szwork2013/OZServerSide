@@ -670,7 +670,7 @@ exports.addEmployee=function(req,res){
         logger.emit("log","User does not exists to send invitation sendinvitetospnewuser");
       }else{
         var otpmodel=new OtpModel({_userId:user.userid});
-        otpmodel.save(function(err,otpdata){does not exists
+        otpmodel.save(function(err,otpdata){
           if(err){
             logger.emit("error","Database Issue :_createOtp/errormessage:"+err);
           }else if(otpdata){
