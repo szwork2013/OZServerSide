@@ -16,6 +16,7 @@ var s3bucket = new AWS.S3();
 var S=require("string");
 var __=require("underscore")
 var ProductLeadTimeModel=require("./product-leadtime-model");
+
 var ProductCatalog = function(productcatalogdata) {
   this.productcatalog=productcatalogdata;
 };
@@ -43,17 +44,17 @@ ProductCatalog.prototype.addProductCatalog = function(branchid,providerid,catego
 
 var _validateServiceCatalogData=function(self,branchid,providerid,categoryid,productcatalog,user,productlogo){
 	if(productcatalog==undefined){
-		self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"Please pass productcatalog"}})
+		self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"Please pass productcatalog"}});
 	}else if(productcatalog.productname==undefined || productcatalog.productname==""){
-		self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"Please pass productname"}})
+		self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"Please pass productname"}});
 	}else if(productcatalog.price==undefined || productcatalog.price==""){
-		self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"Please pass price"}})
+		self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"Please pass price"}});
 	}else if(productcatalog.price.value==undefined || productcatalog.price.value==""){
-		self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"Please pass value in price"}})
+		self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"Please pass value in price"}});
 	}else if(!isNumber(S(productcatalog.price.value))){
-		self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"price should be numeric"}})
+		self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"price should be numeric"}});
 	}else if(productcatalog.price.uom==undefined || productcatalog.price.uom==""){
-		self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"Please pass unit of measurement"}})
+		self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"Please pass unit of measurement"}});
 	}else  if(["kg","no","ltr","lb","gm"].indexOf(productcatalog.price.uom.toLowerCase())<0){
 		self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"unit of measurement should be kg,lt,lb,no,gm"}});
 	}else if(productcatalog.productdescription==undefined || productcatalog.productdescription==""){
@@ -160,7 +161,7 @@ var _isValidProviderID = function(self,branchid,providerid,categoryid,productcat
 }
 
 var _isValidCategoryID = function(self,branchid,providerid,categoryid,productcatalog,productProvider,user,productlogo){
-	console.log("_isValidCategoryID ");
+	console.log("_isValidCategoryID "+JSON.stringify(productProvider));
 	CategoryModel.find({status:{$ne:"deactive"},$or:[{"ancestors.categoryid":productProvider.category.categoryid},{categoryid:productProvider.category.categoryid}]},{categoryid:1,_id:0}).exec(function(err,doc){
 		if(err){
 			logger.emit("error","Database Error : _isValidCategoryID " + err);
@@ -189,17 +190,26 @@ var _getCategoryDataForProductCatalog = function(self,branchid,providerid,catego
 			self.emit("failedAddProductCatalog",{"error":{"code":"ED001","message":"Database Issue"}});
 		}else if(doc){
 			productcatalog.category = {id:doc.categoryid,categoryname:doc.categoryname,ancestors:doc.ancestors};
+			
 			var categorytags = [];
 			categorytags.push(doc.categoryname);
 			for(var i=0;i<doc.ancestors.length;i++){
 				if(S(doc.ancestors[i].categoryname).contains(" ")){
-	                categorytags=doc.ancestors[i].categoryname.split(" ");
+	                var categorytags1=doc.ancestors[i].categoryname.split(" ");
 					categorytags.push(doc.ancestors[i].categoryname);
+					categorytags=categorytags.concat(categorytags1);					
 				}else{
 					categorytags.push(doc.ancestors[i].categoryname);
 				}
-			}			
+			}
+			if(S(doc.categoryname).contains(" ")){
+	            var categorytags2=doc.categoryname.split(" ");
+				categorytags=categorytags.concat(categorytags2);
+			}else{
+				categorytags.push(doc.categoryname);
+			}
 			productcatalog.categorytags = categorytags;
+
 			///////////////////////////////////////////////////////////////////////////////////
 			_isProductNameIsSame(self,branchid,providerid,productcatalog,doc,user,productlogo);
 			///////////////////////////////////////////////////////////////////////////////////
@@ -351,14 +361,26 @@ var _isAuthorizedUserToUpdateProduct=function(self,providerid,productid,productc
 		}else if(!usersp){
 			self.emit("failedUpdateProductCatalog",{"error":{"message":"You are not authorized to update product details"}});
 		}else{
-			if(productcatalog.categoryid == undefined){
-				/////////////////////////////////////////////////////////////////////
-		     	_updateProductCatalog(self,providerid,productid,productcatalog,user);
-			    /////////////////////////////////////////////////////////////////////
-			}else{
-				_isValidProviderIDToUpdateProduct(self,providerid,productid,productcatalog,user);
-			}
-			
+			ProductCatalogModel.findOne({productid:productid},{category:1,_id:0}).exec(function(err,product){
+				if(err){
+					logger.emit("error","Database Error : _isAuthorizedUserToUpdateProduct " + err);
+					self.emit("failedUpdateProductCatalog",{"error":{"code":"ED001","message":"Database Issue"}});
+				}else if(product){
+					if(product.category.id == productcatalog.categoryid){
+						console.log("same category");
+						/////////////////////////////////////////////////////////////////////
+				     	_updateProductCatalog(self,providerid,productid,productcatalog,user);
+					    /////////////////////////////////////////////////////////////////////
+					}else{
+						console.log("different category");
+						/////////////////////////////////////////////////////////////////////////////////
+						_isValidProviderIDToUpdateProduct(self,providerid,productid,productcatalog,user);
+						/////////////////////////////////////////////////////////////////////////////////
+					}
+				}else{
+			  		self.emit("failedUpdateProductCatalog",{"error":{"code":"AD001","message":"Wrong productid"}});
+			  	}
+			});
 		}
 	})
 }
