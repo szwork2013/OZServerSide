@@ -2103,8 +2103,14 @@ var _updateOrderPaymentDatails=function(self,responseobject){
   // paymentsetdata.mode="paytm";
   // paymentsetdata.paymentid=generateId()
 	// paymentsetdata.status="approved";//if payment is done order status should set to approved
-	console.log(paymentsetdata)
-	OrderModel.update({orderid:responseobject.ORDERID},{$set:{status:"approved",payment:paymentsetdata}},function(err,paymentupdatestatus){
+	console.log(paymentsetdata);
+	var ordersetdata={};
+	if(responseobject.STATUS.toLowerCase()=="txn_success"){//if payment success then order status change to approved
+		ordersetdata={status:"approved",payment:paymentsetdata}
+	}else{
+		ordersetdata={payment:paymentsetdata}
+	}
+	OrderModel.update({orderid:responseobject.ORDERID},{$set:ordersetdata},function(err,paymentupdatestatus){
 		if(err){
 			logger.emit("error",{error:{code:"ED001",message:"Database Issueerr::"+err}})
 		}else if(paymentupdatestatus==0){
@@ -2121,7 +2127,7 @@ var _updateOrderPaymentDatails=function(self,responseobject){
 					for(var i=0;i<order.suborder.length;i++){
 						// suborderids.push({order.suborder[i].suborderid});
 							//////////////////////////////////
-					_makeSubOrderPaymentDone(order.orderid,order.suborder[i].suborderid)
+					_makeSubOrderPaymentDone(order.orderid,order.suborder[i].suborderid,responseobject)
 					////////////////////////////////
 					}
 				}
@@ -2132,9 +2138,14 @@ var _updateOrderPaymentDatails=function(self,responseobject){
 		}
 	})
 }
-var _makeSubOrderPaymentDone=function(orderid,suborderid){
-
-	OrderModel.update({orderid:orderid,"suborder.suborderid":suborderid},{$set:{"suborder.$.buyerpayment.status":"done","suborder.$.buyerpayment.paiddate":new Date()}},function(err,suborderpaymentstaus){
+var _makeSubOrderPaymentDone=function(orderid,suborderid,responseobject){
+	var suborderpaymentdata={};
+	if(responseobject.STATUS.toLowerCase()=="txn_success"){
+		suborderpaymentdata={"suborder.$.buyerpayment.status":"done","suborder.$.buyerpayment.paiddate":new Date()}
+	}else{
+		suborderpaymentdata={"suborder.$.buyerpayment.status":"fail"}	
+	}
+	OrderModel.update({orderid:orderid,"suborder.suborderid":suborderid},{$set:suborderpaymentdata},function(err,suborderpaymentstaus){
 		if(err){
 			logger.emit("error","Database Issue :_makeSubOrderPaymentDone"+err)
 		}else if(suborderpaymentstaus==0){
