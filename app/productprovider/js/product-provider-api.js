@@ -621,7 +621,7 @@ exports.addMembersToGroup=function(req,res){
       }else if(!user){
         logger.emit("log","User does not exists to send invitation sendinvitetospuser");
       }else{
-        var message=S(template.template);does not exists to
+        var message=S(template.template);
         message.replaceAll("<providername>",branch.branchname);
         if(user.firstname!=undefined){
           message.replaceAll("<name>",user.firstname);  
