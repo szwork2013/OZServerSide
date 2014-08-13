@@ -41,7 +41,7 @@ var _validateSearchData = function(self,productsearchdata,foodtype){
 	}
 	console.log("foodtype : "+foodtype.length);
 	if(!productsearchdata.match(regex)){
-		self.emit("failedToSearchProduct",{"error":{"message":"Please pass valid search criteria"}});
+		self.emit("failedToSearchProduct",{"error":{"message":"Please enter valid search criteria"}});
 	}else if(S(productsearchdata).contains(",")){
 		// console.log("productsearchdata "+ productsearchdata);
 		// S(productsearchdata).replace(/,\s*$/, "");
@@ -203,7 +203,7 @@ var _applyLimitToProductCatalog=function(doc,callback){
 		}
 		callback(null,doc);
 	}else{
-		callback({error:{message:"No product found for specified criteria"}});
+		callback({error:{message:"No product matched specified criteria"}});
 	}
 }
 
@@ -255,13 +255,13 @@ var _applyDiscountCodesToProductCatalog=function(doc,callback){
 		  	// callback(null,doc);
 		});
 	}else{
-		callback({error:{message:"No product found for specified criteria"}});
+		callback({error:{message:"No product matched specified criteria"}});
 	}
 }
 
 var _successfulProductSearch = function(self,doc,boolean){
 	logger.emit("log","_successfulProductSearch");
-	self.emit("successfulProductSearch", {"success":{"message":"Getting Search Result Successfully","provider":doc,"loadmoreprovider":boolean}});
+	self.emit("successfulProductSearch", {"success":{"message":"Getting Search Results Successfully","provider":doc,"loadmoreprovider":boolean}});
 }
 
 function getRandomBranchIDs(arr, count) {
@@ -285,7 +285,7 @@ var _getrandomBranchIDs = function(self){
 		if(err){
 			self.emit("failedRandomProductSearch",{"error":{"code":"ED001","message":"Error in db to search random product"+err}});
 		}else if(doc.length==0){
-			self.emit("failedRandomProductSearch",{"error":{"message":"Product's not found"}});
+			self.emit("failedRandomProductSearch",{"error":{"message":"Product not found"}});
 		}else{
 			console.log("Doc : "+JSON.stringify(doc));
 			var arr = [];
@@ -311,7 +311,7 @@ var _randomProductSearch = function(self,branchids,boolean){
 		if(err){
 			self.emit("failedRandomProductSearch",{"error":{"code":"ED001","message":"Error in db to search random product"+err}});
 		}else if(doc.length==0){
-			self.emit("failedRandomProductSearch",{"error":{"message":"Product's not found"}});
+			self.emit("failedRandomProductSearch",{"error":{"message":"Product not found"}});
 		}else{
 			doc =__.uniq(doc,function(test1){
 			 	return test1.branchid;
@@ -335,7 +335,7 @@ var _randomProductSearch = function(self,branchids,boolean){
 
 var _successfulRandomProductSearch = function(self,doc,boolean){
 	logger.emit("log","_successfulRandomProductSearch");
-	self.emit("successfulRandomProductSearch", {"success":{"message":"Getting RandomSearch Result Successfully","provider":doc,"loadmoreprovider":boolean}});
+	self.emit("successfulRandomProductSearch", {"success":{"message":"Getting Search Result Successfully","provider":doc,"loadmoreprovider":boolean}});
 }
 
 ProductSearch.prototype.loadmoreProvider = function(branchid){
@@ -354,7 +354,7 @@ var _getAllBranchIds = function(self,branchid){
 		if(err){
 			self.emit("failedLoadMoreProvider",{"error":{"code":"ED001","message":"Error in db to find branch id's "+err}});
 		}else if(doc.length==0){
-			self.emit("failedLoadMoreProvider",{"error":{"message":"No more provider"}});
+			self.emit("failedLoadMoreProvider",{"error":{"message":"No more seller(s) found"}});
 		}else{
 			var branchid_arr = [];
 			for(var i=0;i<doc.length;i++){				
@@ -383,7 +383,7 @@ var _loadmoreProvider = function(self,branchid){
 		if(err){
 			self.emit("failedLoadMoreProvider",{"error":{"code":"ED001","message":"Error in db to find branch id's "+err}});
 		}else if(doc.length==0){
-			self.emit("failedLoadMoreProvider",{"error":{"message":"No more provider"}});
+			self.emit("failedLoadMoreProvider",{"error":{"message":"No more seller(s) found"}});
 		}else{
 			console.log("DOC ### : "+JSON.stringify(doc));
 			var createdate = doc[0].createdate;
@@ -392,7 +392,7 @@ var _loadmoreProvider = function(self,branchid){
 				if(err){
 					self.emit("failedLoadMoreProvider",{"error":{"code":"ED001","message":"Error in db to find branch id's "+err}});
 				}else if(branchids.length==0){
-					self.emit("failedLoadMoreProvider",{"error":{"message":"No more provider"}});
+					self.emit("failedLoadMoreProvider",{"error":{"message":"No more seller(s) found"}});
 				}else{
 					var branchid_arr = [];
 					for(var i=0;i<branchids.length;i++){				
@@ -424,14 +424,14 @@ var _fetchingResultToLoadMoreProvider = function(self,query_match){
 			self.emit("failedLoadMoreProvider",{"error":{"code":"ED001","message":"Error in db to loadmore provider "+err}});
 		}else if(doc.length == 0){
 			console.log("doc : "+JSON.stringify(doc));
-			self.emit("failedLoadMoreProvider",{"error":{"message":"No more provider"}});
+			self.emit("failedLoadMoreProvider",{"error":{"message":"No more seller(s) found"}});
 		}else{
 			doc =__.uniq(doc,function(test1){
 			 	return test1.branchid;
 			});
 			_applyLimitToProductCatalog(doc,function(err,result){
 				if(err){
-				   	self.emit("failedLoadMoreProvider",{"error":{"message":"No more provider"}});
+				   	self.emit("failedLoadMoreProvider",{"error":{"message":"No more seller(s) found"}});
 				}else{
 					_applyDiscountCodesToProductCatalog(result,function(err,result1){
 					    if(err){
@@ -470,7 +470,7 @@ var _fetchingResultToLoadMoreProduct = function(self,branchid,productid){
 				var query_match1={status:"publish","branch.branchid":branchid,productid:{$ne:productid},createdate:{$lte:doc.createdate}};
 				_queryExecution(self,query_match1);
 			}else{
-				self.emit("failedLoadMoreProduct",{"error":{"message":"Provided productid is wrong"}});
+				self.emit("failedLoadMoreProduct",{"error":{"message":"Incorrect productid"}});
 			}
 		});		
 	}
@@ -481,7 +481,7 @@ var _queryExecution = function(self,query_match){
 		if(err){
 			self.emit("failedLoadMoreProduct",{"error":{"code":"ED001","message":"Error in db to loadmore product "+err}});
 		}else if(productcatalog.length == 0){
-			self.emit("failedLoadMoreProduct",{"error":{"message":"No more product"}});
+			self.emit("failedLoadMoreProduct",{"error":{"message":"No more product(s) found"}});
 		}else{
 			// _successfulLoadMoreProduct(self,productcatalog);
 			_loadMoreProductCatalog(self,productcatalog);
@@ -509,7 +509,7 @@ var _loadMoreProductCatalog=function(self,productcatalog){
 
 var _successfulLoadMoreProduct = function(self,productcatalog){
 	logger.emit("log","_successfulLoadMoreProduct");
-	self.emit("successfulLoadMoreProduct", {"success":{"message":"Getting Load More Product Successfully","provider":productcatalog}});
+	self.emit("successfulLoadMoreProduct", {"success":{"message":"Loading More Product(s) Successfully","provider":productcatalog}});
 }
 
 ProductSearch.prototype.searchProvider = function(){
@@ -525,9 +525,9 @@ var _validateSearchProviderData = function(self,providername){
 	var query={status:"accept"};
 	
 	if(providername==undefined || providername==""){
-		self.emit("failedTosearchProvider",{"error":{"message":"Please pass provider name"}});
+		self.emit("failedTosearchProvider",{"error":{"message":"Please enter seller name"}});
 	}else if(!providername.match(letters)){
-		self.emit("failedTosearchProvider",{"error":{"message":"Please pass product name in alphabets only"}});
+		self.emit("failedTosearchProvider",{"error":{"message":"Please enter product name in alphabets only"}});
 	}else{
 		// var name_arr = [];
 		// if(S(providername).contains(",")){
@@ -552,7 +552,7 @@ var _validateSearchProviderData = function(self,providername){
 			if(err){
 				self.emit("failedTosearchProvider",{"error":{"code":"ED001","message":"Error in db to search provider "+err}});
 			}else if(doc.length==0){
-				self.emit("failedTosearchProvider",{"error":{"message":"Provider not found"}});
+				self.emit("failedTosearchProvider",{"error":{"message":"Seller not found"}});
 			}else{
 				//////////////////////////////////
 				successfulsearchProvider(self,doc);
@@ -564,5 +564,5 @@ var _validateSearchProviderData = function(self,providername){
 
 var successfulsearchProvider = function(self,doc){
 	logger.emit("log","successfulsearchProvider");
-	self.emit("successfulsearchProvider",{"success":{"message":"Getting Provider Details Successfully","provider":doc}});
+	self.emit("successfulsearchProvider",{"success":{"message":"Getting Seller Details Successfully","provider":doc}});
 }

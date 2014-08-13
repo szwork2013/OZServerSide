@@ -46,10 +46,10 @@ console.log("req body"+JSON.stringify(req.body));
     res.send(result);
   });
   if(!IsJsonString(ProductProviderdata)){
-    productprovider.emit("failedProductProviderRegistration",{error:{message:"productprovider should be json string"}})
+    productprovider.emit("failedProductProviderRegistration",{error:{message:"productprovider should be JSON string"}})
   }else{
     if(req.user.usertype!="provider"){
-      productprovider.emit("failedProductProviderRegistration",{error:{message:"You are not an provider user to add provider details"}});
+      productprovider.emit("failedProductProviderRegistration",{error:{message:"Only seller group user can add seller details"}});
     }else{
       productprovider.addProductProvider(req.user,providerlogo);
     }
@@ -77,7 +77,7 @@ exports.acceptrejectProductProvider=function(req,res){
     res.send(result);
   });
     if(req.user.isAdmin==false){
-      productprovider.emit("failedProductProviderAcceptance",{error:{message:"You are not an admin user to done this action"}});
+      productprovider.emit("failedProductProviderAcceptance",{error:{message:"Only orderZapp admin user can accept or reject sellers"}});
     }else{
       productprovider.acceptrejectProductProvider(providerid,action,req.user);
     }
@@ -106,7 +106,7 @@ var branchid = req.params.branchid;
     res.send(result);
   });
     if(req.user.usertype!="provider"){
-      productprovider.emit("failedAddProviderPolicy",{error:{message:"You are not an provider user to add policy details"}});
+      productprovider.emit("failedAddProviderPolicy",{error:{message:"Only seller admin user can add policy details"}});
     }else{
       productprovider.addProviderPolicy(providerid,branchid,type,text,req.user);
     }
@@ -184,7 +184,7 @@ exports.updateProviderPolicy=function(req,res){
     res.send(result);
   });
     if(req.user.usertype!="provider"){
-      productprovider.emit("failedUpdateProviderPolicy",{error:{message:"You are not an provider user to update policy details"}});
+      productprovider.emit("failedUpdateProviderPolicy",{error:{message:"Only seller admin user can update policy details"}});
     }else{
       productprovider.updateProviderPolicy(providerid,branchid,type,text,req.user);
     }
@@ -317,7 +317,7 @@ exports.getAllProductProviders=function(req,res){
     res.send(result);
   });
   if(req.user.isAdmin==false){
-    productprovider.emit("failedGetAllProductProviders",{"error":{"message":"You not an admin user to get provider details"}});
+    productprovider.emit("failedGetAllProductProviders",{"error":{"message":"Only orderZapp admin user can get seller details"}});
   }else{
     productprovider.getAllProductProviders();
   }  
@@ -366,7 +366,7 @@ exports.getAllMyBranches=function(req,res){
       res.send(result);
     });  
     if(req.user.provider.length==0){
-      productprovider.emit("failedGetAllMyBranches",{"error":{"message":"There is no Service Provider associated with your account"}})
+      productprovider.emit("failedGetAllMyBranches",{"error":{"message":"Seller account does not exists"}})
     }else{
       productprovider.getAllMyBranches(req.user);
     }
@@ -396,7 +396,7 @@ exports.getAllMyProviders=function(req,res){
       res.send(result);
     });  
     if(req.user.provider.length==0){
-      productprovider.emit("failedGetAllMyProviders",{"error":{"message":"There is no ProductProvider Provider associated with your account"}})
+      productprovider.emit("failedGetAllMyProviders",{"error":{"message":"Seller account does not exists"}})
     }else{
       productprovider.getAllMyProviders(req.user);
     }
@@ -427,7 +427,7 @@ exports.getProviderBranches=function(req,res){
       res.send(result);
     });  
     if(req.user.provider.length==0){
-      productprovider.emit("failedGetAllMyProviderBranches",{"error":{"message":"There is no ProductProvider Provider associated with your account"}})
+      productprovider.emit("failedGetAllMyProviderBranches",{"error":{"message":"Seller Account Does Not Exists"}})
     }else{
       productprovider.getAllMyProviderBranches(req.user,providerid);
     }
@@ -526,7 +526,7 @@ exports.addGroupToBranch=function(req,res){
   if(req.user.usertype=="provider"){
     productprovider.addGroupToBranch(req.user,providerid,branchid,groupdata);
   }else{
-    self.emit("failedAddGroupToBranch",{"error":{code:"EA001",message:"You are not an provider to add new group"}});
+    self.emit("failedAddGroupToBranch",{"error":{code:"EA001",message:"Only Sellers can add a user group"}});
   } 
 }
 exports.removeGroupFromBranch = function(req,res){
@@ -552,7 +552,7 @@ exports.removeGroupFromBranch = function(req,res){
   if(req.user.usertype=="provider"){
     productprovider.removeGroupFromBranch(req.user,branchid,groupid);
   }else{
-    self.emit("failedRemoveGroupFromBranch",{"error":{code:"EA001",message:"You are not an provider to remove group"}});
+    self.emit("failedRemoveGroupFromBranch",{"error":{code:"EA001",message:"Only Sellers can remove a group"}});
   } 
 }
 exports.addMembersToGroup=function(req,res){
@@ -581,7 +581,7 @@ exports.addMembersToGroup=function(req,res){
       if(err){
         logger.emit("error","Database Issue"+err)
       }else if(!user){
-        logger.emit("log","User not found to send invitation sendinvitetospnewuser");
+        logger.emit("log","User does not exists to send invitation sendinvitetospnewuser");
       }else{
         var otpmodel=new OtpModel({_userId:user.userid});
         otpmodel.save(function(err,otpdata){
@@ -619,9 +619,9 @@ exports.addMembersToGroup=function(req,res){
       if(err){
         logger.emit("error","Database Issue"+err)
       }else if(!user){
-        logger.emit("log","User not found to send invitation sendinvitetospuser");
+        logger.emit("log","User does not exists to send invitation sendinvitetospuser");
       }else{
-        var message=S(template.template);
+        var message=S(template.template);does not exists to
         message.replaceAll("<providername>",branch.branchname);
         if(user.firstname!=undefined){
           message.replaceAll("<name>",user.firstname);  
@@ -641,7 +641,7 @@ exports.addMembersToGroup=function(req,res){
   if(req.user.usertype=="provider"){
     productprovider.addMembersToGroup(req.user,branchid,groupid,invites);
   }else{
-    self.emit("failedAddMembersToGroup",{"error":{code:"EA001",message:"You are not an provider to add member to group"}});
+    self.emit("failedAddMembersToGroup",{"error":{code:"EA001",message:"Only Seller can add member to user group"}});
   } 
 }
 exports.addEmployee=function(req,res){
@@ -667,10 +667,10 @@ exports.addEmployee=function(req,res){
       if(err){
         logger.emit("error","Database Issue"+err)
       }else if(!user){
-        logger.emit("log","User not found to send invitation sendinvitetospnewuser");
+        logger.emit("log","User does not exists to send invitation sendinvitetospnewuser");
       }else{
         var otpmodel=new OtpModel({_userId:user.userid});
-        otpmodel.save(function(err,otpdata){
+        otpmodel.save(function(err,otpdata){does not exists
           if(err){
             logger.emit("error","Database Issue :_createOtp/errormessage:"+err);
           }else if(otpdata){
@@ -703,7 +703,7 @@ exports.addEmployee=function(req,res){
       if(err){
         logger.emit("error","Database Issue"+err)
       }else if(!user){
-        logger.emit("log","User not found to send invitation sendinvitetospuser");
+        logger.emit("log","User does not exists to send invitation sendinvitetospuser");
       }else{
         var message=S(template.template);
         message.replaceAll("<providername>",branch.branchname);
@@ -760,7 +760,7 @@ exports.getAllNewProductProviders=function(req,res){
     res.send(result);
   });
   if(req.user.isAdmin == false){
-    productprovider.emit("failedAddMembersToGroup",{"error":{code:"EA001",message:"You are not an admin user to done this action"}});
+    productprovider.emit("failedAddMembersToGroup",{"error":{code:"EA001",message:"Only OrderZapp admin user can get all new seller signups"}});
   }else{
     productprovider.getAllNewProductProviders(req.user);
   }
@@ -814,7 +814,7 @@ exports.sellersAgreementUpload=function(req,res){
       res.send(result);
     });
     if(req.user.isAdmin == false){
-      productprovider.emit("failedUploadSellersAgreement",{error:{message:"You are not an admin user to upload agreement details"}});
+      productprovider.emit("failedUploadSellersAgreement",{error:{message:"Only OrderZapp admin user can upload seller agreement details"}});
     }else{
       productprovider.sellersAgreementUpload(providerid,req.user,agreementfile);
     }  
@@ -864,7 +864,7 @@ exports.changeSellersAgreementFile=function(req,res){
     res.send(result);
   });
   if(req.user.isAdmin == false){
-    productprovider.emit("failedChangeSellersAgreement",{error:{message:"You are not an admin user to change agreement details"}});
+    productprovider.emit("failedChangeSellersAgreement",{error:{message:"Only OrderZapp admin user can change seller agreement details"}});
   }else{
     productprovider.changeSellersAgreementFile(providerid,req.user,agreementfile);
   }   

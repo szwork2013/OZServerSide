@@ -47,7 +47,7 @@ var _sendOTPToMobileNumber=function(mobileno,otp,tempname,lang,callback){
             }
           }) 
         }else{
-          callback({"error":{"message":"sms format not found "+tempname}})
+          callback({"error":{"message":"SMS format not found "+tempname}})
         }
       })
     }else{
@@ -83,11 +83,11 @@ var verifyMobileNumber=function(otp,callback){
           	}
           })
         }else{
-       		callback({"error":{"message":"Userid is wrong"}});  	
+       		callback({"error":{"message":"Incorrect User id"}});  	
         }
       })
     }else{
-    	callback({"error":{"message":"OTP is wrong or expired"}}); 
+    	callback({"error":{"message":"Incorrect or expired OTP"}}); 
     }
   })
 }
@@ -112,16 +112,16 @@ var sendWelcomeSms=function(user,callback){
          logger.emit("error","Database error:/sendWelcomeSms"+err);
 			   callback({"error":{"code":"ED001","message":"Database Issue"}})
         }else if(!caresmstemplate){
-          logger.emit("error","smstemplate for care lang "+user.preffered_lang+" not exist");
-			    callback({"error":{"message":"Sms template Issue"}})
+          logger.emit("error","smstemplate for care lang "+user.preffered_lang+" does not exist");
+			    callback({"error":{"message":"SMS template Issue"}})
         }else{
           SMSFormatModel.findOne({name:"care"},function(err,careformat){
             if(err){
               logger.emit("error","Database error:/sendWelcomeSms"+err);
 			 			 callback({"error":{"code":"ED001","message":"Database Issue"}})
             }else if(!careformat){
-              logger.emit("error","smsformat for care  not exist");
-			  			callback({"error":{"message":"SmsFormat collection not exist for care"}})
+              logger.emit("error","smsformat for care does not exist");
+			  			callback({"error":{"message":"SmsFormat collection does not exist for care"}})
             }else{
 
             	
@@ -138,7 +138,7 @@ var sendWelcomeSms=function(user,callback){
                    commonapi.sendMessage(" 3/3   \n"+care_template,mobileno,function(status){
                     if(user.phonetype="feature"){
                     	if(status=="failure"){
-                    		callback({"error":{"message":"Welcome Sms not sent to "+user.mobileno}})
+                    		callback({"error":{"message":"Welcome SMS not sent to "+user.mobileno}})
 											}else{
 												callback({"success":{"message":"User verified Successfully","user":user}});
                     	}
@@ -154,18 +154,18 @@ var sendWelcomeSms=function(user,callback){
                      commonapi.sendMessage("2/2   \n"+care_template,mobileno,function(status){
                        if(status=="failure"){
                        		logger.emit("error","");
-			  									callback({"error":{"message":"Welcome Sms not sent to "+user.mobileno}})
+			  									callback({"error":{"message":"Welcome SMS not sent to "+user.mobileno}})
                        }else{
-                       	callback({"success":{"message":"User verified Successfully","user":user}});
+                       	callback({"success":{"message":"User Verified Successfully","user":user}});
                        }
                     });//end of sendmessage
                   });//end of sendmessage              commonapi.sendMessage(template+"",mobileno,function(status){
                 }else{
                   commonapi.sendMessage(smstemplate+"",mobileno,function(status){
                     if(status=="failure"){
-                    	logger.emit("error","Welcome sms not sent to smartphone user "+user.mobileno);
+                    	logger.emit("error","Welcome SMS not sent to smartphone user "+user.mobileno);
                     }
-                    callback({"success":{"message":"User verified Successfully","user":user}});
+                    callback({"success":{"message":"User Verified Successfully","user":user}});
                   }) 
                 }
               }
@@ -175,7 +175,7 @@ var sendWelcomeSms=function(user,callback){
       })
     }else{
     	logger.emit("error","smstemplate for "+templatename+" lang "+user.preffered_lang+" not exist");
-			callback({"error":{"message":"Sms template Issue"}})
+			callback({"error":{"message":"SMS template Issue"}})
     }
   })
 }
@@ -184,7 +184,7 @@ var sendWelcomeSms=function(user,callback){
 var isValidEmail=function(email){
 
 	if(email==undefined){
-	 	return {"error":{"code":"AV001","message":"please pass emailid"}};
+	 	return {"error":{"code":"AV001","message":"please enter emailid"}};
 	}else if(email.trim().length==0){
 		return {"error":{"code":"AV001","message":"please enter emailid"}};
 	}else if(!regxemail.test(email)){
@@ -198,25 +198,25 @@ var _validateRegisterUser = function(self,userdata) {
 		//check if user exist in database
 		//abc(err,userdata,this)
 	if(userdata==undefined){
-		self.emit("failedUserRegistration",{"error":{"code":"AV001","message":"Please provide userdata"}});
+		self.emit("failedUserRegistration",{"error":{"code":"AV001","message":"Please enter userdata"}});
 	}else if(userdata.mobileno==undefined){
-		self.emit("failedUserRegistration",{"error":{"code":"AV001","message":"Please provide mobileno"}});
+		self.emit("failedUserRegistration",{"error":{"code":"AV001","message":"Please enter mobileno"}});
 	} else if(userdata.firstname==undefined){
     self.emit("failedUserRegistration",{"error":{"code":"AV001","message":"Please enter firstname"}});
   } else if(userdata.mobileno.trim()==""){
-		self.emit("failedUserRegistration",{"error":{"code":"AV001","message":"Please provide mobileno"}});
+		self.emit("failedUserRegistration",{"error":{"code":"AV001","message":"Please enter mobileno"}});
 	} else if(S(userdata.mobileno).isNumeric() && userdata.mobileno.length!=12){
-		self.emit("failedUserRegistration",{"error":{"code":"AV001","message":"Mobile number should be numeric and 10 digit"}});
+		self.emit("failedUserRegistration",{"error":{"code":"AV001","message":"Mobile number should be 10 digit numeric"}});
 	} else if(userdata.usertype==undefined || userdata.usertype==""){
     self.emit("failedUserRegistration",{"error":{"code":"AV001","message":"Please select usertype"}});   
   }else if(["individual","provider"].indexOf(userdata.usertype.toLowerCase())<0){
-	  self.emit("failedUserRegistration",{"error":{"code":"AV001","message":"usertype must be individual or provider"}});
+	  self.emit("failedUserRegistration",{"error":{"code":"AV001","message":"usertype must be individual or seller"}});
 	}else if(userdata.password==undefined || userdata.password==""){
     self.emit("failedUserRegistration",{"error":{"code":"AV001","message":"Please enter password"}});   
   }else if(userdata.username==undefined || userdata.username==""){
     self.emit("failedUserRegistration",{"error":{"code":"AV001","message":"please enter username"}});
   }else if(userdata.email==undefined || userdata.email==""){
-    self.emit("failedUserRegistration",{"error":{"code":"AV001","message":"please enter emai l"}});
+    self.emit("failedUserRegistration",{"error":{"code":"AV001","message":"please enter email"}});
   }else if(isValidEmail(userdata.email).error!=undefined){
     self.emit("failedUserRegistration",isValidEmail(userdata.email));
   }else{
@@ -225,7 +225,7 @@ var _validateRegisterUser = function(self,userdata) {
           logger.emit("error","Database Issue _validateRegisterUser "+err)
           self.emit("failedUserRegistration",{"error":{"code":"ED001","message":"Database Issue"}});
         }else if(!countrycode){
-          self.emit("failedUserRegistration",{"error":{"message":"Country code not exist for your country"}});
+          self.emit("failedUserRegistration",{"error":{"message":"Country code does not exist for your country"}});
         }else{
 
           // userdata.mobileno=countrycode.code+userdata.mobileno;
@@ -309,7 +309,7 @@ var _sendProviderTokenToMobileNumber=function(self,mobileno,passwordotp,tempname
   })
 }
 var _successfullSignupProivder=function(self){
-  self.emit("successfulUserRegistration",{success:{message:"You are an existing consumer user,please veify your new provider account with the verification token",code:"POTP"}})
+  self.emit("successfulUserRegistration",{success:{message:"You are an existing buyer, please verify your new seller account with verification token",code:"POTP"}})
 }
 var _checkUserNameAlreadyExists=function(self,userdata){
   UserModel.findOne({username:userdata.username},{username:1},function(err,usernamecheck){
@@ -376,7 +376,7 @@ User.prototype.verifyUser = function(otp) {
 };
 var _validateverifyUser=function(self,otp){
 	if(otp==undefined){
-		self.emit("failedVerifyUser",{"error":{"code":"AV001","message":"please pass otp"}});
+		self.emit("failedVerifyUser",{"error":{"code":"AV001","message":"please enter otp"}});
 	}else if(otp.trim().length==0){
 		self.emit("failedVerifyUser",{"error":{"code":"AV001","message":"please enter otp"}});
 	}else{
@@ -409,9 +409,9 @@ User.prototype.signin = function() {
 var _validateSignin=function(self,userdata){
   console.log("signin1");
   if(userdata==undefined){
-    self.emit("failedUserSignin",{"error":{"code":"AV001","message":"please provide userdata"}});
+    self.emit("failedUserSignin",{"error":{"code":"AV001","message":"please enter userdata"}});
   }else if(userdata.mobileno==undefined || userdata.mobileno==""){
-    self.emit("failedUserSignin",{"error":{"code":"AV001","message":"please provide Username or Email"}});
+    self.emit("failedUserSignin",{"error":{"code":"AV001","message":"please enter Username or Email"}});
   }else if(userdata.password==undefined || userdata.password==""){
     self.emit("failedUserSignin",{"error":{"code":"AV001","message":"please enter password"}});
   }else{
@@ -481,7 +481,7 @@ var _getUser=function(self,userid){
       _successfulUserGet(self,user);
       //////////////////////////////////
     }else{
-        self.emit("failedUserGet",{"error":{"code":"AU005","message":"Provided userid is wrong"}});
+        self.emit("failedUserGet",{"error":{"code":"AU005","message":"Incorrect User id"}});
     }
   })
 }
@@ -495,7 +495,7 @@ User.prototype.updateUser = function(userid) {
   if(userdata==undefined){
     self.emit("failedUserUpdation",{"error":{"code":"AV001","message":"Please provide userdata"}}); 
   }else if(userdata.payment!=undefined  ||userdata.verified!=undefined || userdata.status!=undefined || userdata.provider!=undefined){
-    self.emit("failedUserUpdation",{"error":{"code":"","message":"You can not update the given data"}});  
+    self.emit("failedUserUpdation",{"error":{"code":"","message":"You cannot update the user data"}});  
   }else{
     /////////////////////////////////////////
     _isContainsPassword(self,userid,userdata)
@@ -514,7 +514,7 @@ var _isContainsPassword=function(self,userid,userdata){
       commonapi.getBcryptString(userdata.password,function(err,newencryptedpasswrod){
         if(err){
           logger.emit("error","Error to encrypt password _updatePassword");
-          self.emit("failedUserUpdation",{"error":{"message":"Server Issue please try again"}}); 
+          self.emit("failedUserUpdation",{"error":{"message":"Server error! please try again"}}); 
         }else{
           userdata.password=newencryptedpasswrod;
           ////////////////////////////////////
@@ -537,9 +537,9 @@ var _checkUserNameAlreadyExistsForUpdateUser=function(self,userid,userdata){
     // body...
     if(err){
       logger.emit("error","Error to encrypt password _checkUserNameAlreadyExistsForUpdateUser");
-      self.emit("failedUserUpdation",{"error":{"message":"Server Issue please try again"}}); 
+      self.emit("failedUserUpdation",{"error":{"message":"Server error! please try again"}}); 
     } else if(user){
-      self.emit("failedUserUpdation",{"error":{"message":"Username already exist ,please give another username"}}); 
+      self.emit("failedUserUpdation",{"error":{"message":"Username already exists, please try another username"}}); 
     }else{
        /////////////////////////////////
         _updateUser(self,userid,userdata)
@@ -553,7 +553,7 @@ var _updateUser=function(self,userid,userdata){
       self.emit("failedUserUpdation",{"error":{"code":"ED001","message":"Error in db to update user data"}});
     }else if(userupdatestatus!=1){
 
-      self.emit("failedUserUpdation",{"error":{"code":"AU005","message":"Provided userid is wrong"}});
+      self.emit("failedUserUpdation",{"error":{"code":"AU005","message":"Incorrect Userid"}});
     }else{
       /////////////////////////////
       _successfulUserUpdation(self);
@@ -584,7 +584,7 @@ var _sendPasswordSetting=function(self,mobileno){
       logger.emit("error","sendPasswordSetting"+err)
       self.emit("failedSendPasswordSetting",{"error":{"code":"ED001","message":"Database Issue"}});
     }else if(!user){
-      self.emit("failedSendPasswordSetting",{"error":{"message":"Mobile Number is not associated with OrderZapp"}});
+      self.emit("failedSendPasswordSetting",{"error":{"message":"Mobile Number is no registered with OrderZapp"}});
     }else{
       ////////////////////////////////////////////
       _createOTPForPasswordSettings(self,user)
@@ -634,7 +634,7 @@ var _sendPasswordOtpToMobileNumber=function(self,mobileno,passwordotp,tempname,l
   })
 }
 var _successfullForgotPasswordSettings=function(self){
-  self.emit("successfulForgotPassword",{success:{message:"Forgot Password Setting send successfully"}});
+  self.emit("successfulForgotPassword",{success:{message:"Forgot Password Setting Send Successfully"}});
 }
 User.prototype.resetPasswordRequest = function(otp) {
   var self=this;
@@ -653,14 +653,14 @@ var _resetPasswordRequest=function(self,otp){
       logger.emit("error","Database error:/_resetPasswordRequest"+err);
       self.emit("failedresetPasswordRequest",{"error":{"code":"ED001","message":"Database Issue"}})   
     } else if(!otpdata){
-       self.emit("failedresetPasswordRequest",{"error":{"message":"OTP is wrong or expired"}}); 
+       self.emit("failedresetPasswordRequest",{"error":{"message":"Incorrect or expired OTP"}}); 
     }else{
       UserModel.findOne({ userid: otpdata._userId},function(err,user){
         if(err){
           logger.emit("error","Database error:/_resetPasswordRequest"+err);
           self.emit("failedresetPasswordRequest",{"error":{"code":"ED001","message":"Database Issue"}})             
         } else if(!user){
-          self.emit("failedresetPasswordRequest",{"error":{"message":"Userid is wrong"}});    
+          self.emit("failedresetPasswordRequest",{"error":{"message":"Incorrect User id"}});    
         }else{
           OtpModel.update({otp:otp,status:"active"},{$set:{status:"deactive"}},function(err,otpstatus){
             if(err){
@@ -684,15 +684,15 @@ var _sendNewPassWord=function(self,user){
   user.save(function(err,userdata){
     if(err){
       logger.emit("error","Database error:/_sendNewPassWord"+err);
-      self.emit("failedresetPasswordRequest",{"error":{"code":"ED001","message":"Database Issue"}})             
+      self.emit("failedresetPasswordRequest",{"error":{"code":"ED001","message":"Database Error"}})             
     }else{
       SMSTemplateModel.findOne({name:"newpassword",lang:user.preffered_lang},function(err,smstemplatedata){
         if(err){
           logger.emit("error","Database error:/_sendNewPassWord"+err);
-          self.emit("failedresetPasswordRequest",{"error":{"code":"ED001","message":"Database Issue"}})             
+          self.emit("failedresetPasswordRequest",{"error":{"code":"ED001","message":"Database Error"}})             
         }else if(!smstemplatedata){
           logger.emit("error","Template newpassword not found")
-          self.emit("failedresetPasswordRequest",{"error":{"message":"Template Issue"}})
+          self.emit("failedresetPasswordRequest",{"error":{"message":"Template Error"}})
         }else{
           var smstemplate=S(smstemplatedata.template);
           smstemplate=smstemplate.replaceAll("<password>",otp);
@@ -700,7 +700,7 @@ var _sendNewPassWord=function(self,user){
           commonapi.sendMessage(message,user.mobileno,function(result){
             if(result=="failure"){
               logger.emit("error","newpassword not sent to"+user.mobileno)
-              self.emit("failedresetPasswordRequest",{"error":{"message":"Server Issue"}})
+              self.emit("failedresetPasswordRequest",{"error":{"message":"Server Error"}})
             }else{
               ////////////////////////////////////
               _successfullNewPassword(self)
@@ -732,9 +732,9 @@ var _checkMobileNumberForRegenerateOTP=function(self,mobileno){
   UserModel.findOne({mobileno:mobileno},{mobileno:1,userid:1,preffered_lang:1},function(err,user){
     if(err){
       logger.emit("error","_regenerateOTP"+err)
-      self.emit("_regenerateOTP",{"error":{"code":"ED001","message":"Database Issue"}});
+      self.emit("_regenerateOTP",{"error":{"code":"ED001","message":"Database Error"}});
     }else if(!user){
-      self.emit("failedregenerateotp",{"error":{"message":"Mobile Number is not associated with OrderZapp"}});
+      self.emit("failedregenerateotp",{"error":{"message":"Mobile Number is not registered with OrderZapp"}});
     }else{
       ////////////////////////////////////////////
       _regenerateotp(self,user)
@@ -747,7 +747,7 @@ var _regenerateotp=function(self,user){
   otpmodel.save(function(err,otpdata){
     if(err){
       logger.emit("error","Database Issue :_regenerateotp/errormessage:"+err);
-      self.emit("failedregenerateotp",{"error":{"code":"ED001","message":"Database Issue"}});
+      self.emit("failedregenerateotp",{"error":{"code":"ED001","message":"Database Error"}});
     }else if(otpdata){
         var tempname="otp";
         var lang=user.preffered_lang; 
@@ -765,7 +765,7 @@ var _regenerateotp=function(self,user){
   })       
 }
 var _successfullRegenerateOTP=function(self){
-  self.emit("successfulregenerateotp",{"success":{"message":"OTP regnerated and sent successfully"}});
+  self.emit("successfulregenerateotp",{"success":{"message":"OTP regenerated and sent successfully"}});
 }
 User.prototype.joinproviderrequest = function(mobileno) {
   var self=this;
@@ -786,7 +786,7 @@ var _checkMobileNumberForJoinProviderRequest=function(self,mobileno){
       logger.emit("error","Database Issue :_checkMobileNumberForJoinProviderRequest/errormessage:"+err);
       self.emit("failedjoinproviderrequest",{"error":{"code":"ED001","message":"Database Issue"}});
     }else if(!user){
-       self.emit("failedjoinproviderrequest",{"error":{"message":"Mobile Number is not associated with OrderZapp"}}); 
+       self.emit("failedjoinproviderrequest",{"error":{"message":"Mobile Number is not registered with OrderZapp"}}); 
     }else{
       ///////////////////////////////////////////
       _createOTPForJoinProviderRequest(self,user)
@@ -798,8 +798,8 @@ var _createOTPForJoinProviderRequest=function(self,user){
   var otpmodel=new OtpModel({_userId:user.userid,otptype:"provider"});
   otpmodel.save(function(err,otpdata){
     if(err){
-      logger.emit("error","Database Issue :_createOTPForJoinProviderRequest/errormessage:"+err);
-      self.emit("failedjoinproviderrequest",{"error":{"code":"ED001","message":"Database Issue"}});
+      logger.emit("error","Database Error :_createOTPForJoinProviderRequest/errormessage:"+err);
+      self.emit("failedjoinproviderrequest",{"error":{"code":"ED001","message":"Database Error"}});
     }else if(otpdata){
         var tempname="joinproviderrequest";
         var lang=user.preffered_lang; 
@@ -813,19 +813,19 @@ var _createOTPForJoinProviderRequest=function(self,user){
 var _sendProviderOtpToMobileNumber=function(self,mobileno,passwordotp,tempname,lang){
   SMSTemplateModel.findOne({name:tempname,lang:lang},function(err,smstemplatedata){
     if(err){
-      logger.emit("error","Database Issue")
-     self.emit("failedjoinproviderrequest",{"error":{"message":"Database Issue"}})
+      logger.emit("error","Database Error")
+     self.emit("failedjoinproviderrequest",{"error":{"message":"Database Error"}})
     }else if(!smstemplatedata){
       logger.emit("error","Template "+tempname+" not found")
-      self.emit("failedjoinproviderrequest",{"error":{"message":"Template Issue"}})
+      self.emit("failedjoinproviderrequest",{"error":{"message":"Template Error"}})
     }else{
       var smstemplate=S(smstemplatedata.template);
       smstemplate=smstemplate.replaceAll("<otp>",passwordotp);
       var message=smstemplate.s;
       commonapi.sendMessage(message,mobileno,function(result){
         if(result=="failure"){
-          logger.emit("error","sms not sent to "+mobileno)
-          self.emit("failedjoinproviderrequest",{"error":{"message":"Server Issue "}}) 
+          logger.emit("error","SMS not sent to "+mobileno)
+          self.emit("failedjoinproviderrequest",{"error":{"message":"Server Error "}}) 
         }else{
          ////////////////////////////////////
          _successfullJoinProviderRequest(self)
@@ -836,7 +836,7 @@ var _sendProviderOtpToMobileNumber=function(self,mobileno,passwordotp,tempname,l
   })
 }
 var _successfullJoinProviderRequest=function(self){
-  self.emit("successfuljoinproviderrequest",{success:{message:"Provider Request Otp sent to your mobile number"}})
+  self.emit("successfuljoinproviderrequest",{success:{message:"Seller Request OTP sent to your mobile number"}})
 }
 User.prototype.confirmjoinproviderrequest = function(otp) {
   var self=this;
@@ -853,22 +853,22 @@ var _confirmjoinproviderrequest=function(self,otp){
   OtpModel.findOne({otp:otp,status:"active",otptype:"provider"},function(err,otpdata){
     if(err){
       logger.emit("error","Database error:/_confirmjoinproviderrequest"+err);
-      self.emit("failedconfirmjoinproviderrequest",{"error":{"code":"ED001","message":"Database Issue"}})   
+      self.emit("failedconfirmjoinproviderrequest",{"error":{"code":"ED001","message":"Database Error"}})   
     } else if(!otpdata){
-       self.emit("failedconfirmjoinproviderrequest",{"error":{"message":"OTP is wrong or expired"}}); 
+       self.emit("failedconfirmjoinproviderrequest",{"error":{"message":"Incorrect or expired OTP"}}); 
     }else{
       UserModel.findAndModify({ userid: otpdata._userId},[],{$set: {usertype:"provider"}},{new:false},function(err,user){
         if(err){
           logger.emit("error","Database error:/_confirmjoinproviderrequest"+err);
-          self.emit("failedconfirmjoinproviderrequest",{"error":{"code":"ED001","message":"Database Issue"}})             
+          self.emit("failedconfirmjoinproviderrequest",{"error":{"code":"ED001","message":"Database Error"}})             
         } else if(!user){
-          self.emit("failedconfirmjoinproviderrequest",{"error":{"message":"Userid is wrong"}});    
+          self.emit("failedconfirmjoinproviderrequest",{"error":{"message":"Incorrect Userid"}});    
         }else{
           OtpModel.update({otp:otp,status:"active"},{$set:{status:"deactive"}},function(err,otpstatus){
             if(err){
               logger.emit("error","Database error:/_confirmjoinproviderrequest"+err);
             }else{
-              logger.emit("log","otp set to deactive") 
+              logger.emit("log","OTP set to deactive") 
             }
           })
           /////////////////////////////////
@@ -923,7 +923,7 @@ var _isValidProduct = function(self,productid,userid){
       _checkAlreadyRecommendedByUser(self,product,userid);
       //////////////////////////////////////
     }else{
-        self.emit("failedProductRecommend",{"error":{"code":"AU005","message":"productid is wrong"}});
+        self.emit("failedProductRecommend",{"error":{"code":"AU005","message":"Incorrect productid"}});
     }
   })
 }
@@ -949,7 +949,7 @@ var _productRecommend = function(self,product,userid){
     if(err){
       self.emit("failedProductRecommend",{"error":{"code":"ED001","message":"Error in db to update user"}});
     }else if(user!=1){
-      self.emit("failedProductRecommend",{"error":{"code":"AU005","message":"wrong userid"}});      
+      self.emit("failedProductRecommend",{"error":{"code":"AU005","message":"Incorrect userid"}});      
     }else{
       ////////////////////////////////
       _successfulProductRecommend(self);
@@ -1010,7 +1010,7 @@ var _getMyDeliveryAddressHistory=function(self,userid){
     if(err){
       self.emit("failedGetMyDeliveryAddressHistory",{error:{message:"Database Issue",code:"ED001"}})
     }else if(deliveryaddresses.length==0){
-      self.emit("failedGetMyDeliveryAddressHistory",{error:{message:"No Delivery ADdress history exist"}})
+      self.emit("failedGetMyDeliveryAddressHistory",{error:{message:"No Delivery Address history exists"}})
     }else{
       ///////////////////////////////////////////
       _successfullGetMYDeliveryAddressHistory(self,deliveryaddresses)
@@ -1019,5 +1019,5 @@ var _getMyDeliveryAddressHistory=function(self,userid){
   })
 }
 var _successfullGetMYDeliveryAddressHistory=function(self,deliveryaddresses){
-  self.emit("successfulGetMyDeliveryAddressHistory",{success:{message:"Getting My Delivery Address History successfully",deliveryaddresses:deliveryaddresses}})
+  self.emit("successfulGetMyDeliveryAddressHistory",{success:{message:"Getting My Delivery Address History Successfully",deliveryaddresses:deliveryaddresses}})
 }

@@ -83,7 +83,7 @@ exports.verifyUser=function(req,res){
           if(err){
             logger.emit("error","Database Issue"+err,user.userid) 
           }else if(!smstemplatedata){
-            logger.emit("error","Sms TEMPLATE for newpassword for lang"+user.preffered_lang+" not found");
+            logger.emit("error","SMS TEMPLATE for newpassword for lang"+user.preffered_lang+" not found");
           }else{
             var smstemplate=S(smstemplatedata.template);
             smstemplate=smstemplate.replaceAll("<password>",otp);
@@ -165,7 +165,7 @@ exports.signin = function(req, res) {
         console.log("user_data.usertype"+user_data.usertype);
         
          if(userdata.usertype!=undefined && user_data.usertype=="individual"){
-           user.emit("failedUserSignin",{"error":{code:"AU001", message: 'username or password is Invalid' }});
+           user.emit("failedUserSignin",{"error":{code:"AU001", message: 'Username or password is invalid' }});
          }else{
 
          
@@ -207,14 +207,14 @@ passport.use( new LocalStrategy({ usernameField: 'mobileno', passwordField: 'pas
             return done(err);
           } else if( isMatch ) {   
              if(user.verified==false){
-              return done(null,false,{code:"AU003",message:"Please verifiy or resend otp to mobileno"});   
+              return done(null,false,{code:"AU003",message:"Please verify or resend otp to mobileno"});   
              }else{
               return done(null, user);  
              }       
             
           }else{
             logger.emit("error","Invalid password",user.userid);
-            return done(null, false, {code:"AU002", message: 'username or password is Invalid' });
+            return done(null, false, {code:"AU002", message: 'Username or password is invalid' });
           }
       });
     }
@@ -272,7 +272,7 @@ exports.updateUser = function(req, res) {
     if(sessionuserid==userid){
       user.updateUser(userid);
     }else{
-     user.emit("failedUserUpdation",{"error":{"code":"EA001","message":"You are not authorized to perform this action"}})
+     user.emit("failedUserUpdation",{"error":{"code":"EA001","message":"Only authorized users can perform this action"}})
     }
     
 }
@@ -290,9 +290,9 @@ exports.isLoggedIn=function(req,res){
       res.send(result);
     });
     if(req.isAuthenticated()){
-      user.emit("successfulIsLoggedIn",{success:{message:"User is in session",user:req.user}})
+      user.emit("successfulIsLoggedIn",{success:{message:"User in session",user:req.user}})
     }else{
-       user.emit("failedIsLoggedIn",{"error":{"code":"AL001","message":"Please login to coninue this operation"}});
+       user.emit("failedIsLoggedIn",{"error":{"code":"AL001","message":"Please login to continue"}});
     }
 }
 exports.forgotPassword = function(req, res) {
@@ -385,13 +385,13 @@ exports.confirmjoinproviderrequest=function(req,res){
       if(err){
         user.emit("failedconfirmjoinproviderrequest",{"error":{"message":"Database Issue",code:"ED001"}})
       }else if(!userdata){
-        user.emit("failedconfirmjoinproviderrequest",{"error":{"message":"userid is wrong"}})
+        user.emit("failedconfirmjoinproviderrequest",{"error":{"message":"Incorrect User id"}})
       }else{
         userdata.password=undefined;
         req.logIn(userdata,function(err) {
           if (err){
             logger.emit("error","confirmjoinproviderrequest"+err);
-            user.emit("failedconfirmjoinproviderrequest",{"error":{"message":"Signin Issue"}})
+            user.emit("failedconfirmjoinproviderrequest",{"error":{"message":"Signin Error"}})
           }else{
             res.send(result);
           }
@@ -461,7 +461,7 @@ exports.userordersCount = function(req, res) {
     res.send(result);
   });
   if(req.user.isAdmin==false){
-      user.emit("failedGetUserOrdersCount",{"error":{"message":"You are not authorized to get user details"}});
+      user.emit("failedGetUserOrdersCount",{"error":{"message":"Only authorized users can get user details"}});
     }else{
       user.userordersCount(sessionuserid);
     }  
@@ -483,7 +483,7 @@ exports.getMyDeliveryAddressHistory = function(req, res) {
     res.send(result);
   });
   if(sessionuserid!=userid){
-    user.emit("failedGetMyDeliveryAddressHistory",{error:{code:"EA001",message:"Your are not authorized to get delivery addres history"}})
+    user.emit("failedGetMyDeliveryAddressHistory",{error:{code:"EA001",message:"Only authorized users can get delivery address history"}})
   }else{
     ////////////////////////////////////////
     user.getMyDeliveryAddressHistory(userid);

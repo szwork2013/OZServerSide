@@ -26,7 +26,7 @@ exports.addProductConfiguration=function(req,res){
       res.send(result);
     }); 
     if(req.user.isAdmin == false){
-      productconfig.emit("failedAddProductConfig",{error:{message:"You are not an admin user to add product config details"}});
+      productconfig.emit("failedAddProductConfig",{error:{message:"Only a user with admin role can add product config details"}});
     }else{
       productconfig.addProductConfiguration(categoryid,req.user);
     }
@@ -52,7 +52,7 @@ exports.getProductConfiguration=function(req,res){
       res.send(result);
     }); 
     if(req.user.isAdmin == false){
-      productconfig.emit("failedGetProductConfig",{error:{message:"You are not an admin user to get product config details"}});
+      productconfig.emit("failedGetProductConfig",{error:{message:"Only a user with admin role can get product config details"}});
     }else{
       productconfig.getProductConfiguration(req.user);
     }
@@ -80,7 +80,7 @@ exports.getProductConfigurationByCategory=function(req,res){
       res.send(result);
     }); 
     if(req.user.usertype!="provider"){
-      productconfig.emit("failedGetProductConfigByCategory",{error:{message:"You are not an provider user to get product config details"}});
+      productconfig.emit("failedGetProductConfigByCategory",{error:{message:"Only a user with admin role can get product config details"}});
     }else{
       productconfig.getProductConfigurationByCategory(categoryid,req.user);
     }
@@ -110,7 +110,7 @@ exports.updateProductConfiguration=function(req,res){
       res.send(result);
     }); 
     if(req.user.isAdmin == false){
-      productconfig.emit("failedUpdateProductConfig",{error:{message:"You are not an admin user to update product config details"}});
+      productconfig.emit("failedUpdateProductConfig",{error:{message:"Only a user with admin role can update product config details"}});
     }else{
       productconfig.updateProductConfiguration(categoryid,req.user);
     }
@@ -138,7 +138,7 @@ exports.deleteProductConfiguration=function(req,res){
       res.send(result);
     }); 
     if(req.user.isAdmin == false){
-      productconfig.emit("failedDeleteProductConfig",{error:{message:"You are not authorized to do this action"}});
+      productconfig.emit("failedDeleteProductConfig",{error:{message:"You are not authorized to do delete product configuration"}});
     }else{
       productconfig.deleteProductConfiguration(configid,req.user);
     }

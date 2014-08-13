@@ -24,7 +24,7 @@ var _validateAddTagsData = function(self,tagnames,user){
 	if(tagnames == undefined){
 		self.emit("failedAddTags",{"error":{"code":"AV001","message":"Please enter tagnames"}});
 	}else if(!isArray(tagnames)){
-		self.emit("failedAddTags",{"error":{"code":"AV001","message":"tagnames should be an array"}});
+		self.emit("failedAddTags",{"error":{"code":"AV001","message":"tagnames should be an JSON array"}});
 	}else if(tagnames.length == 0){
 		self.emit("failedAddTags",{"error":{"code":"AV001","message":"Please enter atleast one tagname"}});
 	}else{
@@ -42,7 +42,7 @@ var _checkTagNamesAlreadyExist = function(self,tagnames){
 	TagSearchModel.find({},{tagnames:1}).exec(function(err,tagdata){
 		if(err){
 			logger.emit("error","Database Error : _checkTagNamesAlreadyExist " + err);
-			self.emit("failedAddTags",{"error":{"code":"ED001","message":"Database Issue"}});
+			self.emit("failedAddTags",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(tagdata.length==0){
 			// self.emit("failedAddTags",{"error":{"message":"tagnames does not exist"}});
 			_addTags(self,tagnames);
@@ -58,7 +58,7 @@ var _addTags = function(self,tagnames){
 	tagnames.save(function(err,prod_catalog){
 		if(err){
 			logger.emit("error","Database Error:_addTags "+err);
-			self.emit("failedAddTags",{"error":{"code":"ED001","message":"Database Issue"}});
+			self.emit("failedAddTags",{"error":{"code":"ED001","message":"Database Error"}});
 		}else{
 			/////////////////////////
 			_successfulAddTags(self);
@@ -70,9 +70,9 @@ var _upadateTags = function(self,tagnames){
 	TagSearchModel.update({},{$addToSet:{tagnames:{$each:tagnames}}},function(err,updateStatus){
 		if(err){
 		  	logger.emit('error',"Database Issue fun:_upadateTags"+err);
-		  	self.emit("failedAddTags",{"error":{"code":"ED001","message":"Database Issue"}});
+		  	self.emit("failedAddTags",{"error":{"code":"ED001","message":"Database Error"}});
 	  	}else if(updateStatus==0){
-	  		self.emit("failedAddTags",{"error":{"message":"Server Issue"}});
+	  		self.emit("failedAddTags",{"error":{"message":"Server Error"}});
 	  	}else{
 	  		/////////////////////////
         	_successfulAddTags(self);
@@ -95,16 +95,16 @@ var _getTags = function(self,user){
 	TagSearchModel.find({},{tagnames:1,_id:0}).exec(function(err,tagdata){
 		if(err){
 			logger.emit("error","Database Error : _getTags " + err);
-			self.emit("failedGetTags",{"error":{"code":"ED001","message":"Database Issue"}});
+			self.emit("failedGetTags",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(tagdata.length==0){
-			self.emit("failedGetTags",{"error":{"message":"tagnames does not exist"}});
+			self.emit("failedGetTags",{"error":{"message":"tagnames does not exists"}});
 		}else{
 			_successfulGetTags(self,tagdata[0].tagnames);
 		}
 	});
 }
 var _successfulGetTags = function(self,tagnames){
-	self.emit("successfulGetTags",{"success":{"message":"Getting Tags Sucessfully",tagnames:tagnames}});
+	self.emit("successfulGetTags",{"success":{"message":"Getting Tags Successfully",tagnames:tagnames}});
 }
 
 TagSearch.prototype.deleteTags = function(user){
@@ -127,10 +127,10 @@ var _deleteTags = function(self,tagname,user){
 	console.log("tagname  22222222222: "+tagname);
 	TagSearchModel.update({},{$pull:{tagnames:tagname}},function(err,updateStatus){
 		if(err){
-		  	logger.emit('error',"Database Issue fun:_deleteTags"+err);
-		  	self.emit("failedDeleteTags",{"error":{"code":"ED001","message":"Database Issue"}});
+		  	logger.emit('error',"Database Error fun:_deleteTags"+err);
+		  	self.emit("failedDeleteTags",{"error":{"code":"ED001","message":"Database Error"}});
 	  	}else if(updateStatus==0){
-	  		self.emit("failedDeleteTags",{"error":{"message":"Server Issue"}});
+	  		self.emit("failedDeleteTags",{"error":{"message":"Server Error"}});
 	  	}else{
 	  		/////////////////////////
         	_successfulDeleteTags(self);
@@ -139,5 +139,5 @@ var _deleteTags = function(self,tagname,user){
 	});
 }
 var _successfulDeleteTags = function(self){
-	self.emit("successfulDeleteTags",{"success":{"message":"Tags Removed Sucessfully"}});
+	self.emit("successfulDeleteTags",{"success":{"message":"Tags Removed Successfully"}});
 }

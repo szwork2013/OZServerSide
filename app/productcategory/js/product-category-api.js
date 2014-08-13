@@ -23,7 +23,7 @@ exports.createProductCategory = function(req, res){
     if(req.user.isAdmin == true){
       product_category.createProductCategory(session_userid);
     }else{
-      product_category.emit("failedAddProductCategory",{error:{message:"You are not an admin user to add category"}});
+      product_category.emit("failedAddProductCategory",{error:{message:"Only admin user can add category"}});
     }
 }
 
@@ -48,7 +48,7 @@ exports.addSubCategory = function(req, res){
     if(req.user.isAdmin == true){
       product_category.addSubCategory(categoryid,session_userid);
     }else{
-      product_category.emit("failedAddSubCategory",{error:{message:"You are not an admin user to add subcategory"}});
+      product_category.emit("failedAddSubCategory",{error:{message:"Only admin user can add subcategory"}});
     }
 }
 
@@ -93,7 +93,7 @@ exports.getAllLevelsProductCategory = function(req,res){
     if(req.user.isAdmin == true){
       product_category.getAllLevelsProductCategory(session_userid);
     }else{
-      product_category.emit("failedGetAllLevelsProductCategory",{error:{message:"You are not an admin user to get category details"}});
+      product_category.emit("failedGetAllLevelsProductCategory",{error:{message:"Only admin user can get category details"}});
     }
 }
 
@@ -117,7 +117,7 @@ exports.updateProductCategory = function(req,res){
     if(req.user.isAdmin == true){
       product_category.updateProductCategory(categoryid);
     }else{
-      product_category.emit("failedUpdateProductCategory",{error:{message:"You are not an admin user to update category details"}});
+      product_category.emit("failedUpdateProductCategory",{error:{message:"Only admin user can update category details"}});
     }
 }
 exports.getAllLevelOneCategory = function(req,res){

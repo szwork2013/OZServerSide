@@ -24,10 +24,10 @@ var isAuthorizedUserToManageGroup=function(userid,branchid,callback){
 			logger.emit("error","Database Issue: _isAuthorizedUserToManageGroup"+err);
 			callback({"error":{"message":"Database Issue"}});
 		}else if(userproductprovider.length==0){
-			callback({"error":{"message":"User not belongs to Product Provider branch"}});
+			callback({"error":{"message":"User does not belongs to seller branch"}});
 		}else{
 			 if(userproductprovider[0].provider.isOwner!=true){
-			 	 callback({"error":{"message":"You are not owner of ProductProvider to manage groups"}});
+			 	 callback({"error":{"message":"Only seller can manage user groups"}});
 			 }else{
 			    callback(null,true)
 			 }
@@ -43,7 +43,7 @@ ProviderGroup.prototype.addGroupToBranch = function(sessionuser,providerid,branc
 };
 var _validateBranchGroupData=function(self,sessionuser,providerid,branchid,groupdata){
 	if(groupdata==undefined){
-		self.emit("failedAddGroupToBranch",{"error":{code:"AV001",message:"Please provide groupdata"}});
+		self.emit("failedAddGroupToBranch",{"error":{code:"AV001",message:"Please enter groupdata"}});
 	}else if(groupdata.grpname==undefined || groupdata.grpname==""){
 		self.emit("failedAddGroupToBranch",{"error":{code:"AV001",message:"Please enter groupname"}});
 	}else if(groupdata.description==undefined || groupdata.description==""){
@@ -72,10 +72,10 @@ var _isAuthorizedUserToAddNewGroup=function(self,sessionuser,providerid,branchid
 
 		ProviderGroupModel.findOne({providerid:providerid,branchid:branchid,"usergrp.grpname":groupdata.grpname},function(err,providergroup){
 			if(err){
-				logger.emit("error","Database Issue: _checkGroupNameAlreadyExist"+err);
-				self.emit("failedAddGroupToBranch",{"error":{"message":"Database Issue"}});
+				logger.emit("error","Database Error: _checkGroupNameAlreadyExist"+err);
+				self.emit("failedAddGroupToBranch",{"error":{"message":"Database Error"}});
 			}else if(providergroup){
-				self.emit("failedAddGroupToBranch",{"error":{"message":"Group name already exists"}});
+				self.emit("failedAddGroupToBranch",{"error":{"message":"User Group name already exists"}});
 			}else{	
 				/////////////////////////////////////////////////////////////////
 				_addGroupToBranch(self,sessionuser,providerid,branchid,groupdata);
@@ -89,10 +89,10 @@ var _isAuthorizedUserToAddNewGroup=function(self,sessionuser,providerid,branchid
 		console.log("providerid"+providerid+" branchid"+branchid);
 		ProviderGroupModel.update({providerid:providerid,branchid:branchid},{$push:{usergrp:groupdata}},function(err,grpaddstatus){
 			if(err){
-				logger.emit("error","Database Issue: _checkGroupNameAlreadyExist"+err);
-				self.emit("failedAddGroupToBranch",{"error":{"message":"Database Issue"}});
+				logger.emit("error","Database Error: _checkGroupNameAlreadyExist"+err);
+				self.emit("failedAddGroupToBranch",{"error":{"message":"Database Error"}});
 			}else if(grpaddstatus==0){
-				self.emit("failedAddGroupToBranch",{"error":{"message":"Branch id is wrong"}});
+				self.emit("failedAddGroupToBranch",{"error":{"message":"Incorrect Branch id"}});
 			}else{
 				///////////////////////////////////
 				_successfullGroupAddToBranch(self);
@@ -101,7 +101,7 @@ var _isAuthorizedUserToAddNewGroup=function(self,sessionuser,providerid,branchid
 		})
 	}
 	var _successfullGroupAddToBranch=function(self){
-		self.emit("successfulAddGroupToBranch",{success:{message:"New group added to the branch"}});
+		self.emit("successfulAddGroupToBranch",{success:{message:"New user group added to the branch"}});
 	}
 
 ProviderGroup.prototype.removeGroupFromBranch = function(sessionuser,branchid,groupid) {
@@ -124,20 +124,20 @@ var _isAuthorizeUserToRemoveGroup=function(self,sessionuser,branchid,groupid){
 var _removeGroupFromBranch=function(self,branchid,groupid){
 	ProviderGroupModel.aggregate({$match:{branchid:branchid}},{$unwind:"$usergrp"},{$match:{"usergrp.groupid":groupid}},function(err,usergroup){
 		if(err){
-			logger.emit("error","Database Issue: _removeGroupFromBranch"+err);
-			self.emit("failedRemoveGroupFromBranch",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit("error","Database Error: _removeGroupFromBranch"+err);
+			self.emit("failedRemoveGroupFromBranch",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(usergroup.length==0){
-			self.emit("failedRemoveGroupFromBranch",{"error":{"message":"groupid is wrong"}});
+			self.emit("failedRemoveGroupFromBranch",{"error":{"message":"Incorrect groupid"}});
 		}else{
 			if(usergroup[0].usergrp.grpname=="admin"){
-				self.emit("failedRemoveGroupFromBranch",{"error":{"message":"You can not remove admin group"}});
+				self.emit("failedRemoveGroupFromBranch",{"error":{"message":"Cannot remove admin group"}});
 			}else{
 				ProviderGroupModel.update({branchid:branchid},{$pull:{usergrp:{groupid:groupid}}},function(err,groupremovestatus){
 					if(err){
 						logger.emit("error","Database Issue: _removeGroupFromBranch"+err);
-						self.emit("failedRemoveGroupFromBranch",{"error":{"code":"ED001","message":"Database Issue"}});
+						self.emit("failedRemoveGroupFromBranch",{"error":{"code":"ED001","message":"Database Error"}});
 					}else if(groupremovestatus==0){
-						self.emit("failedRemoveGroupFromBranch",{"error":{"message":"branchid is wrong"}});
+						self.emit("failedRemoveGroupFromBranch",{"error":{"message":"Incorrect branchid"}});
 					}else{
 						////////////////////////////////////////
 						_successfullRemoveGroupFromBranch(self);
@@ -161,11 +161,11 @@ ProviderGroup.prototype.addMembersToGroup = function(sessionuser,branchid,groupi
 };
 var _validateGroupMemberData=function(self,sessionuser,branchid,groupid,invites){
 	if(invites==undefined){
-		self.emit("failedAddMembersToGroup",{error:{message:"please provides invites data"}})
+		self.emit("failedAddMembersToGroup",{error:{message:"please enter invites data"}})
 	}else if(invites.grpname==undefined || invites.grpname==""){
-		self.emit("failedAddMembersToGroup",{error:{message:"please provides group name"}})
+		self.emit("failedAddMembersToGroup",{error:{message:"please enter group name"}})
 	}else if(!isArray(invites.members)){
-		self.emit("failedAddMembersToGroup",{error:{message:"invites should be an array"}})
+		self.emit("failedAddMembersToGroup",{error:{message:"invites should be an JSON array"}})
 	}else if(invites.members.length==0){
 		self.emit("failedAddMembersToGroup",{error:{message:"please enter atleast one member"}})
 	}else{
@@ -183,8 +183,8 @@ var _isAuthoRizedUserToAddGroupMember=function(self,sessionuser,branchid,groupid
 			console.log("_isAuthoRizedUserToAddGroupMember")
 			ProductProviderModel.aggregate({$unwind:"$branch"},{$match:{"branch.branchid":branchid}},{$project:{branchid:"$branch.branchid",branchname:"$branch.branchname",providerid:1,usergrp:"$branch.usergrp",providername:1}},function(err,providerbranch){
 				if(err){
-					logger.emit("error","Database Issue: _isAuthorizedUserToAddNewGroup"+err);
-	      		self.emit("failedAddMembersToGroup",{"error":{"message":"Database Issue"}});
+					logger.emit("error","Database Error: _isAuthorizedUserToAddNewGroup"+err);
+	      		self.emit("failedAddMembersToGroup",{"error":{"message":"Database Error"}});
 				}else if(providerbranch.length==0){
 					self.emit("failedAddMembersToGroup",{"error":{"message":"Branch does not exist"}});
 				}else{
@@ -216,7 +216,7 @@ var _addUserGrpDetailsToServiceBranch=function(self,branch,sessionuser,members,g
 		}
 	}
  if(userinvites.length==0){
- 	        self.emit("failedAddMembersToGroup",{"error":{"message":"Please pass valid mobileno and email"}});
+ 	        self.emit("failedAddMembersToGroup",{"error":{"message":"Please enter valid mobileno and email"}});
  }else{
  	var userinvitesmobileno=[];
  var uniqueuserinvites=[];
@@ -230,8 +230,8 @@ var _addUserGrpDetailsToServiceBranch=function(self,branch,sessionuser,members,g
 	
 	UserModel.find({mobileno:{$in:userinvitesmobileno}},{mobileno:1,username:1,email:1}).lean().exec(function(err,user){
     if(err){
-    	logger.emit("error","Database Issue,fun:_addServiceProviderDetailsToTheUser"+err,user.userid);
-	  	self.emit("failedAddMembersToGroup",{"error":{"code":"ED001","message":"Database Issue"}});
+    	logger.emit("error","Database Error,fun:_addServiceProviderDetailsToTheUser"+err,user.userid);
+	  	self.emit("failedAddMembersToGroup",{"error":{"code":"ED001","message":"Database Error"}});
     }else{
     	var existingusers=[];
     	 var existingmobileno=[];
@@ -267,8 +267,8 @@ var _addUserGrpDetailsToServiceBranch=function(self,branch,sessionuser,members,g
       	console.log("userdata"+JSON.stringify(userdata));
         UserModel.create(userdata,function(err,grpusers){
           if(err){
-          	logger.emit("error","Database Issue:fun/_addUserGrpDetailsToServiceProvider"+err)
-            self.emit("failedAddMembersToGroup",{"error":{"code":"ED001","message":"Database Issue"}});
+          	logger.emit("error","Database Error:fun/_addUserGrpDetailsToServiceProvider"+err)
+            self.emit("failedAddMembersToGroup",{"error":{"code":"ED001","message":"Database Error"}});
           }else if(grpusers){
           	/////////////////////////////////////////////////
             _sendSMSToInvitees(self,branch,grpname,existingusers,newusers,sessionuser,groupid);
@@ -290,7 +290,7 @@ var _sendSMSToInvitees = function(self,branch,grpname,existingusers,newusers,use
 		SMSTemplateModel.findOne({name:"productprovidermemberinvite"}).lean().exec(function(err,nespusertemplate){
 	  	if(err){
 	  		logger.emit("error","Database Issue :fun-_sendSMSToInvitees")
-	    	self.emit("failedAddMembersToGroup",{"error":{"code":"ED001","message":"Database Issue"}});
+	    	self.emit("failedAddMembersToGroup",{"error":{"code":"ED001","message":"Database Error"}});
 	  	}else if(nespusertemplate){
 	  		SMSTemplateModel.findOne({name:"productprovidermemberonlyinvite"}).lean().exec(function(err,spusertemplate){
 	  			if(err){
@@ -310,11 +310,11 @@ var _sendSMSToInvitees = function(self,branch,grpname,existingusers,newusers,use
 	            _addProviderProviderBranchDetailsToTheUser(self,branch,existingusers,user,grpname);
 	           //////////////////////////////////////////////////////////
 	    	}else{
-	  				self.emit("failedAddMembersToGroup",{"error":{"code":"ED002","message":"Server setup template issue"}});
+	  				self.emit("failedAddMembersToGroup",{"error":{"code":"ED002","message":"Server setup template Error"}});
 	  		}
 			})//end of orgmemberonlyinvite
 		}else{
-			self.emit("failedAddMembersToGroup",{"error":{"code":"ED002","message":"Server setup template issue"}});		
+			self.emit("failedAddMembersToGroup",{"error":{"code":"ED002","message":"Server setup template Error"}});		
 		}
 	})
 }
@@ -349,7 +349,7 @@ var _addProviderProviderBranchDetailsToTheUser=function(self,branch,existinguser
 	}
 	UserModel.update({mobileno:{$in:existingusers_mobileno},"provider.branchid":{$ne:branch.branchid}},{$addToSet:{provider:userprovidersetdata}},{multi:true},function(err,providerupdatestatus){
 	  if(err){
-	 		logger.emit("error","Database Issue,fun:_addServiceProviderDetailsToTheUser"+err,user.userid);
+	 		logger.emit("error","Database Error,fun:_addServiceProviderDetailsToTheUser"+err,user.userid);
 			// self.emit("failedAddMembersToGroup",{"error":{"code":"ED001","message":"Database Issue"}});
 	  }else if(providerupdatestatus==0){
 	  	
@@ -357,8 +357,8 @@ var _addProviderProviderBranchDetailsToTheUser=function(self,branch,existinguser
 	  }else{
 			UserModel.update({mobileno:{$in:existingusers_mobileno}},{$set:{usertype:"provider"}},{multi:true},function(err,providerstatus){
 			  if(err){
-			 		logger.emit("error","Database Issue,fun:_addServiceProviderDetailsToTheUser"+err,user.userid);
-					self.emit("failedAddMembersToGroup",{"error":{"code":"ED001","message":"Database Issue"}});
+			 		logger.emit("error","Database Error,fun:_addServiceProviderDetailsToTheUser"+err,user.userid);
+					self.emit("failedAddMembersToGroup",{"error":{"code":"ED001","message":"Database Error"}});
 			  }else if(providerstatus==0){
 			   	// logger.emit("failedAddMembersToGroup",{"error":{"message":"No user exists"}});
 			   	logger.emit("NO user find add provider details")
@@ -381,8 +381,8 @@ var _addBranchMembersToUserGroupOther=function(self,existingusers,newusers,branc
 	// console.log("mobidddddddddddlenos"+mobilenos)
 	UserModel.find({mobileno:{$in:mobilenos}},function(err,users){
 		if(err){
-			logger.emit("error","Database Issue _addProductProviderMembersToUserGroupOther"+err);
-			self.emit("failedAddMembersToGroup",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit("error","Database Error _addProductProviderMembersToUserGroupOther"+err);
+			self.emit("failedAddMembersToGroup",{"error":{"code":"ED001","message":"Database Error"}});
     }else if(users.length==0){
     	self.emit("failedAddMembersToGroup",{"error":{"message":"No user exists"}});
 		}else{
@@ -392,10 +392,10 @@ var _addBranchMembersToUserGroupOther=function(self,existingusers,newusers,branc
 			}
 			ProviderGroupModel.update({branchid:branch.branchid,"usergrp.groupid":groupid},{$addToSet:{"usergrp.$.grpmembers":{$each:grpmembers}}},function(err,addgrpstats){
 				if(err){
-					logger.emit("error","Database Issue _addProviderMembersToUserGroupOther"+err);
-					self.emit("failedAddMembersToGroup",{"error":{"code":"ED001","message":"Database Issue"}});
+					logger.emit("error","Database Error _addProviderMembersToUserGroupOther"+err);
+					self.emit("failedAddMembersToGroup",{"error":{"code":"ED001","message":"Database Error"}});
 				}else if(addgrpstats==0){
-					self.emit("failedAddMembersToGroup",{"error":{"message":"Given group id not exists"}});
+					self.emit("failedAddMembersToGroup",{"error":{"message":"group id does not exist"}});
 					// logger.emit("error","userinvte not added to the serviceproviderlist");
 				}else{
 					///////////////////////////////////////
@@ -407,7 +407,7 @@ var _addBranchMembersToUserGroupOther=function(self,existingusers,newusers,branc
 	})
 }
 var _succesfullAddMemberToGroup=function(self){
-	self.emit("successfulAddMembersToGroup",{success:{message:"Member added to group successfully"}})
+	self.emit("successfulAddMembersToGroup",{success:{message:"User added to group successfully"}})
 }
 ProviderGroup.prototype.getMyGroupMembers = function(sessionuser,providerid,branchid){
 	var self=this;
@@ -431,10 +431,10 @@ var _isAuthorizeUserToGetMemberDetails=function(self,sessionuser,providerid,bran
 	var _getMyGroupMembers=function(self,providerid,branchid){
 		ProviderGroupModel.findOne({providerid:providerid,branchid:branchid},function(err,providergroup){
 			if(err){
-				logger.emit("error","Database Issue: _getMyGroupMembers"+err);
-				self.emit("failedGetMyGroupMembers",{"error":{"message":"Database Issue"}});
+				logger.emit("error","Database Error: _getMyGroupMembers"+err);
+				self.emit("failedGetMyGroupMembers",{"error":{"message":"Database Error"}});
 			}else if(!providergroup){
-				self.emit("failedGetMyGroupMembers",{"error":{"message":"providergroup branchid is wrong"}});
+				self.emit("failedGetMyGroupMembers",{"error":{"message":"Incorrect user group branchid"}});
 			}else{
 				providergroup=JSON.stringify(providergroup);
 				providergroup=JSON.parse(providergroup);
@@ -447,10 +447,10 @@ var _isAuthorizeUserToGetMemberDetails=function(self,sessionuser,providerid,bran
 				console.log("userarray"+JSON.stringify(userarray))
 				UserModel.find({userid:{$in:userarray}},{user_avatar:1,firstname:1,mobileno:1,userid:1,email:1,username:1},function(err,groupmemers){
 					if(err){
-						logger.emit("error","Database Issue: _getMyGroupMembers"+err);
-			    	self.emit("failedGetMyGroupMembers",{"error":{"message":"Database Issue"}});
+						logger.emit("error","Database Error: _getMyGroupMembers"+err);
+			    	self.emit("failedGetMyGroupMembers",{"error":{"message":"Database Error"}});
 					}else if(groupmemers.length==0){
-						self.emit("failedGetMyGroupMembers",{"error":{"message":"No group members exists"}});		
+						self.emit("failedGetMyGroupMembers",{"error":{"message":"No group users exists"}});		
 					}else{
 						var userids=[];
 						for(var j=0;j<groupmemers.length;j++){
@@ -482,7 +482,7 @@ var _isAuthorizeUserToGetMemberDetails=function(self,sessionuser,providerid,bran
 		})
 	}
 	var _successfullGetMyGroupMembers=function(self,providergroup){
-		self.emit("successfulGetMyGroupMembers",{success:{message:"Getting Groupmembers successfully",usergrp:providergroup.usergrp}})
+		self.emit("successfulGetMyGroupMembers",{success:{message:"Getting Group users successfully",usergrp:providergroup.usergrp}})
 	}
 	ProviderGroup.prototype.removeMemberFromGroup = function(sessionuser,branchid,groupid,memberid){
 	var self=this;
@@ -499,10 +499,10 @@ var _isAuthorizeUserToGetMemberDetails=function(self,sessionuser,providerid,bran
    			logger.emit("log","Tesing");
    			ProductProviderModel.aggregate({$match:{"branch.branchid":branchid}},{$unwind:"$branch"},{$match:{"branch.branchid":branchid}},{$project:{branchid:"$branch.branchid",branchname:"$branch.branchname"}},function(err,branch){
    				if(err){
-   					logger.emit("error","Database Issue: _isAuthorizeToRemoveMemberFromUsergroup"+err);
-			      self.emit("failedRemoveMemberFromGroup",{"error":{"message":"Database Issue"}});
+   					logger.emit("error","Database Error: _isAuthorizeToRemoveMemberFromUsergroup"+err);
+			      self.emit("failedRemoveMemberFromGroup",{"error":{"message":"Database Error"}});
    				}else if(branch.length==0){
-   					 self.emit("failedRemoveMemberFromGroup",{"error":{"message":"branchid is wrong"}});
+   					 self.emit("failedRemoveMemberFromGroup",{"error":{"message":"Incorrect branchid"}});
    				}else{
    					logger.emit("log","Tesing11");
    					var branch=branch[0];
@@ -517,17 +517,17 @@ var _isAuthorizeUserToGetMemberDetails=function(self,sessionuser,providerid,bran
    var _isLastAdminGroupMember=function(self,sessionuser,branchid,groupid,memberid,branch){
    	ProviderGroupModel.aggregate({$match:{branchid:branchid}},{$unwind:"$usergrp"},{$match:{"usergrp.groupid":groupid}},function(err,usergroupdata){
    		if(err){
-   			logger.emit("error","Database Issue: _isLastAdminGroupMember"+err);
-			  self.emit("failedRemoveMemberFromGroup",{"error":{"message":"Database Issue"}});
+   			logger.emit("error","Database Error: _isLastAdminGroupMember"+err);
+			  self.emit("failedRemoveMemberFromGroup",{"error":{"message":"Database Error"}});
    		}else if(usergroupdata.length==0){
-   			self.emit("failedRemoveMemberFromGroup",{"error":{"message":"groupid is wrong"}});
+   			self.emit("failedRemoveMemberFromGroup",{"error":{"message":"Incorrect groupid"}});
    		}else{
    			var groupmemers=usergroupdata[0].usergrp.grpmembers;
    			console.log("Groupmembers"+JSON.stringify(usergroupdata[0]))	
    			if(groupmemers.indexOf(memberid)<0){
-   				self.emit("failedRemoveMemberFromGroup",{"error":{"message":"Given memberid does not exists in group"+usergroupdata[0].usergrp.grpname}});
+   				self.emit("failedRemoveMemberFromGroup",{"error":{"message":"User does not exists in group"+usergroupdata[0].usergrp.grpname}});
    			}else if(usergroupdata[0].usergrp.grpname.toLowerCase()=="admin" && groupmemers.length==1){
-   				self.emit("failedRemoveMemberFromGroup",{"error":{"message":"In Admin group atleast have one member"}});
+   				self.emit("failedRemoveMemberFromGroup",{"error":{"message":"Minimum one user required in the admin group"}});
    			}else{
    				/////////////////////////////////
    					_isMemberContainsInOtherGroup(self,sessionuser,branchid,groupid,memberid,branch,usergroupdata[0].usergrp)
@@ -539,10 +539,10 @@ var _isAuthorizeUserToGetMemberDetails=function(self,sessionuser,providerid,bran
    	var _isMemberContainsInOtherGroup=function(self,sessionuser,branchid,groupid,memberid,branch,groupdata){
    		ProviderGroupModel.aggregate({$match:{branchid:branchid}},{$unwind:"$usergrp"},{$match:{"usergrp.grpmembers":memberid}},function(err,groups){
    			if(err){
-   				logger.emit("error","Database Issue: _isMemberContainsInOtherGroup"+err);
-			    self.emit("failedRemoveMemberFromGroup",{"error":{"message":"Database Issue"}});
+   				logger.emit("error","Database Error: _isMemberContainsInOtherGroup"+err);
+			    self.emit("failedRemoveMemberFromGroup",{"error":{"message":"Database Error"}});
    			}else if(groups.length==0){	
-   				self.emit("failedRemoveMemberFromGroup",{"error":{"message":"memberid is wrong"}});
+   				self.emit("failedRemoveMemberFromGroup",{"error":{"message":"Incorrect userid"}});
    			}else{
    				if(groups.length==1){
    					if(sessionuser.userid==memberid){
@@ -574,7 +574,7 @@ var _isAuthorizeUserToGetMemberDetails=function(self,sessionuser,providerid,bran
 	   				logger.emit("error","Database Issue: _removeProviderBranchDetailsFromMember"+err);
 				    self.emit("failedRemoveMemberFromGroup",{"error":{"message":"Database Issue"}});
 	   			}else if(userproviderremovestatus==0){
-	   				self.emit("failedRemoveMemberFromGroup",{"error":{"message":"Member Does not exists"}});
+	   				self.emit("failedRemoveMemberFromGroup",{"error":{"message":"Group user does not exist"}});
 	   			}else{
 	   				//////////////////////////////////////////////////////////////////
 	   					_removeMemberFromBranch(self,sessionuser,branchid,groupid,memberid,branch,groupdata)
@@ -627,7 +627,7 @@ var _isAuthorizeUserToGetMemberDetails=function(self,sessionuser,providerid,bran
    		if(err){
    			logger.emit("error","Database Issue :_sendNotificatForRemovingMember"+err)
    		}else if(!user){
-   			logger.emit("error","member does not exists")
+   			logger.emit("error","Group user does not exist")
    		}else{
    			///////////////////////////
    			_sendSMSNotificationForRemovingMember(self,user,branch,groupdata)
@@ -665,13 +665,13 @@ ProviderGroup.prototype.updateGroupBranch = function(sessionuser,providerid,bran
 };
 var _validateUpdateBranchGroupData=function(self,sessionuser,providerid,branchid,groupdata,groupid){
 	if(groupdata==undefined){
-		self.emit("failedUpdateGroupBranch",{"error":{code:"AV001",message:"Please provide groupdata"}});
+		self.emit("failedUpdateGroupBranch",{"error":{code:"AV001",message:"Please enter groupdata"}});
 	}else if(groupdata.grpname==undefined || groupdata.grpname==""){
 		self.emit("failedUpdateGroupBranch",{"error":{code:"AV001",message:"Please enter groupname"}});
 	}else if(groupdata.description==undefined || groupdata.description==""){
 		self.emit("failedUpdateGroupBranch",{"error":{code:"AV001",message:"Please enter groupdescription"}});
 	}else if(groupdata.grpmembers!=undefined){
-		self.emit("failedUpdateGroupBranch",{"error":{code:"AV001",message:"You can not update groupmemers details"}});
+		self.emit("failedUpdateGroupBranch",{"error":{code:"AV001",message:"You cannot update groupmemers details"}});
 	}else{
 		groupdata.grpname=groupdata.grpname.toLowerCase();
 		///////////////////////////////////////////////////
@@ -696,10 +696,10 @@ var _isAuthorizedUserToUpdateGroup=function(self,sessionuser,providerid,branchid
 
 		ProviderGroupModel.aggregate({$match:{providerid:providerid,branchid:branchid}},{$unwind:"$usergrp"},{$match:{"usergrp.groupid":{$ne:groupid},"usergrp.grpname":groupdata.grpname.toLowerCase()}},function(err,providergroup){
 			if(err){
-				logger.emit("error","Database Issue: _checkGroupNameAlreadyExist"+err);
-				self.emit("failedUpdateGroupBranch",{"error":{"message":"Database Issue"}});
+				logger.emit("error","Database Error: _checkGroupNameAlreadyExist"+err);
+				self.emit("failedUpdateGroupBranch",{"error":{"message":"Database Error"}});
 			}else if(providergroup.length!=0){
-				self.emit("failedUpdateGroupBranch",{"error":{"message":"Provided group name already exists"}});
+				self.emit("failedUpdateGroupBranch",{"error":{"message":"group name already exists"}});
 			}else{	
 
 				/////////////////////////////////////////////////////////////////
@@ -715,10 +715,10 @@ var _isAuthorizedUserToUpdateGroup=function(self,sessionuser,providerid,branchid
  		}
 		ProviderGroupModel.update({providerid:providerid,branchid:branchid,"usergrp.groupid":groupid},{$set:group_setdata},function(err,updategroupstatus){
 			if(err){
-				logger.emit("error","Database Issue: _checkGroupNameAlreadyExist"+err);
-				self.emit("failedUpdateGroupBranch",{"error":{"message":"Database Issue"}});
+				logger.emit("error","Database Error: _checkGroupNameAlreadyExist"+err);
+				self.emit("failedUpdateGroupBranch",{"error":{"message":"Database Error"}});
 			}else if(updategroupstatus==0){
-					self.emit("failedUpdateGroupBranch",{"error":{"message":"Group id is wrong"}});
+					self.emit("failedUpdateGroupBranch",{"error":{"message":"Incorrect Group id"}});
 			}else{
 				///////////////////////////////
 				_successfulUpdateGroupBranch(self)
