@@ -1834,9 +1834,9 @@ var _validateGetCurrentAndPastOrders=function(self,userid,criteriastatus){
 			self.emit("failedGetCurrentAndPastOrders",{error:{code:"AV001",message:"criteriastatus should be past and current"}})
 		}else{
 			if(criteriastatus=="current"){
-				query={"consumer.userid":userid,"suborder.status":{$in:["orderreceived","accepted","inproduction","packing","factorytostore","storepickup","indelivery"]}}
+				query={status:{$ne:"waitforapproval"},"consumer.userid":userid,"suborder.status":{$in:["orderreceived","accepted","inproduction","packing","factorytostore","storepickup","indelivery"]}}
 			}else{
-				query={"consumer.userid":userid,"suborder.status":{$nin:["orderreceived","accepted","inproduction","packing","factorytostore","storepickup","indelivery"]}}	
+				query={status:{$ne:"waitforapproval"},"consumer.userid":userid,"suborder.status":{$nin:["orderreceived","accepted","inproduction","packing","factorytostore","storepickup","indelivery"]}}	
 			}
 			///////////////////////////////////
 			_getCurrentAndPastOrders(self,query,criteriastatus)
