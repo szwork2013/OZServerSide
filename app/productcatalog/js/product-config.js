@@ -45,23 +45,22 @@ var _isValidCategoryID = function(self,categoryid,productconfig,user){
 	CategoryModel.findOne({status:{$ne:"deactive"},categoryid:categoryid},{categoryid:1,categoryname:1,_id:0}).exec(function(err,doc){
 		if(err){
 			logger.emit("error","Database Error : _isValidCategoryID " + err);
-			self.emit("failedAddProductConfig",{"error":{"code":"ED001","message":"Database Issue"}});
+			self.emit("failedAddProductConfig",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(!doc){
 			self.emit("failedAddProductConfig",{"error":{"code":"AD001","message":"Incorrect categoryid"}});
 		}else{
 			if(doc.categoryname == productconfig.categoryname){
 				_isConfigurationAlreadyExist(self,categoryid,productconfig,user);
 			}else{
-				self.emit("failedAddProductConfig",{"error":{"code":"AD001","message":"categoryname is wrong"}});
+				self.emit("failedAddProductConfig",{"error":{"code":"AD001","message":"Incorrect categoryname"}});
 			}	  		
 	  	}
 	});
-}
-var _isConfigurationAlreadyExist = function(self,categoryid,productconfig,user){
+Incorrect var _isConfigurationAlreadyExist = function(self,categoryid,productconfig,user){
 	ProductConfigModel.findOne({categoryid:categoryid},function(err,configdata){
 		if(err){
-			logger.emit('error',"Database Issue  _isConfigurationAlreadyExist "+err,user.userid);
-			self.emit("failedAddProductConfig",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit('error',"Database Error  _isConfigurationAlreadyExist "+err,user.userid);
+			self.emit("failedAddProductConfig",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(!configdata){
 			/////////////////////////////////////////////////////////////
 	     	_addProductConfiguration(self,categoryid,productconfig,user);
@@ -79,7 +78,7 @@ var _addProductConfiguration = function(self,categoryid,productconfig,user){
 	productconfig.save(function(err,prod_config){
 		if(err){
 			logger.emit("error","Database Error:_addProductConfiguration"+err,user.userid);
-			self.emit("failedAddProductConfig",{"error":{"code":"ED001","message":"Database Issue"}});
+			self.emit("failedAddProductConfig",{"error":{"code":"ED001","message":"Database Error"}});
 		}else{
 			//////////////////////////////////////////////
 			_successfulAddProductConfig(self,prod_config);
@@ -117,8 +116,8 @@ var _validateUpdateProductConfigurationData = function(self,categoryid,productco
 var _updateProductConfiguration = function(self,categoryid,productconfig,user){
 	ProductConfigModel.update({categoryid:categoryid},{$set:productconfig},function(err,updateStatus){
 		if(err){
-		  	logger.emit('error',"Database Issue fun:_updateProductConfiguration"+err,user.userid);
-		  	self.emit("failedUpdateProductConfig",{"error":{"code":"ED001","message":"Database Issue"}});		
+		  	logger.emit('error',"Database Error fun:_updateProductConfiguration"+err,user.userid);
+		  	self.emit("failedUpdateProductConfig",{"error":{"code":"ED001","message":"Database Error"}});		
 	  	}else if(updateStatus==0){
 	  		self.emit("failedUpdateProductConfig",{"error":{"message":"Incorrect categoryid"}});		
 	  	}else{
@@ -141,8 +140,8 @@ ProductConfig.prototype.getProductConfiguration = function(user) {
 var _getProductConfiguration = function(self,user){
 	ProductConfigModel.find({status:{$ne:"deactive"}},{configid:1,categoryname:1,categoryid:1,configuration:1,_id:0},function(err,configdata){
 		if(err){
-			logger.emit('error',"Database Issue  _getProductConfiguration "+err,user.userid);
-			self.emit("failedGetProductConfig",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit('error',"Database Error  _getProductConfiguration "+err,user.userid);
+			self.emit("failedGetProductConfig",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(configdata.length == 0){
 			self.emit("failedGetProductConfig",{"error":{"message":"Product Configuration Does Not Exist"}});
 		}else{	
@@ -165,8 +164,8 @@ ProductConfig.prototype.getProductConfigurationByCategory = function(categoryid,
 var _getProductConfigurationByCategory = function(self,categoryid,user){
 	ProductConfigModel.findOne({status:"active",categoryid:categoryid},{categoryname:1,categoryid:1,configuration:1,_id:0},function(err,configdata){
 		if(err){
-			logger.emit('error',"Database Issue  _getProductConfiguration "+err,user.userid);
-			self.emit("failedGetProductConfigByCategory",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit('error',"Database Error  _getProductConfiguration "+err,user.userid);
+			self.emit("failedGetProductConfigByCategory",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(!configdata){
 			self.emit("failedGetProductConfigByCategory",{"error":{"message":"Product Configuration Does Not Exist"}});
 		}else{	
@@ -189,15 +188,15 @@ ProductConfig.prototype.deleteProductConfiguration = function(configid,user) {
 var _isAlreadyDeletedConfig = function(self,configid,user){
 	ProductConfigModel.findOne({status:"active",configid:configid},{categoryid:1,_id:0},function(err,configdata){
 		if(err){
-			logger.emit('error',"Database Issue  _isAlreadyDeletedConfig "+err,user.userid);
-			self.emit("failedDeleteProductConfig",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit('error',"Database Error  _isAlreadyDeletedConfig "+err,user.userid);
+			self.emit("failedDeleteProductConfig",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(!configdata){
 			self.emit("failedDeleteProductConfig",{"error":{"message":"Product Configuration Does Not Exist"}});
 		}else{	
 			ProductConfigModel.update({configid:configid},{$set:{status:"deactive"}},function(err,updateStatus){
 				if(err){
-				  	logger.emit('error',"Database Issue fun:_isAlreadyDeletedConfig"+err,user.userid);
-				  	self.emit("failedDeleteProductConfig",{"error":{"code":"ED001","message":"Database Issue"}});		
+				  	logger.emit('error',"Database Error fun:_isAlreadyDeletedConfig"+err,user.userid);
+				  	self.emit("failedDeleteProductConfig",{"error":{"code":"ED001","message":"Database Error"}});		
 			  	}else if(updateStatus==0){
 			  		self.emit("failedDeleteProductConfig",{"error":{"message":"Incorrect configid"}});		
 			  	}else{

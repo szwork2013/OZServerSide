@@ -112,9 +112,9 @@ var _sendSMSToUsersMobileNumber=function(mobileno,lang,tempname,suborder,callbac
 var _sendSuccessfulOrderCreationNotificationToSeller=function(orderid){
 	OrderModel.findOne({orderid:orderid},function(err,order){
 		if(err){
-			logger.emit("error","Database Issue"+err)
+			logger.emit("error","Database Error"+err)
 		}else if(!order){
-			logger.emit("error","Order id is wrong for _sendSuccessfulOrderCreationNotificationToSeller")
+			logger.emit("error","Incorrect Order id for _sendSuccessfulOrderCreationNotificationToSeller")
 		}else{
 			
 			///////////////////////////////
@@ -128,18 +128,18 @@ var sendOrderReceivedNotificationToSeller=function(suborders,index){
 		var suborder=suborders[index];
 		ProductProviderModel.findOne({providerid:suborder.productprovider.providerid},{providerid:1,provideremail:1},function(err,provider){
 			if(err){
-				logger.emit("error","Database Issue"+err)
+				logger.emit("error","Database Error"+err)
 			}else if(!provider){
-				logger.emit("error","providerid is wrong");
+				logger.emit("error","Incorrect Seller id");
 			}else{
 				
 			  
 				var selleremail=provider.provideremail;
 				console.log('selleremail'+selleremail);
-				var subject="You have recieved new Order. Order No:<suborderid>";
+				var subject="New Order No:<suborderid>";
 				subject=S(subject);
 				subject=subject.replaceAll("<suborderid>",suborder.suborderid);
-				var html="You have received a new Order.<br><b>Order No</b>:<suborderid>.<br>Check the Seller Web Application for further information on Order details";
+				var html="You have received a new Order <suborderid>. Check Seller Web Application for further Order details";
 				html=S(html);
 				html=html.replaceAll("<suborderid>",suborder.suborderid);
 				var emailmessage = {
@@ -253,8 +253,8 @@ var _validateCartProducts=function(self,orderdata,user){
 	console.log("productids"+productids);
 	ProductaCtalogModel.find({productid:{$in:productids}},{productid:1},function(err,correctprouctids){
 		if(err){
-		  logger.emit("error","Database Issue"+err,user.userid)
-		 self.emit("failedCreateOrder",{"error":{"code":"ED001","message":"Database Issue"}});	
+		  logger.emit("error","Database Error"+err,user.userid)
+		 self.emit("failedCreateOrder",{"error":{"code":"ED001","message":"Database Error"}});	
 		}else if(correctprouctids.length==0){
 			self.emit("failedCreateOrder",{"error":{"message":"Seller product in cart does not exist"}});	
 		}else{
@@ -284,8 +284,8 @@ var _ProviderBranchSpecificCartsProducts=function(self,orderdata,validproductids
 
 	ProductaCtalogModel.aggregate({$match:{productid:{$in:validproductids}}},{$group:{_id:{branchid:"$branch.branchid",location:"$branch.location",provideremail:"$provider.provideremail",providerbrandname:"$provider.providerbrandname",providername:"$provider.providername",providerid:"$provider.providerid",providercode:"$provider.providercode",providerlogo:"$provider.providerlogo",branchname:"$branch.branchname",contact_supports:"$branch.contact_supports"},productcatalog:{$addToSet:{tax:"$tax",productid:"$productid",price:"$price",productname:"$productname",productlogo:"$productlogo",productcode:"$productcode",price:"$price"}}}},function(err,branchproducts){
 		if(err){
-			logger.emit("error","Database Issue _ProviderBranchSpecificCartsProducts"+err)
-			self.emit("failedCreateOrder",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit("error","Database Error _ProviderBranchSpecificCartsProducts"+err)
+			self.emit("failedCreateOrder",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(branchproducts.length==0){
 			self.emit("failedCreateOrder",{"error":{"message":"Products does not exists"}});
 		}else{
@@ -436,7 +436,7 @@ var _createOrder=function(self,orderobject,user){
 	order.save(function(err,orderdata){
 		if(err){
 
-			self.emit("failedCreateOrder",{"error":{"code":"ED001","message":"Database Issue"}});
+			self.emit("failedCreateOrder",{"error":{"code":"ED001","message":"Database Error"}});
 		}else{
 			
 			////////////////////////////////////////
@@ -491,7 +491,7 @@ var _saveOrderDeliveryAddressHistory=function(order){
 	}else{
 		DeliveryAddressModel.create(deliveryaddressarray,function(err,deliveryaddresses){
 		if(err){
-			logger.emit("error","Database Issue");
+			logger.emit("error","Database Error");
 		}else{
 			logger.emit("log","new delivery address saved");
 		}
@@ -570,7 +570,7 @@ var _SubOrderInvoiceCreation=function(suborders,value,order){
 	if(suborders.length>value){
 		ProductProviderModel.aggregate({$match:{providerid:suborder.productprovider.providerid}},{$unwind:"$branch"},{$match:{"branch.branchid":suborder.productprovider.branchid}},function(err,branch){
 			if(err){
-				logger.emit("error","Database Issue :_SubOrderInvoiceCreation"+err)
+				logger.emit("error","Database Error :_SubOrderInvoiceCreation"+err)
 			}else if(branch.length==0){
 				logger.emit("error","Incorrect branchid for _SubOrderInvoiceCreation")
 			}else{
@@ -579,7 +579,7 @@ var _SubOrderInvoiceCreation=function(suborders,value,order){
 				console.log("Branch"+JSON.stringify(branch));
 				UserModel.findOne({userid:selleruserid},{email:1},function(err,selleruser){
 					if(err){
-							logger.emit("error","Database Issue :_SubOrderInvoiceCreation"+err)
+							logger.emit("error","Database Error :_SubOrderInvoiceCreation"+err)
 					}else if(!selleruser){
 						logger.emit("error","Incorrect seller user")
 					}else{
@@ -622,7 +622,7 @@ var _SubOrderInvoiceCreation=function(suborders,value,order){
 					var invoice_data=new InvoiceModel(inoviceobject);
 					invoice_data.save(function(err,invoice){
 						if(err){
-							logger.emit("error","Database Issue :_SubOrderInvoiceCreation"+err)
+							logger.emit("error","Database Error :_SubOrderInvoiceCreation"+err)
 						}else{
 							logger.emit("log","New invoice created");
 						}
@@ -643,7 +643,7 @@ var _sendOrderConfirmationOTPToConsumer=function(user,orderno){
 var ordertoken=new OrderTokenModel({_userId:user.userid,orderid:orderno});
   ordertoken.save(function(err,otpdata){
     if(err){
-      logger.emit("error","Database Issue :__sendOrderConfirmationOTPToConsumer"+err);
+      logger.emit("error","Database Error :__sendOrderConfirmationOTPToConsumer"+err);
       // self.emit("failedUserRegistration",{"error":{"code":"ED001","message":"Database Issue"}});
     }else if(otpdata){
         var tempname="confirmorder";
@@ -763,7 +763,7 @@ var _getAllOrdersForBranch=function(self,branchid,userid){
 	//{$group:{_id:{providername:"$suborder.productprovider.providername"},order:{$addToSet:{orderid:"$orderid",total_order_price:"$total_order_price",createdate:"$createdate",status:"$status",order_placeddate:"$order_placeddate",suborder:"$suborder",payment_method:"$payment_method",consumer:"$consumer"}}}},{$project:{providername:"$_id.providername",order:"$order",_id:0}}
 	OrderModel.aggregate([{$unwind:"$suborder"},{$match:{"suborder.productprovider.branchid":branchid}},{$sort:{createdate:-1}},{$limit:10}]).exec(function(err,orders){
 		if(err){
-			self.emit("failedGetAllOrdersForAllProviders",{"error":{"code":"ED001","message":"Database Issue : "+err}});
+			self.emit("failedGetAllOrdersForAllProviders",{"error":{"code":"ED001","message":"Database Error : "+err}});
 		}else if(orders.length==0){
 			self.emit("failedGetAllOrdersForAllProviders",{"error":{"message":"Order does not exist"}});
 		}else{
@@ -780,7 +780,7 @@ var _getAllProductOrdersForBranch=function(self,branchid,userid){
 	var newQuery = [{$unwind:"$suborder"},{$match:{"suborder.status":"accepted","suborder.productprovider.branchid":branchid}},{$project:{deliverydate:"$suborder.deliverydate",products:"$suborder.products",suborderid:"$suborder.suborderid"}},{$unwind:"$products"},{$group:{_id:{deliverydate:"$deliverydate",productid:"$products.productid",productname:"$products.productname",uom:"$products.uom",productcode:"$products.productcode"},totalqty:{$sum:"$products.qty"},productdetails:{$push:{qty:"$products.qty",suborderid:"$suborderid"}}}},{$project:{productdetails:1,totalqty:1,deliverydate:"$_id.deliverydate",productid:"$_id.productid",productname:"$_id.productname",uom:"$_id.uom",productcode:"$_id.productcode",_id:0}},{$group:{_id:{deliverydate:"$deliverydate"},products:{$push:{productid:"$productid",productname:"$productname",totalqty:"$totalqty",uom:"$uom",productcode:"$productcode",productdetails:"$productdetails"}}}},{$project:{deliverydate:"$_id.deliverydate",products:1,_id:0}},{$sort:{deliverydate:1}}];
 	OrderModel.aggregate(newQuery).exec(function(err,products){
 		if(err){
-			self.emit("failedGetAllOrdersForAllProviders",{"error":{"code":"ED001","message":"Database Issue : "+err}});
+			self.emit("failedGetAllOrdersForAllProviders",{"error":{"code":"ED001","message":"Database Error : "+err}});
 		}else if(products.length==0){
 			self.emit("failedGetAllOrdersForAllProviders",{"error":{"message":"Product Order does not exist"}});
 		}else{
@@ -809,7 +809,7 @@ var _getDateTimeOfOrder=function(self,orderid,userid){
 	console.log("_getDateTimeOfOrder");
 	OrderModel.findOne({orderid:orderid},{createdate:1,suborder:1,_id:0}).exec(function(err,order){
 		if(err){
-			self.emit("failedLoadMoreOrders",{"error":{"code":"ED001","message":"Database Issue : "+err}});
+			self.emit("failedLoadMoreOrders",{"error":{"code":"ED001","message":"Database Error : "+err}});
 		}else if(!order){
 			self.emit("failedLoadMoreOrders",{"error":{"message":"Incorrect order id"}});
 		}else{
@@ -822,7 +822,7 @@ var _getDateTimeOfOrder=function(self,orderid,userid){
 var _loadMoreOrders = function(self,orderid,order){	
 	OrderModel.aggregate([{$unwind:"$suborder"},{$match:{orderid:{$ne:orderid},"suborder.productprovider.branchid":order.suborder[0].productprovider.branchid}},{$sort:{createdate:-1}},{$match:{createdate:{$lte:order.createdate}}},{$limit:10}]).exec(function(err,orders){
 		if(err){
-			self.emit("failedLoadMoreOrders",{"error":{"code":"ED001","message":"Database Issue : "+err}});
+			self.emit("failedLoadMoreOrders",{"error":{"code":"ED001","message":"Database Error : "+err}});
 		}else if(orders.length==0){
 			self.emit("failedLoadMoreOrders",{"error":{"message":"No more orders found"}});
 		}else{
@@ -846,8 +846,8 @@ var _IsAuthorizedProviderToGetSubOrders=function(self,userid,providerid,branchid
 	//provider can see their suborder if provider,branchid,confirmed true
 	UserModel.find({userid:userid,"provider.providerid":providerid,"provider.branchid":branchid,"provider.confirmed":true},function(err,userprovider){
 		if(err){
-			logger.emit("error","Database Issue _IsAuthorizedProviderToGetSubOrders"+err)
-			self.emit("failedGetMySubOrders",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit("error","Database Error _IsAuthorizedProviderToGetSubOrders"+err)
+			self.emit("failedGetMySubOrders",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(!userprovider){
 			self.emit("failedGetMySubOrders",{"error":{"message":"Branch details is not associated with user"}});
 		}else{
@@ -917,8 +917,8 @@ var _getMySubOrders=function(self,userid,providerid,branchid,query,criteriastatu
 	console.log("query"+JSON.stringify(query));
 	OrderModel.aggregate(query,function(err,suborders){
 		if(err){
-			logger.emit("error","Database Issue _getMySubOrders"+err,userid)
-			self.emit("failedGetMySubOrders",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit("error","Database Error _getMySubOrders"+err,userid)
+			self.emit("failedGetMySubOrders",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(suborders.length==0){
 			self.emit("failedGetMySubOrders",{"error":{code:"SODR001","message":"No Order exists"}});
 		}else{
@@ -980,8 +980,8 @@ var _getDeliveryCharges=function(self,city,area,branchids){
    // }
 	ProductProviderModel.aggregate({$match:{"branch.branchid":{$in:branchids_array}}},{$unwind:"$branch"},{$match:{"branch.branchid":{$in:branchids_array}}},{$unwind:"$branch.deliverycharge"},{$project:{_id:0,branchid:"$branch.branchid",charge:"$branch.deliverycharge.value",coverage:"$branch.deliverycharge.coverage",isdeliverychargeinpercent:"$branch.delivery.isdeliverychargeinpercent"}},{$match:{"coverage.area":area,"coverage.city":city}},function(err,deliverycharges){
 		if(err){
-          logger.emit("error","Database Issue _getDeliveryCharges"+err)
-		  self.emit("failedGetDeliveryCharges",{"error":{"code":"ED001","message":"Database Issue"}});
+          logger.emit("error","Database Error _getDeliveryCharges"+err)
+		  self.emit("failedGetDeliveryCharges",{"error":{"code":"ED001","message":"Database Error"}});
 		}else{
 			var delivery_charges_array=[];
 			var validbranchids=[];
@@ -996,8 +996,8 @@ var _getDeliveryCharges=function(self,city,area,branchids){
 
 			ProductProviderModel.aggregate({$unwind:"$branch"},{$match:{"branch.branchid":{$in:notdeliverybranches}}},{$project:{_id:0,branchid:"$branch.branchid",providername:1,location:"$branch.location",deliverytimingsinstructions:1}},function(err,branches){
 				if(err){
-					logger.emit("error","Database Issue _getDeliveryCharges"+err)
-		      self.emit("failedGetDeliveryCharges",{"error":{"code":"ED001","message":"Database Issue"}});
+					logger.emit("error","Database Error _getDeliveryCharges"+err)
+		      self.emit("failedGetDeliveryCharges",{"error":{"code":"ED001","message":"Database Error"}});
 				}else{
 					if(branches.length!=0){
 					  for(var i=0;i<branches.length;i++){
@@ -1033,8 +1033,8 @@ var _getLatestProductPrice=function(self,productcart){
 	console.log(productcart)
 	ProductaCtalogModel.find({productid:{$in:productcart}},{productid:1,price:1,_id:0},function(err,productprices){
 		if(err){
-			logger.emit("error","Database Issue _getLatestProductPrice"+err)
-		  self.emit("failedGetLatestProductPrices",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit("error","Database Error _getLatestProductPrice"+err)
+		  self.emit("failedGetLatestProductPrices",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(productprices.length==0){
 			self.emit("failedGetLatestProductPrices",{error:{message:"Incorrect product id"}});
 		}else{
@@ -1057,8 +1057,8 @@ Order.prototype.confirmOrder = function(mobileno,message){
 var _checkMobileNumberIsValidForConfirmOrder=function(self,mobileno,message){
 	UserModel.findOne({mobileno:mobileno},function(err,user){
 		if(err){
-			logger.emit("error","Database Issue:/_checkMobileNumberIsValidForConfirmOrder "+err)
-			self.emit("failedConfirmOrder",{error:{message:"Database Issue"}})
+			logger.emit("error","Database Error:/_checkMobileNumberIsValidForConfirmOrder "+err)
+			self.emit("failedConfirmOrder",{error:{message:"Database Error"}})
 		}else if(!user){
 			self.emit("failedConfirmOrder",{error:{message:"mobileno not exists"}});
 		}else{
@@ -1073,8 +1073,8 @@ var _checkTokenAssociatedWithOrder=function(self,user,message){
 	console.log("otp for confirm order"+otp);
 	OrderTokenModel.findOne({otp:otp,status:"active"},function(err,otpdata){
 		if(err){
-      logger.emit("error","Database Issue:/_checkMobileNumberIsValidForConfirmOrder "+err)
-			self.emit("failedConfirmOrder",{error:{message:"Database Issue"}})
+      logger.emit("error","Database Error:/_checkMobileNumberIsValidForConfirmOrder "+err)
+			self.emit("failedConfirmOrder",{error:{message:"Database Error"}})
 		}else if(!otpdata){
 			self.emit("failedConfirmOrder",{error:{message:"Confirm order token is incorrect or expired"}})
 		}else{
@@ -1084,8 +1084,8 @@ var _checkTokenAssociatedWithOrder=function(self,user,message){
 				otpdata.status="deactive"
 				otpdata.save(function(err,otp_data){
 					if(err){
-					  logger.emit("error","Database Issue:/_checkMobileNumberIsValidForConfirmOrder "+err)
-			      self.emit("failedConfirmOrder",{error:{message:"Database Issue"}})
+					  logger.emit("error","Database Error:/_checkMobileNumberIsValidForConfirmOrder "+err)
+			      self.emit("failedConfirmOrder",{error:{message:"Database Error"}})
 					}else{
 						////////////////////////////
 						_confirmOrder(self,otpdata);
@@ -1100,8 +1100,8 @@ var _checkTokenAssociatedWithOrder=function(self,user,message){
 var _confirmOrder=function(self,otpdata){
 	OrderModel.update({orderid:otpdata.orderid},{$set:{status:"approved"}},function(err,orderupdatestaus){
 		if(err){
-			logger.emit("error","Database Issue:/_confirmOrder "+err)
-			self.emit("failedConfirmOrder",{error:{message:"Database Issue"}})
+			logger.emit("error","Database Error:/_confirmOrder "+err)
+			self.emit("failedConfirmOrder",{error:{message:"Database Error"}})
 		}else if(orderupdatestaus==0){
 			self.emit("failedConfirmOrder",{error:{message:"Order Number does not exists"}})
 		}else{
@@ -1123,8 +1123,8 @@ Order.prototype.confirmOrderByWeb = function(userid,token){
 var _checkMobileNumberIsValidForConfirmOrderByWeb=function(self,userid,token){
 	UserModel.findOne({userid:userid},function(err,user){
 		if(err){
-			logger.emit("error","Database Issue:/_checkMobileNumberIsValidForConfirmOrderByWeb "+err)
-			self.emit("failedConfirmOrderByWeb",{error:{message:"Database Issue"}})
+			logger.emit("error","Database Error:/_checkMobileNumberIsValidForConfirmOrderByWeb "+err)
+			self.emit("failedConfirmOrderByWeb",{error:{message:"Database Error"}})
 		}else if(!user){
 			self.emit("failedConfirmOrderByWeb",{error:{message:"Incorrect User"}});
 		}else{
@@ -1139,8 +1139,8 @@ var _checkTokenAssociatedWithOrderByWeb=function(self,user,token){
 	console.log("otp for confirm order"+otp);
 	OrderTokenModel.findOne({otp:otp,status:"active"},function(err,otpdata){
 		if(err){
-      logger.emit("error","Database Issue:/_checkTokenAssociatedWithOrderByWeb "+err)
-			self.emit("failedConfirmOrderByWeb",{error:{message:"Database Issue"}})
+      logger.emit("error","Database Error:/_checkTokenAssociatedWithOrderByWeb "+err)
+			self.emit("failedConfirmOrderByWeb",{error:{message:"Database Error"}})
 		}else if(!otpdata){
 			self.emit("failedConfirmOrderByWeb",{error:{message:"Confirm order token is incorrect or expired"}})
 		}else{
@@ -1150,8 +1150,8 @@ var _checkTokenAssociatedWithOrderByWeb=function(self,user,token){
 				otpdata.status="deactive"
 				otpdata.save(function(err,otp_data){
 					if(err){
-					  logger.emit("error","Database Issue:/_checkTokenAssociatedWithOrderByWeb "+err)
-			      self.emit("failedConfirmOrderByWeb",{error:{message:"Database Issue"}})
+					  logger.emit("error","Database Error:/_checkTokenAssociatedWithOrderByWeb "+err)
+			      self.emit("failedConfirmOrderByWeb",{error:{message:"Database Error"}})
 					}else{
 						////////////////////////////
 						_confirmOrderByWeb(self,otpdata);
@@ -1166,8 +1166,8 @@ var _checkTokenAssociatedWithOrderByWeb=function(self,user,token){
 var _confirmOrderByWeb=function(self,otpdata){
 	OrderModel.update({orderid:otpdata.orderid},{$set:{status:"approved"}},function(err,orderupdatestaus){
 		if(err){
-			logger.emit("error","Database Issue:/_confirmOrder "+err)
-			self.emit("failedConfirmOrderByWeb",{error:{message:"Database Issue"}})
+			logger.emit("error","Database Error:/_confirmOrder "+err)
+			self.emit("failedConfirmOrderByWeb",{error:{message:"Database Error"}})
 		}else if(orderupdatestaus==0){
 			self.emit("failedConfirmOrderByWeb",{error:{message:"Order Number does not exist"}})
 		}else{
@@ -1202,10 +1202,10 @@ var _checkSubOrderIsExistOrNot=function(self,user,suborderid,action,deliverydate
 	console.log("dddddd::::"+deliverydate)
 	OrderModel.aggregate([{$unwind:"$suborder"},{$match:{"suborder.suborderid":suborderid}}],function(err,suborders){
 		if(err){
-			logger.emit("error","Database Issue:/_checkSubOffrderIsExistOrNot "+err)
-			self.emit("failedManageOrder",{error:{message:"Database Issue"}})
+			logger.emit("error","Database Error:/_checkSubOffrderIsExistOrNot "+err)
+			self.emit("failedManageOrder",{error:{message:"Database Error"}})
 		}else if(suborders.length==0){
-			self.emit("failedManageOrder",{error:{message:"suborderid is wrong"}})
+			self.emit("failedManageOrder",{error:{message:"Incorrect suborderid"}})
 		}else{
 			var suborder=suborders[0];
 			if(action=="accept"){
@@ -1252,8 +1252,8 @@ var _isAuthorizeToManageOrder=function(self,user,order,action){
 	// console.log(suborder);;
 	UserModel.findOne({userid:user.userid,"provider.providerid":order.suborder.productprovider.providerid},function(err,userprovider){
 		if(err){
-			logger.emit("error","Database Issue:/_isAuthorizeToManageOrder "+err)
-			self.emit("failedManageOrder",{error:{message:"Database Issue"}})
+			logger.emit("error","Database Error:/_isAuthorizeToManageOrder "+err)
+			self.emit("failedManageOrder",{error:{message:"Database Error"}})
 		}else if(!userprovider){
 			self.emit("failedManageOrder",{error:{message:"You have not authorized to manage orders"}})
 		}else{
@@ -1266,8 +1266,8 @@ var _isAuthorizeToManageOrder=function(self,user,order,action){
 var _getProviderProcessConfiguration=function(self,user,suborder,action,order){
 	ProductProviderModel.findOne({providerid:suborder.productprovider.providerid},{orderprocess_configuration:1},function(err,provider){
 		if(err){
-			logger.emit("error","Database Issue:/_getProviderProcessConfiguration "+err)
-			self.emit("failedManageOrder",{error:{message:"Database Issue"}})
+			logger.emit("error","Database Error:/_getProviderProcessConfiguration "+err)
+			self.emit("failedManageOrder",{error:{message:"Database Error"}})
 		}else if(!provider){
 			self.emit("failedManageOrder",{error:{message:"Incorrect Seller id"}})
 		}else{
@@ -1360,15 +1360,15 @@ var _manageOrder=function(self,action,user,suborder,status,order){
 	}
 	OrderModel.update({suborder:{$elemMatch:{suborderid:suborder.suborderid}}},{$set:suborderdata},function(err,suborderupdatestatus){
 		if(err){
-			logger.emit("error","Database Issue:/_manageOrder "+err)
-			self.emit("failedManageOrder",{error:{message:"Database Issue"}})
+			logger.emit("error","Database Error:/_manageOrder "+err)
+			self.emit("failedManageOrder",{error:{message:"Database Error"}})
 		}else if(suborderupdatestatus==0){
 			self.emit("failedManageOrder",{error:{message:"Incorrect suborderid"}})
 		}else{
 			OrderModel.update({suborder:{$elemMatch:{suborderid:suborder.suborderid}}},{$addToSet:{"suborder.$.tracking":tracking}},function(err,suborderupdatestatus){
 				if(err){
-					logger.emit("error","Database Issue:/_manageOrder "+err);
-					self.emit("failedManageOrder",{error:{message:"Database Issue"}});
+					logger.emit("error","Database Error:/_manageOrder "+err);
+					self.emit("failedManageOrder",{error:{message:"Database Error"}});
 				}else if(suborderupdatestatus==0){
 					self.emit("failedManageOrder",{error:{message:"Incorrect suborder id"}});
 				}else{
@@ -1406,13 +1406,13 @@ self.emit("successfulManageOrder",{success:{message:"Order "+status+" successful
 var _sendNotificationToUser=function(suborder,status){
 	OrderModel.findOne({"suborder.suborderid":suborder.suborderid},{consumer:1,preferred_delivery_date:1},function(err,order){
 		if(err){
-			logger.emit("error","Database Issue"+err)
+			logger.emit("error","Database Error"+err)
 		}else if(!order){
 			logger.emit("error","Incorrect suborder id")
 		}else{
 			UserModel.findOne({userid:order.consumer.userid},{gcmregistrationid:1,mobileno:1,preffered_lang:1,email:1},function(err,user){
 				if(err){
-					logger.emit("error","Database Issue"+err);
+					logger.emit("error","Database Error"+err);
 				}else if(!user){
 					logger.emit("error","Incorrect user");
 				}else{
@@ -1489,7 +1489,7 @@ _checkInvoiceAlreadyCreated(suborder.suborderid,userid)
 var _checkInvoiceAlreadyCreated=function(suborderid,sessionuserid){
   InvoiceModel.findOne({suborderid:suborderid},function(err,invoice){
     if(err){
-      logger.emit(" error","Database Issue:_checkInvoiceAlreadyCreated"+err)
+      logger.emit(" error","Database Error:_checkInvoiceAlreadyCreated"+err)
       // self.emit("failedCreateInvoice",{error:{message:"Database Issue",code:"ED001"}})
     }else if(invoice){
       var url=invoice.invoice.image;
@@ -1507,7 +1507,7 @@ var _checkInvoiceAlreadyCreated=function(suborderid,sessionuserid){
 var _createJSONForInvoice=function(suborderid,sessionuserid){
   OrderModel.aggregate({$match:{"suborder.suborderid":suborderid}},{$unwind:"$suborder"},{$match:{"suborder.suborderid":suborderid}},function(err,suborder){
     if(err){
-      logger.emit(" error","Database Issue:_createJSONForInvoice"+err)
+      logger.emit(" error","Database Error:_createJSONForInvoice"+err)
       // self.emit("failedCreateInvoice",{error:{message:"Database Issue",code:"ED001"}})
     }else if(suborder.length==0){
     	logger.emit("error","Incorrect suborder id")
@@ -1519,16 +1519,16 @@ var _createJSONForInvoice=function(suborderid,sessionuserid){
       console.log("suborder"+JSON.stringify(suborder));
       ProductProviderModel.aggregate({$match:{providerid:suborder.productprovider.providerid}},{$unwind:"$branch"},{$match:{"branch.branchid":suborder.productprovider.branchid}},function(err,branch){
         if(err){
-          logger.emit("error","Database Issue :_createJSONForInvoice"+err)
+          logger.emit("error","Database Error :_createJSONForInvoice"+err)
         }else if(branch.length==0){
-          logger.emit("error","branchid is wrong for _createJSONForInvoice")
+          logger.emit("error","Incorrect branchid for _createJSONForInvoice")
         }else{
           var selleruserid=branch[0].user.userid;
           var branch=branch[0].branch;
           console.log("Branch"+JSON.stringify(branch));
           UserModel.findOne({userid:selleruserid},{email:1},function(err,selleruser){
             if(err){
-                logger.emit("error","Database Issue :_createJSONForInvoice"+err)
+                logger.emit("error","Database Error :_createJSONForInvoice"+err)
             }else if(!selleruser){
               logger.emit("error","Incorrect seller id")
             }else{
@@ -1586,7 +1586,7 @@ var _createJSONForInvoice=function(suborderid,sessionuserid){
 var _createPDFInvocie=function(inoviceobject,branch){
   fs.readFile('invoicesample1.html', function (err, data) {
     if(err){
-      logger.emit("error","Invoice html Issue:_createPDFInvocie "+err);
+      logger.emit("error","Invoice html Error:_createPDFInvocie "+err);
       // self.emit("failedCreateInvoice",{error:{message:""}})
     }else{
       var monthNames = [ "January", "February", "March", "April", "May", "June",
@@ -1678,8 +1678,8 @@ var _writeHtmlDataToFile=function(inoviceobject,htmldata,branch){
     stream.write(htmldata);
     exec("phantomjs/bin/phantomjs phantomjs/bin/rasterize.js "+filename+" "+pdfinvoice,function(err,out,code){
       if(err){
-        // self.emit("failedCreateInvoice",{error:{message:"Invoice Pdf creation issue"}})
-        logger.emit("error","Invoice html Issue:_writeHtmlDataToFile "+err);
+        // self.emit("failedCreateInvoice",{error:{message:"Invoice Pdf creation Error"}})
+        logger.emit("error","Invoice html Error:_writeHtmlDataToFile "+err);
       }else{
         exec("rm -rf "+filename);
         //////////////////////////////////////////////////
@@ -1693,7 +1693,7 @@ var _saveInvoiceToAmazonServer=function(inoviceobject,htmldata,pdfinvoice,branch
   fs.readFile(pdfinvoice,function (err, data) {
     if(err){
        // self.emit("failedCreateInvoice",{error:{message:"Invoice Pdf creation issue"}})
-        logger.emit("error","Invoice html Issue:_saveInvoiceToAmazonServer "+err);
+        logger.emit("error","Invoice html Error:_saveInvoiceToAmazonServer "+err);
     }else{
       var bucketFolder;
       var params;
@@ -1747,7 +1747,7 @@ var _saveInvoiceDataIntoCollection=function(inoviceobject,invoicedata){
 var _updateSuborderInvoiceStatus=function(suborderid){
 	OrderModel.update({"suborder.suborderid":suborderid},{$set:{"suborder.$.isinvoicegenerate":true}},function(err,suborderinvoicegeneratestatus){
 		if(err){
-			logger.emit("error","Database Issue :_updateSuborderInvoiceStatus"+err)
+			logger.emit("error","Database Error :_updateSuborderInvoiceStatus"+err)
 		}else if(suborderinvoicegeneratestatus==0){
 			logger.emit("error","Incorrect suborder id for _updateSuborderInvoiceStatus")
 		}else{
@@ -1764,16 +1764,16 @@ Order.prototype.suborderPaymentDone = function(user,suborderid){
 var _validateSubOrderPaymentDone=function(self,user,suborderid){
 	OrderModel.aggregate([{$unwind:"$suborder"},{$match:{"suborder.suborderid":suborderid}}],function(err,suborders){
 		if(err){
-			logger.emit("error","Database Issue:/_validateSubOrderPaymentDone "+err)
-			self.emit("failedSubOrderPaymentDone",{error:{message:"Database Issue"}})
+			logger.emit("error","Database Error:/_validateSubOrderPaymentDone "+err)
+			self.emit("failedSubOrderPaymentDone",{error:{message:"Database Error"}})
 		}else if(suborders.length==0){
 			self.emit("failedSubOrderPaymentDone",{error:{message:"Incorrect suborderid"}})
 		}else{
 			var suborder=suborders[0].suborder;
 			UserModel.findOne({userid:user.userid,"provider.providerid":suborder.productprovider.providerid},function(err,userprovider){
 				if(err){
-					logger.emit("error","Database Issue:/_isAuthorizeToManageOrder "+err)
-					self.emit("failedSubOrderPaymentDone",{error:{message:"Database Issue"}})
+					logger.emit("error","Database Error:/_isAuthorizeToManageOrder "+err)
+					self.emit("failedSubOrderPaymentDone",{error:{message:"Database Error"}})
 				}else if(!userprovider){
 					self.emit("failedSubOrderPaymentDone",{error:{message:"Only seller admin user can Manage Order"}})
 				}else{
@@ -1800,8 +1800,8 @@ var _validateSubOrderStatusForPayment=function(self,user,suborder){
 	var suborderdata={"suborder.$.sellerpayment.status":"done","suborder.$.buyerpayment.status":"done","suborder.$.sellerpayment.paiddate":new Date(),"suborder.$.buyerpayment.paiddate":new Date()}
 		OrderModel.update({suborder:{$elemMatch:{suborderid:suborder.suborderid}}},{$set:suborderdata},function(err,suborderupdatestatus){
 			if(err){
-				logger.emit("error","Database Issue:/_suborderpaymentdone "+err)
-				self.emit("failedSubOrderPaymentDone",{error:{message:"Database Issue"}})
+				logger.emit("error","Database Error:/_suborderpaymentdone "+err)
+				self.emit("failedSubOrderPaymentDone",{error:{message:"Database Error"}})
 			}else if(suborderupdatestatus==0){
 				self.emit("failedSubOrderPaymentDone",{error:{message:"Incorrect suborderid"}})
 			}else{
@@ -1848,8 +1848,8 @@ var _getCurrentAndPastOrders=function(self,query,criteriastatus){
 	
 	OrderModel.find(query).sort({createdate:-1}).exec(function(err,orders){
 		if(err){
-			logger.emit("error","Database Issue _getCurrentAndPastOrders"+err);
-			self.emit("failedGetCurrentAndPastOrders",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit("error","Database Error _getCurrentAndPastOrders"+err);
+			self.emit("failedGetCurrentAndPastOrders",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(orders.length==0){
 			self.emit("failedGetCurrentAndPastOrders",{"error":{"message":"You do not have any "+criteriastatus+" orders"}});
 		}else{
@@ -1874,14 +1874,14 @@ var _searchSuborder=function(self,suborderid,userid){
 	// ,{$group:{_id:{providername:"$suborder.productprovider.providername"},order:{$addToSet:{orderid:"$orderid",total_order_price:"$total_order_price",createdate:"$createdate",status:"$status",order_placeddate:"$order_placeddate",suborder:"$suborder",payment_method:"$payment_method",consumer:"$consumer"}}}},{$project:{providername:"$_id.providername",order:"$order",_id:0}}
 	OrderModel.aggregate([{$unwind:"$suborder"},{$match:{"suborder.suborderid":suborderid}}]).exec(function(err,orders){
 		if(err){
-			self.emit("failedSearchsuborder",{"error":{"code":"ED001","message":"Database Issue : "+err}});
+			self.emit("failedSearchsuborder",{"error":{"code":"ED001","message":"Database Error : "+err}});
 		}else if(orders.length==0){
 			self.emit("failedSearchsuborder",{"error":{"message":"Order not exist"}});
 		}else{
 			ProductProviderModel.aggregate([{$unwind:"$branch"},{$match:{providerid:orders[0].suborder.productprovider.providerid,"branch.branchid":orders[0].suborder.productprovider.branchid}},{$project:{branchname:"$branch.branchname",_id:0}}]).exec(function(err,branchname){
 				if(err){
-					logger.emit("error","Database Issue _getCurrentAndPastOrders"+err);
-					self.emit("failedSearchsuborder",{"error":{"code":"ED001","message":"Database Issue"}});
+					logger.emit("error","Database Error _getCurrentAndPastOrders"+err);
+					self.emit("failedSearchsuborder",{"error":{"code":"ED001","message":"Database Error"}});
 				}else if(branchname.length==0){
 					self.emit("failedSearchsuborder",{"error":{"message":"Incorrect branchid"}});
 				}else{
@@ -1934,7 +1934,7 @@ var _validategeneratePayTmCheckSum=function(self,userid,checksumdata){
 var _validateCheckSumDataForChecksumCreation=function(self,userid,checksumdata,generatechecksumresponse){
 	OrderModel.findOne({orderid:checksumdata.ORDER_ID,"consumer.userid":checksumdata.CUST_ID},function(err,order){
 		if(err){
-			self.emit("failedgeneratePayTmCheckSum",{error:{code:"ED001",message:"Database Issue",generatechecksumresponse:generatechecksumresponse}})
+			self.emit("failedgeneratePayTmCheckSum",{error:{code:"ED001",message:"Database Error",generatechecksumresponse:generatechecksumresponse}})
 		}else if(!order){
 			self.emit("failedgeneratePayTmCheckSum",{error:{message:"checksum creation error - Order does not belong to customer",generatechecksumresponse:generatechecksumresponse}})
 		}else{
@@ -2116,14 +2116,14 @@ var _updateOrderPaymentDatails=function(self,responseobject){
 	}
 	OrderModel.update({orderid:responseobject.ORDERID},{$set:ordersetdata},function(err,paymentupdatestatus){
 		if(err){
-			logger.emit("error",{error:{code:"ED001",message:"Database Issue err::"+err}})
+			logger.emit("error",{error:{code:"ED001",message:"Database Error err::"+err}})
 		}else if(paymentupdatestatus==0){
 			logger.emit("error",{error:{message:"Incorrect Order id"}})
 		}else{
 			responseobject.IS_CHECKSUM_VALID="Y";
 			OrderModel.findOne({orderid:responseobject.ORDERID},function(err,order){
 				if(err){
-					logger.emit("error","Database Issue")
+					logger.emit("error","Database Error")
 				}else if(!order){
 					logger.emit("error","Incorrect Order id")
 				}else{
@@ -2151,7 +2151,7 @@ var _makeSubOrderPaymentDone=function(orderid,suborderid,responseobject){
 	}
 	OrderModel.update({orderid:orderid,"suborder.suborderid":suborderid},{$set:suborderpaymentdata},function(err,suborderpaymentstaus){
 		if(err){
-			logger.emit("error","Database Issue :_makeSubOrderPaymentDone"+err)
+			logger.emit("error","Database Error :_makeSubOrderPaymentDone"+err)
 		}else if(suborderpaymentstaus==0){
 			logger.emit("error","Incorrect suborderid")
 		}else{
@@ -2172,8 +2172,8 @@ var _IsAuthorizedToGetSuborderStatusWiseCount=function(self,userid,providerid,br
 	//provider can see their suborder if provider,branchid,confirmed true
 	UserModel.find({userid:userid,"provider.branchid":branchid,"provider.confirmed":true},function(err,userprovider){
 		if(err){
-			logger.emit("error","Database Issue _IsAuthorizedToGetSuborderStatusWiseCount"+err)
-			self.emit("failedgetOrderStatusWiseCount",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit("error","Database Error _IsAuthorizedToGetSuborderStatusWiseCount"+err)
+			self.emit("failedgetOrderStatusWiseCount",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(!userprovider){
 			self.emit("failedgetOrderStatusWiseCount",{"error":{"message":"Only branch User can access the branch details"}});
 		}else{
@@ -2187,8 +2187,8 @@ var _IsAuthorizedToGetSuborderStatusWiseCount=function(self,userid,providerid,br
 var _getSubOrderStatusWiseCount=function(self,userid,branchid){
 	 OrderModel.aggregate({$match:{status:{$ne:"waitforapproval"},"suborder.productprovider.branchid":branchid}},{$unwind:"$suborder"},{$match:{"suborder.productprovider.branchid":branchid}},{$group:{_id:"$suborder.status",statuscount:{$sum:1}}},{$project:{status:"$_id",statuscount:1}},function(err,statuswisecount){
 	 	if(err){
-	 		logger.emit("error","Database Issue _getSubOrderStatusWiseCount"+err)
-			self.emit("failedgetOrderStatusWiseCount",{"error":{"code":"ED001","message":"Database Issue"}});
+	 		logger.emit("error","Database Error _getSubOrderStatusWiseCount"+err)
+			self.emit("failedgetOrderStatusWiseCount",{"error":{"code":"ED001","message":"Database Error"}});
 	 	}else{
 	 		var statusarray={recieved:["orderreceived"],past:["ordercomplete","cancelled","rejected"],approved:["accepted"],packing:["inproduction","packing","factorytostore"],delivery:["indelivery"]};
 	 		var statuswisecountarray=[];
@@ -2222,8 +2222,8 @@ var _IsAuthorizedToGetProviderSuborderStatusWiseCount=function(self,userid,provi
 	//provider can see their suborder if provider,branchid,confirmed true
 	UserModel.find({userid:userid,"provider.providerid":providerid,"provider.confirmed":true},function(err,userprovider){
 		if(err){
-			logger.emit("error","Database Issue _IsAuthorizedToGetSuborderStatusWiseCount"+err)
-			self.emit("failedgetPrviderOrderStatusWiseCount",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit("error","Database Error _IsAuthorizedToGetSuborderStatusWiseCount"+err)
+			self.emit("failedgetPrviderOrderStatusWiseCount",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(!userprovider){
 			self.emit("failedgetPrviderOrderStatusWiseCount",{"error":{"message":"Only branch User can access the branch details"}});
 		}else{
@@ -2237,8 +2237,8 @@ var _IsAuthorizedToGetProviderSuborderStatusWiseCount=function(self,userid,provi
 var _getProviderSubOrderStatusWiseCount=function(self,userid,providerid){
 	 OrderModel.aggregate({$match:{"suborder.productprovider.providerid":providerid,status:{$ne:"waitforapproval"}}},{$unwind:"$suborder"},{$match:{"suborder.productprovider.providerid":providerid}},{$group:{_id:"$suborder.status",statuscount:{$sum:1}}},{$project:{status:"$_id",statuscount:1}},function(err,statuswisecount){
 	 	if(err){
-	 		logger.emit("error","Database Issue _getSubOrderStatusWiseCount"+err)
-			self.emit("failedgetPrviderOrderStatusWiseCount",{"error":{"code":"ED001","message":"Database Issue"}});
+	 		logger.emit("error","Database Error _getSubOrderStatusWiseCount"+err)
+			self.emit("failedgetPrviderOrderStatusWiseCount",{"error":{"code":"ED001","message":"Database Error"}});
 	 	}else{
 	 		var statusarray={past:["ordercomplete","cancelled","rejected"],recieved:["orderreceived"],approved:["accepted"],packing:["inproduction","packing","factorytostore"],delivery:["indelivery"]};
 	 		var statuswisecountarray=[];
@@ -2290,8 +2290,8 @@ var _checkMaxLeadTime = function(self,data){
 	// console.log(data.productids);
 	ProductLeadTimeModel.aggregate({$unwind:"$productleadtime"},{$match:{"productleadtime.productid":{$in:data.productids}}},{$group:{_id:"$branchid",maxLeadTime:{$max:"$productleadtime.leadtimeinminutes"}}},{$project:{branchid:"$_id",maxleadtime:"$maxLeadTime",_id:0}},function(err,doc){
 		if(err){
-			logger.emit("error","Database Issue _checkMaxLeadTime"+err)
-			self.emit("failedGetDeliveryTimeSlots",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit("error","Database Error _checkMaxLeadTime"+err)
+			self.emit("failedGetDeliveryTimeSlots",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(doc.length==0){
 			self.emit("failedGetDeliveryTimeSlots",{"error":{"message":"lead time not available for products"}});
 		}else{			
@@ -2307,8 +2307,8 @@ var _checkAvailableTimeSlots = function(self,data,leadtimearr){
 	// console.log("Branches : "+branchids);
 	ProductProviderModel.aggregate({$unwind:"$branch"},{$match:{"branch.branchid":{$in:branchids}}},{$project:{branchid:"$branch.branchid",deliverytimingslots:"$branch.deliverytimingslots",_id:0}},function(err,branchdata){
 		if(err){
-			logger.emit("error","Database Issue _checkMaxLeadTime"+err)
-			self.emit("failedGetDeliveryTimeSlots",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit("error","Database Error _checkMaxLeadTime"+err)
+			self.emit("failedGetDeliveryTimeSlots",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(branchdata.length==0){
 			self.emit("failedGetDeliveryTimeSlots",{"error":{"message":"Incorrect branchids"}});
 		}else{
