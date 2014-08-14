@@ -3,6 +3,7 @@ var logger = require("../../common/js/logger");
 var CategoryModel = require("./product-category-model");
 var ProductProvider = require("../../productprovider/js/productprovider-model");
 var ProductCatalogModel = require("../../productcatalog/js/product-catalog-model");
+var ProductConfigModel = require("../../productcatalog/js/product-config-model");
 var S=require("string");
 var ProductCategory = function(productcategorydata) {
   this.productcategory = productcategorydata;
@@ -251,6 +252,7 @@ var _updateProductCategory = function(self,categorydata,categoryid,oldcategoryna
 					self.emit("failedUpdateProductCategory",{"error":{"code":"ED001","message":"Database Error"}});
 				}else{
 					_updateCategorynameInProductsModel(categoryid,categorydata.categoryname,oldcategoryname);
+					_updateCategorynameInProductConfigModel(categoryid,categorydata.categoryname);
 					_successfulUpdateProductCategory(self);
 				}
 			})
@@ -308,6 +310,15 @@ var _updateAncestorsCategorynameInProductsModel = function(categoryid,newcategor
 					logger.emit("info","ancestors category information updated successfully in products model");
 				}
 			})
+		}
+	})
+}
+var _updateCategorynameInProductConfigModel = function(categoryid,categoryname){
+	ProductConfigModel.update({categoryid:categoryid},{$set:{categoryname:categoryname}},{multi:true},function(err,productupdatestatus){
+		if(err){
+			logger.emit("error","Database Error : " + err);
+		}else{			
+			logger.emit("info","categoryname updated successfully in products config model");			
 		}
 	})
 }

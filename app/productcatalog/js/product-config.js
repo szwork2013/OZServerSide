@@ -56,7 +56,8 @@ var _isValidCategoryID = function(self,categoryid,productconfig,user){
 			}	  		
 	  	}
 	});
-Incorrect var _isConfigurationAlreadyExist = function(self,categoryid,productconfig,user){
+}
+ var _isConfigurationAlreadyExist = function(self,categoryid,productconfig,user){
 	ProductConfigModel.findOne({categoryid:categoryid},function(err,configdata){
 		if(err){
 			logger.emit('error',"Database Error  _isConfigurationAlreadyExist "+err,user.userid);

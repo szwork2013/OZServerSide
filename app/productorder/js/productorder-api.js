@@ -440,6 +440,25 @@ exports.getDeliveryTimeSlots = function(req,res){
     });
     order.getDeliveryTimeSlots();
 }
+exports.cancelOrderByConsumer = function(req,res){
+  // var session_userid = req.user.userid;
+  var suborderids=req.body.suborderids;
+  var orderid=req.params.orderid;
+  var order = new Order();
+  // logger.emit("log","req body"+JSON.stringify(req.body));
+  order.removeAllListeners("failedCancelOrderByConsumer");
+    order.on("failedCancelOrderByConsumer",function(err){
+      logger.emit("error", err.error.message);
+      //order.removeAllListeners();
+      res.send(err);
+    });
+    order.removeAllListeners("successfulCancelOrderByConsumer");
+    order.on("successfulCancelOrderByConsumer",function(result){
+      // order.removeAllListeners();
+      res.send(result);
+    });
+    order.cancelOrderByConsumer(orderid,suborderids);
+}
 
 // exports.getServiceOrderRequest = function(req,res){
 //   var requestid = req.params.requestid;

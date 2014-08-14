@@ -2416,5 +2416,79 @@ var _manageTimeSlots=function(timeslots,branchid,preferred_del_date,expected_dat
 var _successfulGetDeliveryTimeSlots=function(self,doc){
 	self.emit("successfulGetDeliveryTimeSlots",{success:{message:"Getting Delivery Time Slots Successfully","doc":doc}});
 }
+Order.prototype.cancelOrderByConsumer = function(orderid,suborderids){
+	var self = this;
+	
+	///////////////////////////////////////////////////////
+	_validateCancelOrderDataByConsumer(self,orderid,suborderids);
+	///////////////////////////////////////////////////////
+}
+var _validateCancelOrderDataByConsumer=function(self,orderid,suborderids){
+	if(suborderids==undefined){
+		self.emit("failedCancelOrderByConsumer",{error:{code:"AV001",message:"Please enter suborderids"}})
+	}else if(!isArray(suborderids)){
+		self.emit("failedCancelOrderByConsumer",{error:{code:"AV001",message:"suborderids should be JSON array"}})
+	}else if(suborderids.length==0){
+		self.emit("failedCancelOrderByConsumer",{error:{code:"AV001",message:"Please pass atleast one suborder"}})		
+	}else{
+		/////////////////////////////////////
+		_checkSuborderIsValidOrder(self,orderid,suborderids)
+		////////////////////////////////////
+	}
+}	
+var _checkSuborderIsValidOrder=function(self,orderid,suborderids){
+	OrderModel.aggregate({$match:{orderid:orderid}},{$unwind:"$suborder"},{$match:{"suborder.suborderid":{$in:suborderids}}},{$project:{orderid:1,suborderid:"$suborder.suborderid",status:"$suborder.status"}},function(err,suborders){
+		if(err){
+			logger.emit("error","Database Issue :_checkSuborderIsValidOrder"+err)
+			self.emit("failedCancelOrderByConsumer",{error:{code:"ED001",message:"Database Error"}})
+		}else if(suborders.length==0){
+			self.emit("failedCancelOrderByConsumer",{error:{message:"Incorrect orderid"}})
+		}else{
+			var validsuborderids=[];
+			console.log("Orders"+JSON.stringify(suborders))
+			var suborderstatus=["orderreceived","accepted"]
+			var valistatussuborderids=[]
+			for(var i=0;i<suborders.length;i++){
+				if(suborderids.indexOf(suborders[i].suborderid)>=0){
+					validsuborderids.push(suborders[i].suborderid);
+					if(suborderstatus.indexOf(suborders[i].status)>=0){
+						valistatussuborderids.push(suborders[i].suborderid);
+					}
+				}
+			}
+			if(validsuborderids.length==0){
+				self.emit("failedCancelOrderByConsumer",{error:{message:"Please pass valid suborderid"}})
+			}else{
+				if(valistatussuborderids.length==0){
+					self.emit("failedCancelOrderByConsumer",{error:{message:"You can not Cancel the order"}})
+				}else{
+					///////////////////////////////////////////
+					_cancelOrderByConsumer(self,valistatussuborderids,0);
+					////////////////////////////////////////
+				}
 
-			
+			}
+		}
+	})
+}
+var _cancelOrderByConsumer=function(self,suborderids,index){
+	if(suborderids.length>index){
+		OrderModel.update({"suborder.suborderid":suborderids[index]},{$set:{"suborder.$.status":"cancelledbyconsumer"}},function(err,suborderupdatestatus){
+			if(err){
+				logger.emit("error","Database Issue :_checkSuborderIsValidOrder"+err)
+			self.emit("failedCancelOrderByConsumer",{error:{code:"ED001",message:"Database Error"}})
+			}else {
+				/////////////////////////////////////////////
+				_cancelOrderByConsumer(self,suborderids,++index)
+				////////////////////////////////////////
+			}
+		})
+	}else{
+		/////////////////////////////////
+		_successfulCancelOrderByConsumer(self)
+		///////////////////////////////////
+	}
+}
+var _successfulCancelOrderByConsumer=function(self){
+	self.emit("successfulCancelOrderByConsumer",{success:{message:"Successfully Order cancelled"}})
+}
