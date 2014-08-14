@@ -858,7 +858,7 @@ var _updateOZPolicies = function(res,type,templatedata,userid){
 exports.sendMail = function(message,smtpconfig,callback){
   var smtpTransport = nodemailer.createTransport("SMTP",smtpconfig);
 
-  message.html="<div width=500 height=100 style='background-color:black'><img width=200 height=100 src='http://ec2-54-255-211-121.ap-southeast-1.compute.amazonaws.com/assets/images/orderzapp.png'></img><h2><font color=white>Reach. Share. Know. </font></h2></div><br>"+message.html;
+  message.html="<div width=500 height=50 style='background-color:black'><img width=100 height=50 src='http://ec2-54-255-211-121.ap-southeast-1.compute.amazonaws.com/assets/images/orderzapp.png'></img></div><br>"+message.html;
   	smtpTransport.sendMail(message,function (error, success) {
       if(error){
         logger.error("Unable to send via Prodonus: " + error.message);
