@@ -30,4 +30,5 @@ exports.init = function (app) {
     //feedback form
     app.post("/api/feedback",auth,api.commonapi.giveFeedback);
     app.get('/api/feedback',auth,api.commonapi.getAllFeedback)
+    
 }
