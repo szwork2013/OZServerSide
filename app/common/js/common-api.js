@@ -901,4 +901,22 @@ exports.giveFeedback=function(req,res){
 		})
 	}
 }
+exports.getAllFeedback=function(req,res){
+
+	if(!req.user.isAdmin){
+		res.send({error:{code:"AV001",message:"Only Admin can see this details"}})
+	}else{
+		var query=FeedbackModel.find({},{_id:0,__v:0}).sort({feedbackdate:-1});
+		query.exec(function(err,feedbacks){
+			if(err){
+				logger.emit("error","Database Error:"+err);
+				res.send({error:{code:"ED001",message:"Database Error"}})
+			}else if(feedbacks.length==0){
+				res.send({error:{message:"No Feedback Exists"}})
+			}else{
+				res.send({success:{message:"Getting feedback Successfully",feedback:feedbacks}})
+			}
+		})
+	}
+}
 

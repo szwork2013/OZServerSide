@@ -27,6 +27,7 @@ exports.init = function (app) {
     app.get('/api/loadsmstemplates',auth,api.commonapi.loadSMSTemplates)
     app.get('/api/mydeliveryaddresses/:userid',auth,api.userapi.getMyDeliveryAddressHistory);
 
-
-    app.post("/api/feedback",auth,api.commonapi.giveFeedback)
+    //feedback form
+    app.post("/api/feedback",auth,api.commonapi.giveFeedback);
+    app.get('/api/feedback',auth,api.commonapi.getAllFeedback)
 }
