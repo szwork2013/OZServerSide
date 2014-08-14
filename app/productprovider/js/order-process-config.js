@@ -18,22 +18,22 @@ OrderProcessConfig.prototype.addOrderProcessingStatus = function(user) {
 	var process = this.orderprocessconfigdata;
 
 	/////////////////////////////////////////////////
-	_validaterderProcessingStatus(self,process,user);
+	_validateOrderProcessingStatus(self,process,user);
 	/////////////////////////////////////////////////
 };
-var _validaterderProcessingStatus = function(self,process,user){
+var _validateOrderProcessingStatus = function(self,process,user){
 	if(process == undefined){
-		self.emit("failedAddOrderProcessingStatus",{"error":{"code":"AV001","message":"Please enter process"}});
+		self.emit("failedAddOrderProcessingStatus",{"error":{"code":"AV001","message":"Please enter process key"}});
 	}else if(process.index == undefined || process.index == ""){
-		self.emit("failedAddOrderProcessingStatus",{"error":{"code":"AV001","message":"Please enter index"}});
+		self.emit("failedAddOrderProcessingStatus",{"error":{"code":"AV001","message":"Please enter index key"}});
 	}else if(process.order_status == undefined || process.order_status == ""){
 		self.emit("failedAddOrderProcessingStatus",{"error":{"code":"AV001","message":"Please enter order_status"}});
 	}else if(["orderreceived","accepted","inproduction","packing","factorytostore","indelivery","ordercomplete","cancelled","rejected"].indexOf(process.order_status.toLowerCase())<0){
 		self.emit("failedAddOrderProcessingStatus",{"error":{"code":"AV001","message":"Order Process Configuration should be 'orderreceived','accepted','inproduction','packing','factorytostore','homedelivery','storepickup','ordercomplete','cancelled','rejected' "}});
 	}else if(process.require == undefined || process.require == ""){
-		self.emit("failedAddOrderProcessingStatus",{"error":{"code":"AV001","message":"Please enter require"}});
+		self.emit("failedAddOrderProcessingStatus",{"error":{"code":"AV001","message":"Please enter require key"}});
 	}else if(["true","false"].indexOf(process.require.toLowerCase())<0){
-		self.emit("failedAddOrderProcessingStatus",{"error":{"code":"AV001","message":"require should be true or false"}});
+		self.emit("failedAddOrderProcessingStatus",{"error":{"code":"AV001","message":"require key should be true or false"}});
 	}else{
 		_isValidIndex(self,process,user);
 	}
@@ -49,7 +49,7 @@ var _isValidIndex = function(self,process,user){
 			if(process.order_status == index.order_status){
 				self.emit("failedAddOrderProcessingStatus",{"error":{"code":"AV001","message":"Order Process Configuration Already Exists"}});
 			}else{
-				self.emit("failedAddOrderProcessingStatus",{"error":{"code":"AV001","message":"Provided index is already used for '"+index.order_status+"' status, please use different index"}});
+				self.emit("failedAddOrderProcessingStatus",{"error":{"code":"AV001","message":"Index key is already used for '"+index.order_status+"' status, please use different index"}});
 			}
 		}
 	})
@@ -73,8 +73,8 @@ var _addOrderProcessingStatus = function(self,process,user){
 	var order_status=new OrderProcessConfigModel(process);
 	order_status.save(function(err,orderstatus){
 		if(err){
-			logger.emit("error","Database Issue,fun:_addOrderProcessingStatus"+err,user.userid);
-			self.emit("failedAddOrderProcessingStatus",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit("error","Database Error,fun:_addOrderProcessingStatus"+err,user.userid);
+			self.emit("failedAddOrderProcessingStatus",{"error":{"code":"ED001","message":"Database Error"}});
 		}else{          
 			///////////////////////////////////////////
 			_successfulAddOrderProcessingStatus(self);
@@ -83,7 +83,7 @@ var _addOrderProcessingStatus = function(self,process,user){
 	})
 }
 var _successfulAddOrderProcessingStatus = function(self){
-	self.emit("successfulAddOrderProcessingStatus",{"success":{"message":"Order Process Configuration Added Successfuly"}});
+	self.emit("successfulAddOrderProcessingStatus",{"success":{"message":"Order Process Configuration Added Successfully"}});
 }
 
 OrderProcessConfig.prototype.getOrderProcessingStatus = function(user) {
@@ -95,8 +95,8 @@ OrderProcessConfig.prototype.getOrderProcessingStatus = function(user) {
 var _getOrderProcessingStatus = function(self,user){
 	OrderProcessConfigModel.find({},{index:1,order_status:1,require:1,_id:0},function(err,orderstatus){
 		if(err){
-			logger.emit("error","Database Issue :_getOrderProcessingStatus "+err);
-			self.emit("failedGetOrderProcessingStatus",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit("error","Database Error :_getOrderProcessingStatus "+err);
+			self.emit("failedGetOrderProcessingStatus",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(orderstatus.length>0){
 			_successfulGetOrderProcessingStatus(self,orderstatus);
 		}else{
@@ -105,7 +105,7 @@ var _getOrderProcessingStatus = function(self,user){
 	})
 }
 var _successfulGetOrderProcessingStatus = function(self,orderstatus){
-	self.emit("successfulGetOrderProcessingStatus",{"success":{"message":"Getting Order Process Configuration Successfuly","orderprocess":orderstatus}});
+	self.emit("successfulGetOrderProcessingStatus",{"success":{"message":"Getting Order Process Configuration Successfully","orderprocess":orderstatus}});
 }
 
 OrderProcessConfig.prototype.deleteOrderProcessingStatus = function(user,index) {
@@ -120,7 +120,7 @@ var _deleteOrderProcessingStatus = function(self,user,index){
 			logger.emit('error',"Database Issue ,function:_deleteOrderProcessingStatus"+err,user.userid);
 			self.emit("failedDeleteOrderProcessingStatus",{"error":{"code":"ED001","message":"Database Issue"}});
 		}else if(deletestatus==0){
-		    self.emit("failedDeleteOrderProcessingStatus",{"error":{"message":"Provided index is wrong"}});
+		    self.emit("failedDeleteOrderProcessingStatus",{"error":{"message":"Incorrect index key"}});
 		}else{
 			/////////////////////////////////////////////
 			_successfulDeleteOrderProcessingStatus(self);
@@ -129,5 +129,5 @@ var _deleteOrderProcessingStatus = function(self,user,index){
 	})
 }
 var _successfulDeleteOrderProcessingStatus = function(self){
-	self.emit("successfulDeleteOrderProcessingStatus",{"success":{"message":"Order Process Configuration Deleted Successfuly"}});
+	self.emit("successfulDeleteOrderProcessingStatus",{"success":{"message":"Order Process Configuration Deleted Successfully"}});
 }

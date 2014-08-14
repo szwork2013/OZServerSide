@@ -82,7 +82,7 @@ exports.updateProductCatalog=function(req,res){
       res.send(result);
     }); 
     if(req.user.usertype!="provider"){
-      productcatalog.emit("failedUpdateProductCatalog",{error:{message:"You are not an provider user to update product details"}});
+      productcatalog.emit("failedUpdateProductCatalog",{error:{message:"You are not a seller group user to update product details"}});
     }else{
       productcatalog.updateProductCatalog(providerid,productid,req.user);
     }
@@ -110,7 +110,7 @@ exports.deleteProductCatalog=function(req,res){
       res.send(result);
     }); 
     if(req.user.usertype!="provider"){
-      productcatalog.emit("failedDeleteProductCatalog",{error:{message:"You are not an provider user to delete product"}});
+      productcatalog.emit("failedDeleteProductCatalog",{error:{message:"You are not a seller group user to delete product"}});
     }else{
       productcatalog.deleteProductCatalog(providerid,productid,req.user);
     }
@@ -221,7 +221,7 @@ exports.changeProductPrice=function(req,res){
       res.send(result);
     });  
     if(req.user.usertype!="provider"){
-      productcatalog.emit('failedChangeProductPrice',{error:{code:"EA001",message:"You are not a provider to change price details"}});
+      productcatalog.emit('failedChangeProductPrice',{error:{code:"EA001",message:"You are not a seller group user to change price details"}});
     }else{
       /////////////////////////////////////////////////////////////////////////////////
        productcatalog.changeProductsPrice(branchid,productpricedata,req.user.userid);
@@ -253,7 +253,7 @@ exports.holdingProductPrice=function(req,res){
       res.send(result);
     });  
     if(req.user.usertype!="provider"){
-      productcatalog.emit('failedHoldProductPrice',{error:{code:"EA001",message:"You are not a provider to change price details"}});
+      productcatalog.emit('failedHoldProductPrice',{error:{code:"EA001",message:"You are not a seller group user to change price details"}});
     }else{
       /////////////////////////////////////////////////////////////////////////////////
       productcatalog.holdingProductPrice(branchid,productid,pricedata,req.user.userid);
@@ -285,7 +285,7 @@ exports.activateProductPrice=function(req,res){
       res.send(result);
     });  
     if(req.user.usertype!="provider"){
-      productcatalog.emit('failedActivateProductPrice',{error:{code:"EA001",message:"You are not a provider to change price details"}});
+      productcatalog.emit('failedActivateProductPrice',{error:{code:"EA001",message:"You are not a seller group user to change price details"}});
     }else{
       /////////////////////////////////////////////////////////////////////////////////
       productcatalog.activateProductPrice(branchid,productid,req.user.userid);
@@ -315,7 +315,7 @@ exports.deactivateProductPrice=function(req,res){
       res.send(result);
     });  
     if(req.user.usertype!="provider"){
-      productcatalog.emit('failedDeactivateProductPrice',{error:{code:"EA001",message:"You are not a provider to change price details"}});
+      productcatalog.emit('failedDeactivateProductPrice',{error:{code:"EA001",message:"You are not a seller group user to change price details"}});
     }else{
       //////////////////////////////////////////////////////////////////////////
       productcatalog.deactivateProductPrice(branchid,productid,req.user.userid);
@@ -370,7 +370,7 @@ exports.manageProductAvailability=function(req,res){
       res.send(result);
     }); 
     if(req.user.usertype!="provider"){
-      productcatalog.emit('failedManageProductAvailability',{error:{code:"EA001",message:"You are not a provider to manage product availability"}});
+      productcatalog.emit('failedManageProductAvailability',{error:{code:"EA001",message:"You are not a seller group user to manage product availability"}});
     }else{
       productcatalog.manageProductAvailability(providerid,productid,req.user);
     }
@@ -395,7 +395,7 @@ exports.getAllProductUserTags=function(req,res){
       res.send(result);
     }); 
     if(req.user.usertype!="provider"){
-      productcatalog.emit('failedgetAllProductUserTags',{error:{code:"EA001",message:"You are not a provider to get Product user tags details"}});
+      productcatalog.emit('failedgetAllProductUserTags',{error:{code:"EA001",message:"You are not a seller group user to get product user tags details"}});
     }else{
       productcatalog.getAllProductUserTags();
     }
@@ -424,7 +424,7 @@ exports.manageProductLeadTime=function(req,res){
       res.send(result);
     }); 
     if(req.user.usertype!="provider"){
-      productcatalog.emit('failedManageProductLeadTime',{error:{code:"EA001",message:"You are not a provider to get Product user tags details"}});
+      productcatalog.emit('failedManageProductLeadTime',{error:{code:"EA001",message:"You are not a seller group user to get product user tags details"}});
     }else{
       productcatalog.manageProductLeadTime(sessionuserid,productleadtimedata,providerid,branchid);
     }

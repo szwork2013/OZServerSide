@@ -36,9 +36,9 @@ var _updateProductProviderDetails=function(providerid){
 	logger.emit("log","_updateProductProviderDetails")
 	ProductProviderModel.findOne({providerid:providerid},{providerid:1,provideremail:1,providername:1,providerbrandname:1,providerlogo:1,providercode:1,_id:0,paymentmode:1},function(err,provider){
 		if(err){
-			logger.emit("error","Database Issue :_updateProductProviderDetails "+err)
+			logger.emit("error","Database Error :_updateProductProviderDetails "+err)
 		}else if(!provider){
-			logger.emit("error","Provider id is wrong for _updateProductProviderDetails ")
+			logger.emit("error","Incorrect Seller id for _updateProductProviderDetails ")
 		}else{
 
 			provider.providerlogo=provider.providerlogo.image;
@@ -50,9 +50,9 @@ var _updateProductProviderDetails=function(providerid){
 				if(err){
 					logger.emit("error","Database Issue _updateProductProviderDetails"+err)
 				}else if(productproviderstatus==0){
-					logger.emit("log","No product exist for that provider "+providerid)
+					logger.emit("log","No product exists for that seller "+providerid)
 				}else{
-					logger.emit("log","All the products for provider updated");
+					logger.emit("log","All the products for seller updated");
 				}
 			})
 		}
@@ -61,9 +61,9 @@ var _updateProductProviderDetails=function(providerid){
 var _updateBranchProductsDetails=function(branchid){
 	ProductProviderModel.aggregate({$match:{"branch.branchid":branchid}},{$unwind:"$branch"},{$match:{"branch.branchid":branchid}},function(err,providerbranch){
 		if(err){
-			logger.emit("error","Database Issue :_updateProductProviderDetails "+err)
+			logger.emit("error","Database Error :_updateProductProviderDetails "+err)
 		}else if(providerbranch.length==0){
-			logger.emit("error","Branch id is wrong");
+			logger.emit("error","Incorrect Branch id");
 		}else{
 			var branch=providerbranch[0].branch;
 			var branchsetdata={branchid:branch.branchid,branchname:branch.branchname,note:branch.note,location:branch.location,delivery:branch.delivery,contact_supports:branch.contact_supports}
@@ -71,7 +71,7 @@ var _updateBranchProductsDetails=function(branchid){
 				if(err){
 					logger.emit("error","Database Issue _updateProductProviderDetails"+err)
 				}else if(productproviderstatus==0){
-					logger.emit("error","branchid is wrong for update product")
+					logger.emit("error","Incorrect branchid for update product")
 				}else{
 					logger.emit("log","all branch products updated")
 				}
@@ -124,29 +124,29 @@ var _addProviderLogoToAmazonServer=function(awsparams,providerid,user,providerlo
           var providerurl={bucket:params1.Bucket,key:params1.Key,image:url};
          ProductProviderModel.findAndModify({providerid:providerid},[],{$set:{providerlogo:providerurl}},{new:false},function(err,provider_logo){
          	if(err){
-         		logger.emit('error',"Database Issue  _addProviderLogoToAmazonServer"+err,user.userid)
-			    callback({"error":{"code":"ED001","message":"Database Issue"}});
+         		logger.emit('error',"Database Error  _addProviderLogoToAmazonServer"+err,user.userid)
+			    callback({"error":{"code":"ED001","message":"Database Error"}});
          	}else if(!provider_logo){
-         		callback({"error":{"message":"Provider does not exist"}});
+         		callback({"error":{"message":"Seller does not exist"}});
          	}else{
 			      var providerlogo_object=provider_logo.providerlogo;
           	if(providerlogo_object==undefined){
-              logger.emit("log","First time provider logo changed");
+              logger.emit("log","First time Seller logo changed");
           	}else{
           	  var awsdeleteparams={Bucket:providerlogo_object.bucket,Key:providerlogo_object.key};
             	logger.emit("log",awsdeleteparams);
             	s3bucket.deleteObject(awsdeleteparams, function(err, deleteproviderlogostatus) {
               	if (err) {
-               	 logger.emit("error","Provoder logo not deleted from amzon s3 bucket "+err,user.userid);
+               	 logger.emit("error","Seller logo not deleted from amazon s3 bucket "+err,user.userid);
               	}else if(deleteproviderlogostatus){
-               	 logger.emit("log","Product logo  delete from Amazon S3");
+               	 logger.emit("log","Product logo deleted from Amazon S3");
               	}
             	}) 
             }
             exec("rm -rf "+providerlogo.path);
              console.log("rm -rf "+providerlogo.path);               
                       
-              callback(null,{"success":{"message":"Provider Logo Updated Successfully","image":url}})
+              callback(null,{"success":{"message":"Seller Logo Updated Successfully","image":url}})
             }
           })
         }
@@ -159,7 +159,7 @@ ProductProvider.prototype.acceptrejectProductProvider = function(providerid,acti
 	var self=this;
 	 console.log("acceptrejectProductddddddProvider")
 	if(action == undefined){
-		self.emit("failedProductProviderAcceptance",{"error":{"message":"Please pass action"}});
+		self.emit("failedProductProviderAcceptance",{"error":{"message":"Please enter action - accept or reject"}});
 	}else if(["accept","reject"].indexOf(action)<0){
 		self.emit("failedProductProviderAcceptance",{"error":{"message":"action should be accept or reject"}});
 	}else{
@@ -172,17 +172,17 @@ var _validateAcceptProductProviderRequest = function(self,providerid,action,user
 	 console.log("acceptrejectProductProvider")
 	ProductProviderModel.findOne({providerid:providerid},{status:1,_id:0},function(err,provider){
 		if(err){
-			logger.emit('error',"Database Issue  _validateAcceptProductProviderRequest"+err,userid);
-			self.emit("failedProductProviderAcceptance",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit('error',"Database Error  _validateAcceptProductProviderRequest"+err,userid);
+			self.emit("failedProductProviderAcceptance",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(!provider){
-			self.emit("failedProductProviderAcceptance",{"error":{"message":"Provider not exist"}});
+			self.emit("failedProductProviderAcceptance",{"error":{"message":"Seller does not exist"}});
 		}else{
 			if(provider.status == "init"){
 				/////////////////////////////////////////////////////////////
 		     	_acceptProductProviderRequest(self,providerid,action,userid);
 			    /////////////////////////////////////////////////////////////
 			}else if(provider.status == action){
-				self.emit("failedProductProviderAcceptance",{"error":{"message":"Provider request already "+action+"ed"}});	
+				self.emit("failedProductProviderAcceptance",{"error":{"message":"Seller has already "+action+"ed"}});	
 			}else{
 				/////////////////////////////////////////////////////////////
 		     	_acceptProductProviderRequest(self,providerid,action,userid);
@@ -194,10 +194,10 @@ var _validateAcceptProductProviderRequest = function(self,providerid,action,user
 var _acceptProductProviderRequest = function(self,providerid,action,userid){
 	ProductProviderModel.update({providerid:providerid},{$set:{status:action}},function(err,providerupdatestatus){
 		if(err){
-			logger.emit('error',"Database Issue ,function:_acceptProductProviderRequest"+err,userid);
-			self.emit("failedProductProviderAcceptance",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit('error',"Database Error ,function:_acceptProductProviderRequest"+err,userid);
+			self.emit("failedProductProviderAcceptance",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(providerupdatestatus==0){
-		    self.emit("failedProductProviderAcceptance",{"error":{"message":"providerid is wrong"}});
+		    self.emit("failedProductProviderAcceptance",{"error":{"message":"Incorrect sellerid"}});
 		}else{
 			///////////////////////////////////////////
 			_successfulProductProviderAcceptance(self,action);
@@ -206,7 +206,7 @@ var _acceptProductProviderRequest = function(self,providerid,action,userid){
 	})
 }
 var _successfulProductProviderAcceptance=function(self,action){
-	self.emit("successfulProductProviderAcceptance",{"success":{"message":"Provider request "+action+"ed sucessfully"}});
+	self.emit("successfulProductProviderAcceptance",{"success":{"message":"Seller request "+action+"ed successfully"}});
 }
 
 ProductProvider.prototype.addProductProvider = function(user,providerlogo) {
@@ -218,19 +218,19 @@ ProductProvider.prototype.addProductProvider = function(user,providerlogo) {
 };
 var _validateProductProviderData=function(self,productproviderdata,user,providerlogo){
 	if(productproviderdata==undefined){
-		self.emit("failedProductProviderRegistration",{"error":{"code":"AV001","message":"Please pass providerdata"}})
+		self.emit("failedProductProviderRegistration",{"error":{"code":"AV001","message":"Please enter providerdata"}})
 	}else if(productproviderdata.providername==undefined || productproviderdata.providername==undefined ){
-		self.emit("failedProductProviderRegistration",{"error":{"code":"AV001","message":"Please pass providername"}})
+		self.emit("failedProductProviderRegistration",{"error":{"code":"AV001","message":"Please enter providername"}})
 	}else  if(productproviderdata.providerbrandname==undefined || productproviderdata.providerbrandname==undefined ){
 		self.emit("failedProductProviderRegistration",{"error":{"code":"AV001","message":"Please enter provider brandname"}})
 	}else  if(productproviderdata.provideremail==undefined || productproviderdata.provideremail==undefined ){
 		self.emit("failedProductProviderRegistration",{"error":{"code":"AV001","message":"Please enter provider email"}})
 	}else if(productproviderdata.category==undefined || productproviderdata.category==""){
-		self.emit("failedProductProviderRegistration",{"error":{"code":"AV001","message":"Please pass category"}})
+		self.emit("failedProductProviderRegistration",{"error":{"code":"AV001","message":"Please enter category"}})
 	}else if(productproviderdata.category.categoryid==undefined && productproviderdata.category.categoryname==undefined){
 		self.emit("failedProductProviderRegistration",{"error":{"code":"AV001","message":"please select category"}})
 	}else if(productproviderdata.providerdescription==undefined || productproviderdata.providerdescription==""){
-		self.emit("failedProductProviderRegistration",{"error":{"code":"AV001","message":"Please pass providerdescription"}})
+		self.emit("failedProductProviderRegistration",{"error":{"code":"AV001","message":"Please enter providerdescription"}})
 	// }else if(productproviderdata.branch==undefined || productproviderdata.branch==""){
 	// 	self.emit("failedProductProviderRegistration",{"error":{"code":"AV001","message":"Please pass branch details"}})
 	// }else if(!isArray(productproviderdata.branch)){
@@ -239,9 +239,9 @@ var _validateProductProviderData=function(self,productproviderdata,user,provider
 	// 	self.emit("failedProductProviderRegistration",{"error":{"code":"AV001","message":"Please add atleast one branch details"}});
 	// 
     }else if(productproviderdata.orderprocess_configuration==undefined || productproviderdata.orderprocess_configuration==""){
-		self.emit("failedProductProviderRegistration",{"error":{"code":"AV001","message":"please pass orderprocess_configuration details"}})
+		self.emit("failedProductProviderRegistration",{"error":{"code":"AV001","message":"please enter orderprocess_configuration details"}})
 	}else  if(!isArray(productproviderdata.orderprocess_configuration)){
-		self.emit("failedProductProviderRegistration",{"error":{"code":"AV001","message":"Process Configuration should be an array"}})
+		self.emit("failedProductProviderRegistration",{"error":{"code":"AV001","message":"Process Configuration should be an JSON array"}})
 	}else  if(productproviderdata.orderprocess_configuration.length==0){
 		self.emit("failedProductProviderRegistration",{"error":{"code":"AV001","message":"Process Configuration should not be empty"}})
 	}else if(productproviderdata.providercode==undefined || productproviderdata.providercode==""){
@@ -253,7 +253,7 @@ var _validateProductProviderData=function(self,productproviderdata,user,provider
 	// }else if(productproviderdata.tax.servicetaxno==undefined || productproviderdata.tax.servicetaxno==""){
 	// 	self.emit("failedProductProviderRegistration",{"error":{"code":"AV001","message":"Please enter servicetaxno"}})
 	}else if(productproviderdata.paymentmode==undefined || productproviderdata.paymentmode==""){
-		self.emit("failedProductProviderRegistration",{"error":{"code":"AV001","message":"Please pass paymentmode"}})
+		self.emit("failedProductProviderRegistration",{"error":{"code":"AV001","message":"Please enter paymentmode"}})
 	}else if(providerlogo==undefined){
 		self.emit("failedProductProviderRegistration",{"error":{"code":"AV001","message":"Please upload providerlogo"}})
 	}else if(providerlogo.originalname==""){
@@ -269,10 +269,10 @@ var _checkCategoryOneLevelCategory=function(self,productproviderdata,user,provid
 	console.log("categoryid"+productproviderdata.category.categoryid);
 	ProductCategoryModel.findOne({categoryid:productproviderdata.category.categoryid},function(err,productcategory){
 		if(err){
-			logger.emit("error","Database Issue,fun:_checkCategoryOneLevelCategory"+err,user.userid);
-			self.emit("failedProductProviderRegistration",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit("error","Database Error,fun:_checkCategoryOneLevelCategory"+err,user.userid);
+			self.emit("failedProductProviderRegistration",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(!productcategory){
-			self.emit("failedProductProviderRegistration",{"error":{"message":"Category doesn't exist"}});	
+			self.emit("failedProductProviderRegistration",{"error":{"message":"Category does not exist"}});	
 		}else{
 			if(productcategory.level!=1){
 				self.emit("failedProductProviderRegistration",{"error":{"message":"You can only select first level category"}});	
@@ -289,10 +289,10 @@ var _checkCategoryOneLevelCategory=function(self,productproviderdata,user,provid
 var _checkProviderCodeAlreadyExist=function(self,productproviderdata,user,providerlogo){
 	ProductProviderModel.find({providercode:productproviderdata.providercode},function(err,providercodedata){
 		if(err){
-			logger.emit("error","Database Issue,fun:_checkCategoryOneLevelCategory"+err,user.userid);
-			self.emit("failedProductProviderRegistration",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit("error","Database Error,fun:_checkCategoryOneLevelCategory"+err,user.userid);
+			self.emit("failedProductProviderRegistration",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(providercodedata.length!=0){
-			self.emit("failedProductProviderRegistration",{"error":{"message":"Provider code already used"}});
+			self.emit("failedProductProviderRegistration",{"error":{"message":"Seller code already used"}});
 		}else{
 				//////////////////////////////////////////////////////////////
 			_checkOrderProcessConfiguration(self,productproviderdata,user,providerlogo)
@@ -303,10 +303,10 @@ var _checkProviderCodeAlreadyExist=function(self,productproviderdata,user,provid
 var _checkOrderProcessConfiguration=function(self,productproviderdata,user,providerlogo){
 	OrderProcessConfigModel.find({},function(err,orderrefstatus){
 		if(err){
-			logger.emit("error","Database Issue,fun:_checkOrderProcessConfiguration"+err,user.userid);
-			self.emit("failedProductProviderRegistration",{"error":{"code":"ED001","message":"Database Issue"}});		
+			logger.emit("error","Database Error,fun:_checkOrderProcessConfiguration"+err,user.userid);
+			self.emit("failedProductProviderRegistration",{"error":{"code":"ED001","message":"Database Error"}});		
 		}else if(orderrefstatus.length==0){
-			self.emit("failedProductProviderRegistration",{"error":{"message":"No Order Reference status exist"}});		
+			self.emit("failedProductProviderRegistration",{"error":{"message":"Order Process Configuration Reference data does not exist"}});		
 		}else{
 			var requireorderdstatus=[];
 			var allorderstatus=[];
@@ -332,7 +332,7 @@ var _checkOrderProcessConfiguration=function(self,productproviderdata,user,provi
 			var missingrequirestatus=__.difference(requireorderdstatus,orderprocess_configurationstatus);
 			logger.emit("log","missingrequirestatus"+JSON.stringify(missingrequirestatus))
 			if(missingrequirestatus.length!=0){
-					self.emit("failedProductProviderRegistration",{"error":{"message":"You have to compulsorty select"+requireorderdstatus+"these status"}});		
+					self.emit("failedProductProviderRegistration",{"error":{"message":"Mandatory to select these status "+requireorderdstatus}});		
 			}else{
 				productproviderdata.orderprocess_configuration=validorderprocess_configurationstatus
 				//////////////////////////////////////////////////////////////
@@ -348,16 +348,16 @@ var _addProductProvider=function(self,productproviderdata,user,providerlogo){
 	var product_provider=new ProductProviderModel(productproviderdata);
 	product_provider.save(function(err,productprovider){
 		if(err){
-			logger.emit("error","Database Issue,fun:_addProductProvider"+err,user.userid);
-			self.emit("failedProductProviderRegistration",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit("error","Database Error,fun:_addProductProvider"+err,user.userid);
+			self.emit("failedProductProviderRegistration",{"error":{"code":"ED001","message":"Database Error"}});
 		}else{
             if(providerlogo!=undefined){
             ///////////////////////////////////////////////////////////////////
 	     	_addProductProviderLogo(productprovider.providerid,user,providerlogo,function(err,result){
 	     		if(err){
-	     			logger.emit("providerlogo not uploaded")
+	     			logger.emit("Seller logo not uploaded")
 	     		}else{
-	     			logger.emit("providerlogo added with provider details")
+	     			logger.emit("Seller logo added with Seller details")
 	     		}
 	     	});
             }
@@ -376,16 +376,16 @@ var _addProviderDetailsToUser=function(self,productprovider,user){
 	var provider={providerid:productprovider.providerid,isOwner:true};
 	UserModel.update({userid:user.userid},{$push:{provider:provider}},function(err,userproviderupdate){
 		if(err){
-			logger.emit("error","Database Issue");
+			logger.emit("error","Database Error");
 		}else if(userproviderupdate==0){
-			logger.emit("log","userid is wrong");
+			logger.emit("log","Incorrect user id");
 		}else{
-			logger.emit("info","Provider Details associated with user");
+			logger.emit("info","Seller Details associated with user");
 		}
 	})
 }
 var _successfullAddProductProvider=function(self){
-	self.emit("successfulProductProviderRegistration",{"success":{"message":"Product Provider Added Sucessfully"}});
+	self.emit("successfulProductProviderRegistration",{"success":{"message":"Seller Added Successfully"}});
 }
 
 ProductProvider.prototype.addProviderPolicy = function(providerid,branchid,type,text,user) {
@@ -397,9 +397,9 @@ ProductProvider.prototype.addProviderPolicy = function(providerid,branchid,type,
 };
 var _validateAddProviderPolicy = function(self,providerid,branchid,type,text,user){
 	if(text == undefined || text == ""){
-		self.emit("failedAddProviderPolicy",{"error":{"code":"AV001","message":"Please enter text"}});
+		self.emit("failedAddProviderPolicy",{"error":{"code":"AV001","message":"Please enter policy text"}});
 	}else if(type == undefined){
-		self.emit("failedAddProviderPolicy",{"error":{"code":"AV001","message":"Please pass type"}});
+		self.emit("failedAddProviderPolicy",{"error":{"code":"AV001","message":"Please enter policy type"}});
 	}else if(["ordering_policy","price_policy","refunds_policy","delivery_policy","cancellation_policy"].indexOf(type)<0){
 		self.emit("failedAddProviderPolicy",{"error":{"code":"AV001","message":"type should be ordering_policy or price_policy or refunds_policy or delivery_policy or cancellation_policy"}});
 	}else{
@@ -409,11 +409,11 @@ var _validateAddProviderPolicy = function(self,providerid,branchid,type,text,use
 var _isValidProviderToAddPolicy = function(self,providerid,branchid,type,text,user){
 	ProductProviderModel.findOne({providerid:providerid,"branch.branchid":branchid},function(err,provider){
 		if(err){
-			logger.emit('error',"Database Issue  _isValidProviderToAddPolicy "+err,user.userid);
-			self.emit("failedAddProviderPolicy",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit('error',"Database Error  _isValidProviderToAddPolicy "+err,user.userid);
+			self.emit("failedAddProviderPolicy",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(!provider){
 			console.log(provider);
-			self.emit("failedAddProviderPolicy",{"error":{"message":"providerid or branchid is wrong"}});
+			self.emit("failedAddProviderPolicy",{"error":{"message":"Incorrect seller id or branchid"}});
 		}else{
 			//////////////////////////////////////////////////////////////////////////////
 	     	_isProviderAdminToAddPolicy(self,providerid,branchid,type,text,user,provider);
@@ -428,7 +428,7 @@ var _isProviderAdminToAddPolicy=function(self,providerid,branchid,type,text,user
 			logger.emit('error',"Database Issue  _isProviderAdminToAddPolicy "+err,user.userid);
 			self.emit("failedAddProviderPolicy",{"error":{"code":"ED001","message":"Database Issue"}});
 		}else if(!userpp){
-			self.emit("failedAddProviderPolicy",{"error":{"message":"You are not authorized to add provider policy details"}});
+			self.emit("failedAddProviderPolicy",{"error":{"message":"Only authorised user can add seller policy details"}});
 		}else{
 			///////////////////////////////////////////////////////////////////////////
 	     	_checkPolicyAlreadyExist(self,providerid,branchid,type,text,user,provider);
@@ -439,8 +439,8 @@ var _isProviderAdminToAddPolicy=function(self,providerid,branchid,type,text,user
 var _checkPolicyAlreadyExist = function(self,providerid,branchid,type,text,user){
 	BranchPolicyModel.findOne({providerid:providerid,branchid:branchid},{_id:0},function(err,branchpolicy){
 		if(err){
-			logger.emit('error',"Database Issue  _checkPolicyAlreadyExist "+err,user.userid);
-			self.emit("failedAddProviderPolicy",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit('error',"Database Error  _checkPolicyAlreadyExist "+err,user.userid);
+			self.emit("failedAddProviderPolicy",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(!branchpolicy){
 			//////////////////////////////////////////////////////////
 			_addBranchPolicy(self,providerid,branchid,type,text,user);
@@ -465,10 +465,10 @@ var _addBranchPolicy=function(self,providerid,branchid,type,text,user){
 	var branchPolicy = new BranchPolicyModel(policydata)
 	branchPolicy.save(function(err,branchpolicystatus){
 		if(err){
-			logger.emit('error',"Database Issue ,function:_addProviderPolicy "+err,user.userid);
-			self.emit("failedAddProviderPolicy",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit('error',"Database Error ,function:_addProviderPolicy "+err,user.userid);
+			self.emit("failedAddProviderPolicy",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(branchpolicystatus==0){
-		    self.emit("failedAddProviderPolicy",{"error":{"message":"Database Issue"}});
+		    self.emit("failedAddProviderPolicy",{"error":{"message":"Database Error"}});
 		}else{
 			///////////////////////////////////
 			_successfulAddProviderPolicy(self);
@@ -481,10 +481,10 @@ var _updateBranchPolicy = function(self,providerid,branchid,type,text,user,branc
     policysetdata[type]=text
 	BranchPolicyModel.update({providerid:providerid,branchid:branchid},{$set:policysetdata},function(err,branchpolicystatus){
 		if(err){
-			logger.emit('error',"Database Issue ,function:_addProviderPolicy "+err,user.userid);
-			self.emit("failedAddProviderPolicy",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit('error',"Database Error ,function:_addProviderPolicy "+err,user.userid);
+			self.emit("failedAddProviderPolicy",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(branchpolicystatus==0){
-		    self.emit("failedAddProviderPolicy",{"error":{"message":"Database Issue"}});
+		    self.emit("failedAddProviderPolicy",{"error":{"message":"Database Error"}});
 		}else{
 			///////////////////////////////////
 			_successfulAddProviderPolicy(self);
@@ -493,7 +493,7 @@ var _updateBranchPolicy = function(self,providerid,branchid,type,text,user,branc
 	})
 }
 var _successfulAddProviderPolicy = function(self){
-	self.emit("successfulAddProviderPolicy",{"success":{"message":"Provider Policy Added Successfully"}});
+	self.emit("successfulAddProviderPolicy",{"success":{"message":"Seller Policy Added Successfully"}});
 }
 
 ProductProvider.prototype.getProviderPolicy = function(providerid,branchid,type,user) {
@@ -505,7 +505,7 @@ ProductProvider.prototype.getProviderPolicy = function(providerid,branchid,type,
 };
 var _validateGetProviderPolicy = function(self,providerid,branchid,type,user){
 	if(type == undefined){
-		self.emit("failedGetProviderPolicy",{"error":{"code":"AV001","message":"Please pass type"}});
+		self.emit("failedGetProviderPolicy",{"error":{"code":"AV001","message":"Please enter type"}});
 	}else if(["ordering_policy","price_policy","refunds_policy","delivery_policy","cancellation_policy","all"].indexOf(type)<0){
 		self.emit("failedGetProviderPolicy",{"error":{"code":"AV001","message":"type should be ordering_policy or price_policy or refunds_policy or delivery_policy or cancellation_policy"}});
 	}else{
@@ -519,10 +519,10 @@ var _isValidProviderToGetPolicy = function(self,providerid,branchid,type,user){
 	// console.log("_isValidProviderToGetPolicy");
 	ProductProviderModel.findOne({providerid:providerid,"branch.branchid":branchid},function(err,provider){
 		if(err){
-			logger.emit('error',"Database Issue  _isValidProviderToGetPolicy"+err,user.userid);
-			self.emit("failedGetProviderPolicy",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit('error',"Database Error  _isValidProviderToGetPolicy"+err,user.userid);
+			self.emit("failedGetProviderPolicy",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(!provider){
-			self.emit("failedGetProviderPolicy",{"error":{"message":"providerid or branchid is wrong"}});
+			self.emit("failedGetProviderPolicy",{"error":{"message":"Incorrect seller id or branchid"}});
 		}else{
 			/////////////////////////////////////////////////////////
 	     	_isProviderAdminToGetPolicy(self,providerid,branchid,type,user);
@@ -534,10 +534,10 @@ var _isProviderAdminToGetPolicy=function(self,providerid,branchid,type,user){
 	// console.log("_isProviderAdminToGetPolicy");
 	UserModel.findOne({userid:user.userid,"provider.providerid":providerid,"provider.isOwner":true},function(err,usersp){
 		if(err){
-			logger.emit('error',"Database Issue  _isProviderAdminToGetPolicy"+err,user.userid);
-			self.emit("failedGetProviderPolicy",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit('error',"Database Error  _isProviderAdminToGetPolicy"+err,user.userid);
+			self.emit("failedGetProviderPolicy",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(!usersp){
-			self.emit("failedGetProviderPolicy",{"error":{"message":"You are not authorized to get provider policy details"}});
+			self.emit("failedGetProviderPolicy",{"error":{"message":"Only authorized user can get seller policy details"}});
 		}else{
 			///////////////////////////////////////////////////////
 	     	_getProviderPolicy(self,providerid,branchid,type,user);
@@ -549,8 +549,8 @@ var _getProviderPolicy = function(self,providerid,branchid,type,user){
 	console.log("_getProviderPolicy");
 	BranchPolicyModel.findOne({providerid:providerid,branchid:branchid},{_id:0,__v:0,branchid:0,providerid:0},function(err,branchPolicy){
 		if(err){
-			logger.emit('error',"Database Issue  _isValidProviderToGetPolicy "+err,user.userid);
-			self.emit("failedGetProviderPolicy",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit('error',"Database Error  _isValidProviderToGetPolicy "+err,user.userid);
+			self.emit("failedGetProviderPolicy",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(!branchPolicy){
 			self.emit("failedGetProviderPolicy",{"error":{"code":"AV001","message":"Policy does not exist"}});
 		}else{
@@ -578,7 +578,7 @@ var _getProviderPolicy = function(self,providerid,branchid,type,user){
 	// }
 }
 var _successfulGetProviderPolicy = function(self,policy){
-	self.emit("successfulGetProviderPolicy",{"success":{"message":"Getting Provider Policy Details Successfully",policy:policy}});
+	self.emit("successfulGetProviderPolicy",{"success":{"message":"Getting Seller Policy Details Successfully",policy:policy}});
 }
 
 ProductProvider.prototype.updateProviderPolicy = function(providerid,branchid,type,text,user) {
@@ -591,9 +591,9 @@ ProductProvider.prototype.updateProviderPolicy = function(providerid,branchid,ty
 var _validateUpdateProviderPolicy = function(self,providerid,branchid,type,text,user){
 	console.log("text : "+text+" type : "+type);
 	if(text == undefined || text == ""){
-		self.emit("failedUpdateProviderPolicy",{"error":{"code":"AV001","message":"Please enter text"}});
+		self.emit("failedUpdateProviderPolicy",{"error":{"code":"AV001","message":"Please enter policy text"}});
 	}else if(type == undefined){
-		self.emit("failedUpdateProviderPolicy",{"error":{"code":"AV001","message":"Please pass type"}});
+		self.emit("failedUpdateProviderPolicy",{"error":{"code":"AV001","message":"Please pass policy type"}});
 	}else if(["ordering_policy","price_policy","refunds_policy","delivery_policy","cancellation_policy"].indexOf(type)<0){
 		self.emit("failedUpdateProviderPolicy",{"error":{"code":"AV001","message":"type should be ordering_policy or price_policy or refunds_policy or delivery_policy or cancellation_policy"}});
 	}else{
@@ -604,10 +604,10 @@ var _isValidProviderToUpdatePolicy = function(self,providerid,branchid,type,text
 	// console.log("_isValidProviderToUpdatePolicy");
 	ProductProviderModel.findOne({providerid:providerid},function(err,provider){
 		if(err){
-			logger.emit('error',"Database Issue  _isValidProviderToUpdatePolicy"+err,user.userid);
-			self.emit("failedUpdateProviderPolicy",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit('error',"Database Error  _isValidProviderToUpdatePolicy"+err,user.userid);
+			self.emit("failedUpdateProviderPolicy",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(!provider){
-			self.emit("failedUpdateProviderPolicy",{"error":{"message":"providerid is wrong"}});
+			self.emit("failedUpdateProviderPolicy",{"error":{"message":"Incorrect seller id"}});
 		}else{
 			////////////////////////////////////////////////////////////////////////
 	     	_isProviderAdminToUpdatePolicy(self,providerid,branchid,type,text,user);
@@ -619,10 +619,10 @@ var _isProviderAdminToUpdatePolicy=function(self,providerid,branchid,type,text,u
 	// console.log("_isProivderAdminToUpdatePolicy");
 	UserModel.findOne({userid:user.userid,"provider.providerid":providerid,"provider.isOwner":true},function(err,usersp){
 		if(err){
-			logger.emit('error',"Database Issue  _isProviderAdminToUpdatePolicy"+err,user.userid);
-			self.emit("failedUpdateProviderPolicy",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit('error',"Database Error  _isProviderAdminToUpdatePolicy"+err,user.userid);
+			self.emit("failedUpdateProviderPolicy",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(!usersp){
-			self.emit("failedUpdateProviderPolicy",{"error":{"message":"You are not authorized to add provider policy details"}});
+			self.emit("failedUpdateProviderPolicy",{"error":{"message":"Only admin user can add seller policy details"}});
 		}else{
 			///////////////////////////////////////////////////////////////
 	     	_checkPolicyAlreadyExistToUpdate(self,providerid,branchid,type,text,user);
@@ -633,10 +633,10 @@ var _isProviderAdminToUpdatePolicy=function(self,providerid,branchid,type,text,u
 var _checkPolicyAlreadyExistToUpdate = function(self,providerid,branchid,type,text,user){
 	BranchPolicyModel.findOne({providerid:providerid,branchid:branchid},function(err,branchpolicy){
 		if(err){
-			logger.emit('error',"Database Issue  _checkPolicyAlreadyExistToUpdate "+err,user.userid);
-			self.emit("failedUpdateProviderPolicy",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit('error',"Database Error  _checkPolicyAlreadyExistToUpdate "+err,user.userid);
+			self.emit("failedUpdateProviderPolicy",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(!branchpolicy){
-			self.emit("failedUpdateProviderPolicy",{"error":{"message":"providerid or branchid is wrong"}});
+			self.emit("failedUpdateProviderPolicy",{"error":{"message":"Incorrect seller id or branchid"}});
 		}else{
 			///////////////////////////////////////////////////////////////
 	     	_updateBranchPolicyData(self,providerid,branchid,type,text,user);
@@ -666,10 +666,10 @@ var _updateBranchPolicyData=function(self,providerid,branchid,type,text,user){
     policysetdata[type]=text
 	BranchPolicyModel.update({providerid:providerid,branchid:branchid},{$set:policysetdata},function(err,branchpolicystatus){
 		if(err){
-			logger.emit('error',"Database Issue ,function:_addProviderPolicy "+err,user.userid);
-			self.emit("failedUpdateProviderPolicy",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit('error',"Database Error ,function:_addProviderPolicy "+err,user.userid);
+			self.emit("failedUpdateProviderPolicy",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(branchpolicystatus==0){
-		    self.emit("failedUpdateProviderPolicy",{"error":{"message":"Database Issue"}});
+		    self.emit("failedUpdateProviderPolicy",{"error":{"message":"Database Error"}});
 		}else{
 			///////////////////////////////////
 			_successfulUpdateProviderPolicy(self);
@@ -678,7 +678,7 @@ var _updateBranchPolicyData=function(self,providerid,branchid,type,text,user){
 	})
 }
 var _successfulUpdateProviderPolicy = function(self){
-	self.emit("successfulUpdateProviderPolicy",{"success":{"message":"Provider Policy Updated Successfully"}});
+	self.emit("successfulUpdateProviderPolicy",{"success":{"message":"Seller Policy Updated Successfully"}});
 }
 
 ProductProvider.prototype.updateProductProvider = function(user,providerid) {
@@ -690,9 +690,9 @@ ProductProvider.prototype.updateProductProvider = function(user,providerid) {
 };
 var _validateUpdateUProductProviderData=function(self,ProductProviderdata,user,providerid){
 	if(ProductProviderdata==undefined){
-		self.emit("failedProductProviderUpdation",{"error":{"code":"AV001","message":"Please pass providerdata"}});	
+		self.emit("failedProductProviderUpdation",{"error":{"code":"AV001","message":"Please enter providerdata"}});	
 	}else if(ProductProviderdata.status!=undefined || ProductProviderdata.providerlogo!=undefined || ProductProviderdata.photos!=undefined ||ProductProviderdata.category!=undefined || ProductProviderdata.branch!=undefined){
-	    self.emit("failedProductProviderUpdation",{"error":{"code":"ED002","message":"You can not change this information of organization"}});
+	    self.emit("failedProductProviderUpdation",{"error":{"code":"ED002","message":"Seller [logo, photos, category and branch details] cannot be changed"}});
 	}else{
 		/////////////////////////////////////////////////
 		_isServiceProivderAdminToUpdate(self,ProductProviderdata,user,providerid);
@@ -707,7 +707,7 @@ var _isServiceProivderAdminToUpdate=function(self,ProductProviderdata,user,provi
 			logger.emit('error',"Database Issue  _isServiceProivderAdminToUpdate"+err,user.userid)
 			self.emit("failedProductProviderUpdation",{"error":{"code":"ED001","message":"Database Issue"}});
 		}else if(!usersp){
-			self.emit("failedProductProviderUpdation",{"error":{"message":"You are not authorized to update Product Proivder Details"}});
+			self.emit("failedProductProviderUpdation",{"error":{"message":"Only authorized user can update seller details"}});
 		}else{
 			///////////////////////////////////////////////////////////////////
 	     	_updateProductProviderData(self,ProductProviderdata,user,providerid);
@@ -719,10 +719,10 @@ var _isServiceProivderAdminToUpdate=function(self,ProductProviderdata,user,provi
 var _updateProductProviderData=function(self,ProductProviderdata,user,providerid){
 	ProductProviderModel.findOne({providerid:providerid},{providerid:1,trial:1},function(err,provider){
 		if(err){
-			logger.emit('error',"Database Issue ,function:_updateProductProviderData"+err,user.userid)
-			self.emit("failedProductProviderUpdation",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit('error',"Database Error ,function:_updateProductProviderData"+err,user.userid)
+			self.emit("failedProductProviderUpdation",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(!provider){
-			 self.emit("failedProductProviderUpdation",{"error":{"message":"providerid is wrong"}});
+			 self.emit("failedProductProviderUpdation",{"error":{"message":"Incorrect sellerid"}});
 		}else{
 			var expirydate=new Date();
       expirydate.setDate(expirydate.getDate() + 90);
@@ -735,10 +735,10 @@ var _updateProductProviderData=function(self,ProductProviderdata,user,providerid
 			console.log("provider"+JSON.stringify(provider))
 			ProductProviderModel.update({providerid:providerid},{$set:ProductProviderdata},function(err,spupdatestatus){
 				if(err){
-					logger.emit('error',"Database Issue ,function:_updateProductProviderData"+err,user.userid)
-					self.emit("failedProductProviderUpdation",{"error":{"code":"ED001","message":"Database Issue"}});
+					logger.emit('error',"Database Error ,function:_updateProductProviderData"+err,user.userid)
+					self.emit("failedProductProviderUpdation",{"error":{"code":"ED001","message":"Database Error"}});
 				}else if(spupdatestatus==0){
-				    self.emit("failedProductProviderUpdation",{"error":{"message":"Please pass providerid"}});
+				    self.emit("failedProductProviderUpdation",{"error":{"message":"Please enter providerid"}});
 				}else{
 					////////////////////////////////////////////
 					 _updateProductProviderDetails(providerid)
@@ -754,7 +754,7 @@ var _updateProductProviderData=function(self,ProductProviderdata,user,providerid
 }
 
 var _successfulUpdateProductProvider=function(self,ProductProviderdata,user,providerid){
-	self.emit("successfulProductProviderUpdation",{"success":{"message":"Product Provider Updated Successfully"}})
+	self.emit("successfulProductProviderUpdation",{"success":{"message":"Seller Updated Successfully"}})
 }
 
 ProductProvider.prototype.getProductProvider = function(providerid) {
@@ -766,10 +766,10 @@ ProductProvider.prototype.getProductProvider = function(providerid) {
 var _getProductProvider=function(self,providerid){
 	ProductProviderModel.findOne({providerid:providerid},{createdate:0,branch:0},function(err,productprovider){
 		if(err){
-			logger.emit('error',"Database Issue  _getProductProvider");
-			self.emit("failedGetProductProvider",{"error":{"code":"ED001","message":"Database Issue"}});	
+			logger.emit('error',"Database Error  _getProductProvider");
+			self.emit("failedGetProductProvider",{"error":{"code":"ED001","message":"Database Error"}});	
 		}else if(!productprovider){
-			self.emit("failedGetProductProvider",{"error":{"message":"providerid is wrong"}});	
+			self.emit("failedGetProductProvider",{"error":{"message":"Incorrect seller id"}});	
 		}else{
 			/////////////////////////////////////////////////////
 			_successfullGetProductProvider(self,productprovider);
@@ -778,7 +778,7 @@ var _getProductProvider=function(self,providerid){
 	})
 }
 var _successfullGetProductProvider=function(self,productprovider){
-	self.emit("successfulGetProductProvider",{"success":{"message":"Provider Details Getting successfully",productprovider:productprovider}})
+	self.emit("successfulGetProductProvider",{"success":{"message":"Getting Seller Details successfully",productprovider:productprovider}})
 }
 ProductProvider.prototype.getProviderInfo = function(providerid) {
 	var self=this;
@@ -789,10 +789,10 @@ ProductProvider.prototype.getProviderInfo = function(providerid) {
 var _getProviderInfo=function(self,providerid){
 	ProductProviderModel.findOne({providerid:providerid},{providerid:1,providername:1,providerbrandname:1,providerdescription:1,providerlogo:1},function(err,productprovider){
 		if(err){
-			logger.emit('error',"Database Issue  _getProductProvider");
-			self.emit("failedGetProviderInfo",{"error":{"code":"ED001","message":"Database Issue"}});	
+			logger.emit('error',"Database Error  _getProductProvider");
+			self.emit("failedGetProviderInfo",{"error":{"code":"ED001","message":"Database Error"}});	
 		}else if(!productprovider){
-			self.emit("failedGetProviderInfo",{"error":{"message":"providerid is wrong"}});	
+			self.emit("failedGetProviderInfo",{"error":{"message":"Incorrect seller id"}});	
 		}else{
 			/////////////////////////////////////////////////////
 			_successfullGetProvierInfo(self,productprovider);
@@ -801,7 +801,7 @@ var _getProviderInfo=function(self,providerid){
 	})
 }
 var _successfullGetProvierInfo=function(self,productprovider){
-	self.emit("successfulGetProviderInfo",{"success":{"message":"Provider Info Getting successfully",productprovider:productprovider}})
+	self.emit("successfulGetProviderInfo",{"success":{"message":"Getting Seller Info successfully",productprovider:productprovider}})
 }
 
 ProductProvider.prototype.getAllProductProviders = function() {
@@ -814,19 +814,19 @@ var _getAllProductProviders=function(self){
 	// console.log("getAllProductProviders");
 	ProductProviderModel.aggregate([{$unwind:"$branch"},{$match:{"branch.status":"publish"}},{$group:{_id:{providerid:"$providerid",providername:"$providername"},branch:{$addToSet:{branchid:"$branch.branchid",branchname:"$branch.branchname"}}}},{$project:{providerid:"$_id.providerid",providername:"$_id.providername",branches:"$branch",_id:0}}]).exec(function(err,productprovider){
 		if(err){
-			logger.emit('error',"Database Issue  _getAllProductProviders");
-			self.emit("failedGetAllProductProviders",{"error":{"code":"ED001","message":"Database Issue "+err}});
+			logger.emit('error',"Database Error  _getAllProductProviders");
+			self.emit("failedGetAllProductProviders",{"error":{"code":"ED001","message":"Database Error "+err}});
 		}else if(productprovider.length>0){
 			/////////////////////////////////////////////////////
 			_successfulGetAllProductProviders(self,productprovider);
 			/////////////////////////////////////////////////////
 		}else{
-			self.emit("failedGetAllProductProviders",{"error":{"message":"Provider does not exist"}});	
+			self.emit("failedGetAllProductProviders",{"error":{"message":"Seller does not exist"}});	
 		}
 	})
 }
 var _successfulGetAllProductProviders=function(self,productprovider){
-	self.emit("successfulGetAllProductProviders",{"success":{"message":"Getting All Provider Details Successfully","productprovider":productprovider}});
+	self.emit("successfulGetAllProductProviders",{"success":{"message":"Getting All Seller Details Successfully","productprovider":productprovider}});
 }
 
 ProductProvider.prototype.deleteProductProvider = function(user,providerid) {
@@ -839,10 +839,10 @@ ProductProvider.prototype.deleteProductProvider = function(user,providerid) {
 var _isAuthorizedUserToDeleteProductProvider=function(self,user,providerid){
 	UserModel.findOne({userid:user.userid,"provider.providerid":providerid,"provider.isOwner":true},function(err,usersp){
 		if(err){
-			logger.emit('error',"Database Issue  _isAuthorizedUserToDeleteProductProvider"+err,user.userid)
-			self.emit("failedProductProviderDeletion",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit('error',"Database Error  _isAuthorizedUserToDeleteProductProvider"+err,user.userid)
+			self.emit("failedProductProviderDeletion",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(!usersp){
-			self.emit("failedProductProviderDeletion",{"error":{"message":"You are not authorized to update Service Proivder Details"}});
+			self.emit("failedProductProviderDeletion",{"error":{"message":"Only authorized user can update seller Details"}});
 		}else{
 			///////////////////////////////////////////////////////////////////
 	     	_deleteProductProvider(self,user,providerid);
@@ -853,10 +853,10 @@ var _isAuthorizedUserToDeleteProductProvider=function(self,user,providerid){
 var _deleteProductProvider=function(self,user,providerid){
 	ProductProviderModel.update({providerid:providerid},{$set:{status:"deactive"}},function(err,spdeletestatus){
 		if(err){
-			logger.emit('error',"Database Issue  _deleteProductProvider"+err,user.userid)
-			self.emit("failedProductProviderDeletion",{"error":{"code":"ED001","message":"Database Issue"}});	
+			logger.emit('error',"Database Error  _deleteProductProvider"+err,user.userid)
+			self.emit("failedProductProviderDeletion",{"error":{"code":"ED001","message":"Database Error"}});	
 		}else if(spdeletestatus==0){
-			self.emit("failedProductProviderDeletion",{"error":{"message":"providerid is wrong"}});	
+			self.emit("failedProductProviderDeletion",{"error":{"message":"Incorrect seller id"}});	
 		}else{
 			///////////////////////////////////////
 			_successfullDeleteProductProvider(self);
@@ -885,7 +885,7 @@ var _sendNotificationForDeletionOfProductProvider=function(self,user,providerid)
 logger.emit("log","_sendNotificationForDeletionOfProductProvider")
 }
 var _successfullDeleteProductProvider=function(self){
-	self.emit("successfulProductProviderDeletion",{"success":{"message":"Delete Product Provider Successfully"}});
+	self.emit("successfulProductProviderDeletion",{"success":{"message":"Deleted Seller Successfully"}});
 }
 
 ProductProvider.prototype.addProductProviderLogo = function(providerid,user,providerlogo) {
@@ -898,9 +898,9 @@ ProductProvider.prototype.addProductProviderLogo = function(providerid,user,prov
 };
 var _validateAddProductProviderLogo=function(self,providerid,user,providerlogo,providerlogoname){
 	if(providerlogo==undefined){
-		self.emit("failedAddProductProviderLogo",{"error":{"code":"AV001","message":"Please upload providerlogo"}});
+		self.emit("failedAddProductProviderLogo",{"error":{"code":"AV001","message":"Please upload sellerlogo"}});
 	}else if(providerlogo.originalFilename==""){
-		self.emit("failedAddProductProviderLogo",{"error":{"code":"AV001","message":"Please upload providerlogo"}});
+		self.emit("failedAddProductProviderLogo",{"error":{"code":"AV001","message":"Please upload sellerlogo"}});
 	}else if(!S(providerlogo.mimetype).contains("image") ){
 		self.emit("failedAddProductProviderLogo",{"error":{"code":"AV001","message":"Please upload only image"}});
 	}else{
@@ -916,7 +916,7 @@ var _isAuthorizedUserToAddProductProviderLogo=function(self,providerid,user,prov
 			logger.emit('error',"Database Issue  _isAuthorizedUserToDeleteProductProvider"+err,user.userid)
 			self.emit("failedAddProductProviderLogo",{"error":{"code":"ED001","message":"Database Issue"}});
 		}else if(!usersp){
-			self.emit("failedAddProductProviderLogo",{"error":{"message":"You are not authorized to update Service Proivder Details"}});
+			self.emit("failedAddProductProviderLogo",{"error":{"message":"Only authorized user can update seller details"}});
 		}else{	
 			///////////////////////////////////////////////////////////////////
 	     	_addProductProviderLogo(providerid,user,providerlogo,function(err,result){
@@ -946,53 +946,53 @@ var _validateBranchData=function(self,branchdata,sessionuser,providerid){
 	var reg = /^\(?([0-9]{2})\)?[:]?([0-9]{2})$/; 
 	
 	if(branchdata==undefined){
-		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Pleae pass branchdata"}});
+		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"please enter branchdata"}});
 	}else if(branchdata.branchname==undefined || branchdata.branchname==""){
-	 	self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Pleae enter branchname"}});
+	 	self.emit("failedAddBranch",{"error":{"code":"AV001","message":"please enter branchname"}});
 	}else if(branchdata.location==undefined || branchdata.location==""){
-		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Pleae provide location details"}});
+		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"please enter location details"}});
 	}else if(branchdata.location.address1==undefined || branchdata.location.address1==""){
-		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Pleae provide address1 details"}});
+		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"please enter address1 details"}});
 	}else if(branchdata.location.address2==undefined || branchdata.location.address2==""){
-		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Pleae provide address2 details"}})
+		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"please enter address2 details"}})
 	}else if(branchdata.location.area==undefined || branchdata.location.area==""){
-		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Pleae enter area name"}})
+		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"please enter area name"}})
 	}else if(branchdata.location.city==undefined || branchdata.location.city==""){
-		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Pleae provide enter city"}})
+		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"please enter enter city"}})
 	}else if(branchdata.location.state==undefined || branchdata.location.state==""){
-		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Pleae select state"}})
+		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"please select state"}})
 	}else if(branchdata.location.zipcode==undefined || branchdata.location.zipcode==""){
-      self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Pleae enter zipcode"}})
+      self.emit("failedAddBranch",{"error":{"code":"AV001","message":"please enter zipcode"}})
 	}else if(branchdata.branchcode==undefined){
-		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Pleae enter branchcode"}})
+		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"please enter branchcode"}})
 	} else if(branchdata.contact_supports==undefined){
-      self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Pleae pass contact support numbers"}})
+      self.emit("failedAddBranch",{"error":{"code":"AV001","message":"please enter contact support numbers"}})
 	}else if(!isArray(branchdata.contact_supports)){
-		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"contact supports should be an array"}})
+		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"contact supports should be an JSON array"}})
 	} else  if(branchdata.contact_supports.length==0){
 		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please add atleast one contact support number"}})
 	} else if(branchdata.delivery==undefined){
-	  self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please provide delivery details for your branch"}})		
+	  self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please enter delivery details for your branch"}})		
 	}else if(branchdata.delivery.isprovidehomedelivery==undefined){
-		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please select you will provide homedeliveryoptions"}})		
+		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please select if you provide homedeliveryoptions"}})		
 	}else if(branchdata.delivery.isprovidepickup==undefined){
 		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Pickup options should be selected"}})		
 	}else if(branchdata.note==undefined){
 		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please enter note "}})		
 	}else if(branchdata.delivery.isdeliverychargeinpercent==undefined){
-		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please select you provide delivery charge in percent or not "}})		
+		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please select if you provide delivery charge in percent"}})		
 	}else if(branchdata.branch_availability==undefined){
 		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please enter branch availibility details"}});
 	}else if(branchdata.branch_availability.from==undefined || branchdata.branch_availability.from=="" || !isNumeric(branchdata.branch_availability.from)){
-		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please enter valid from time in branch availibility"}});
+		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please enter valid FROM time in branch availibility"}});
 	}else if(branchdata.branch_availability.to==undefined || !isNumeric(branchdata.branch_availability.to)){
-		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please enter valid to time in branch availibility"}});
+		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please enter valid TO time in branch availibility"}});
 	}else if(branchdata.branch_availability.from > branchdata.branch_availability.to){
-		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"branch from time should be less than to time"}});
+		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"branch FROM time should be less than TO time"}});
 	}else  if(branchdata.deliverytimingslots==undefined){
 		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please select delivery timing slots"}});
 	}else  if(!isArray(branchdata.deliverytimingslots)){
-		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"deliverytimingslots should be array"}});
+		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"deliverytimingslots should be JSON array"}});
 	}else if(branchdata.deliverytimingslots.length==0){
 		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"Please add atleast one delivery slot"}});
 	}else{
@@ -1001,7 +1001,7 @@ var _validateBranchData=function(self,branchdata,sessionuser,providerid){
 		   _isValidProductProvider(self,branchdata,sessionuser,providerid)
 		   //////////////////////////////////////////////////////////////	
     	}else{
-    		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"You have to select atleast home or pickup option"}})			
+    		self.emit("failedAddBranch",{"error":{"code":"AV001","message":"You have to select atleast one option, home or pickup"}})			
     	}
     }  
 }
@@ -1014,16 +1014,16 @@ var _isValidProductProvider=function(self,branchdata,sessionuser,providerid){
 	ProductProviderModel.findOne({"user.userid":sessionuser.userid,providerid:providerid},function(err,productprovider){
 		if(err){
 			logger.emit("error","Database Error:_isValidServiceProvider"+err,sessionuser.userid);
-			self.emit("failedAddBranch",{"error":{"message":"Database Issue"}})
+			self.emit("failedAddBranch",{"error":{"message":"Database Error"}})
 		}else if(!productprovider){
-			self.emit("failedAddBranch",{"error":{"message":"providerid is wrong or not authorize "}});
+			self.emit("failedAddBranch",{"error":{"message":"Incorrect or unauthorized seller id"}});
 		}else{
 			if(productprovider.status == "accept"){
 				////////////////////////////////////////////////////
 				_checkBranchCodeIsAlreadyExist(self,branchdata,sessionuser,productprovider)
 				//////////////////////////////////////////////////
 			}else{
-				self.emit("failedAddBranch",{"error":{"message":"Your seller account is not yet activated, Please contact OrderZapp support team"}});				
+				self.emit("failedAddBranch",{"error":{"message":"Your seller account is not yet activated, please contact OrderZapp support team"}});				
 			}
 		}
 	})
@@ -1034,7 +1034,7 @@ var _checkBranchCodeIsAlreadyExist=function(self,branchdata,sessionuser,productp
 			logger.emit("error","Database Error:_isValidServiceProvider"+err,sessionuser.userid);
 			self.emit("failedAddBranch",{"error":{"message":"Database Issue"}})
 		}else if(providerbranch){
-			self.emit("failedAddBranch",{"error":{"message":"Branch code already used ,please provider another branchcode"}})
+			self.emit("failedAddBranch",{"error":{"message":"Branch code already in use, please provide another branchcode"}})
 		}else{
 			 ///////////////////////////////////////////////////////
 			_addBranch(self,branchdata,sessionuser,productprovider);
@@ -1063,9 +1063,9 @@ var _addBranch=function(self,branchdata,sessionuser,productprovider){
 	ProductProviderModel.update({providerid:productprovider.providerid},{$push:{branch:branchdata}},function(err,providerbranchaddstatus){
 		if(err){
 			logger.emit("error","Database Error:_addBranch"+err,sessionuser.userid);
-			self.emit("failedAddBranch",{"error":{"code":"ED001","message":"Database Issue"}})
+			self.emit("failedAddBranch",{"error":{"code":"ED001","message":"Database Error"}})
 		}else if(providerbranchaddstatus==0){
-			self.emit("failedAddBranch",{"error":{"code":"ED001","message":"provider id is wrong"}})
+			self.emit("failedAddBranch",{"error":{"code":"ED001","message":"Incorrect Seller id"}})
 		}else{
 			/////////////////////////////////////
 			_addBranchDetailsToTheUser(self,sessionuser,branchdata,productprovider.providerid)
@@ -1080,9 +1080,9 @@ var _addBranchDetailsToTheUser=function(self,sessionuser,branch,providerid){
 	UserModel.update({userid:sessionuser.userid},{$push:{provider:{providerid:providerid,isOwner:true,branchid:branch.branchid,confirmed:true}}},function(err,userbranchstatus){
 		if(err){
 			logger.emit("error","Database Error:_addBranchDetailsToTheUser"+err,sessionuser.userid);
-			self.emit("failedAddBranch",{"error":{"code":"ED001","message":"Database Issue"}})
+			self.emit("failedAddBranch",{"error":{"code":"ED001","message":"Database Error"}})
 		}else if(userbranchstatus==0){
-			self.emit("failedAddBranch",{"error":{"message":"Userid is wrong"}})
+			self.emit("failedAddBranch",{"error":{"message":"Incorrect User Id"}})
 		}else{
 			///////////////////////////
 			_addAdminGroupToBranch(self,sessionuser,branch,providerid);
@@ -1123,8 +1123,8 @@ var _addAdminGroupToBranch=function(self,sessionuser,branch,providerid){
 	  var providergroup=new ProviderGroupModel(provider_groupdata);
 	  providergroup.save(function(err,providergroup){
 		  if(err){
-		  	logger.emit('error',"Database Issue fun:_addAdminGroupToBranch"+err,user.userid);
-		  	self.emit("failedAddBranch",{"error":{"code":"ED001","message":"Database Issue"}});		
+		  	logger.emit('error',"Database Error fun:_addAdminGroupToBranch"+err,user.userid);
+		  	self.emit("failedAddBranch",{"error":{"code":"ED001","message":"Database Error"}});		
 	  	}else{
 	  		//////////////////////////////
 	  		// _addBranchCategoryToSearchTags(branch);
@@ -1150,10 +1150,10 @@ ProductProvider.prototype.getAllMyBranches = function(user) {
 var _getAllMyBranches=function(self,user){
 UserModel.aggregate({$match:{userid:user.userid}},{"$unwind":"$provider"},{$group:{_id:"$provider.providerid",branchid:{"$addToSet":"$provider.branchid"}}},{$project:{providerid:"$_id",branchid:1,_id:0}},function(err,userproductproviderbranch){
 	if(err){
-		logger.emit('error',"Database Issue fun:_getAllMyBranches"+err,user.userid)
-		self.emit("failedGetAllMyBranches",{"error":{"code":"ED001","message":"Database Issue"}});		
+		logger.emit('error',"Database Error fun:_getAllMyBranches"+err,user.userid)
+		self.emit("failedGetAllMyBranches",{"error":{"code":"ED001","message":"Database Error"}});		
 	}else if(userproductproviderbranch.length==0){
-		self.emit("failedGetAllMyBranches",{"error":{"message":"There is no Product provider exists"}});		
+		self.emit("failedGetAllMyBranches",{"error":{"message":"Seller does not exists"}});		
 	}else{
 		console.log("userproductproviderbranch"+userproductproviderbranch);
 		var productproviderbranches=[];
@@ -1169,8 +1169,8 @@ console.log("value"+value);
 	if(value<userproductproviderbranch.length){
 		ProductProviderModel.findOne({providerid:userproductproviderbranch[value].providerid,status:"accept"},{providerid:1,providername:1,providerlogo:1,providerdescription:1},function(err,productprovider){
 			if(err){
-			  logger.emit('error',"Database Issue fun:_getBranchDetailsByProductProvider"+err,user.userid)
-		      self.emit("failedGetAllMyBranches",{"error":{"code":"ED001","message":"Database Issue"}});			
+			  logger.emit('error',"Database Error fun:_getBranchDetailsByProductProvider"+err,user.userid)
+		      self.emit("failedGetAllMyBranches",{"error":{"code":"ED001","message":"Database Error"}});			
 			}else if(!productprovider){
 				console.log("testing 123");
 				_getBranchDetailsByProductProvider(self,user,userproductproviderbranch,++value,productproviderbranches);
@@ -1178,8 +1178,8 @@ console.log("value"+value);
 				console.log("abcdetf"+productprovider.providerid);
 				ProductProviderModel.find({"provider.providerid":productprovider.providerid,branchid:{$in:userproductproviderbranch[value].branchid}},{productcatalog:0},function(err,spbranch){
 					if(err){
-						logger.emit('error',"Database Issue fun:_getBranchDetailsByProductProvider"+err,user.userid)
-		                self.emit("failedGetAllMyBranches",{"error":{"code":"ED001","message":"Database Issue"}});			
+						logger.emit('error',"Database Error fun:_getBranchDetailsByProductProvider"+err,user.userid)
+		                self.emit("failedGetAllMyBranches",{"error":{"code":"ED001","message":"Database Error"}});			
 					}else if(spbranch.length==0){
 						_getBranchDetailsByProductProvider(self,user,userproductproviderbranch,++value,productproviderbranches);
 					}else{
@@ -1213,10 +1213,10 @@ var _checkUserHaveProvider=function(self,user){
 	console.log("tesddddtdd")
 	UserModel.findOne({userid:user.userid},{provider:1},function(err,userprovider){
 		if(err){
-			logger.emit('error',"Database Issue fun:_getAllMyProviders"+err,user.userid)
-		  self.emit("failedGetAllMyProviders",{"error":{"code":"ED001","message":"Database Issue"}});			
+			logger.emit('error',"Database Error fun:_getAllMyProviders"+err,user.userid)
+		  self.emit("failedGetAllMyProviders",{"error":{"code":"ED001","message":"Database Error"}});			
 		}else if(!userprovider){
-			self.emit("failedGetAllMyProviders",{"error":{"message":"userid is wrong"}});			
+			self.emit("failedGetAllMyProviders",{"error":{"message":"Incorrect userid"}});			
 		}else{
 			var provider=userprovider.provider;
 			var providergroup=__.groupBy(provider,"providerid");
@@ -1236,10 +1236,10 @@ var _getAllMyProviders=function(self,providerarray){
     console.log("providerarray"+providerarray)
 	ProductProviderModel.find({providerid:{$in:providerarray},status:{$ne:"reject"}},{_id:0,providerid:1,providerlogo:1,providername:1,providercode:1,status:1,provideremail:1,providerbrandname:1,providerdescription:1,category:1,deliverytimingsinstructions:1,tax:1,paymentmode:1,orderprocess_configuration:1,trial:1},function(err,providers){
 		if(err){
-			logger.emit('error',"Database Issue fun:_getAllMyProviders"+err)
-		  self.emit("failedGetAllMyProviders",{"error":{"code":"ED001","message":"Database Issue"}});			
+			logger.emit('error',"Database Error fun:_getAllMyProviders"+err)
+		  self.emit("failedGetAllMyProviders",{"error":{"code":"ED001","message":"Database Error"}});			
 		}else if(providers.length==0){
-			self.emit("failedGetAllMyProviders",{"error":{"code":"PP001","message":"No provider associated with your account,please add atleast one provider"}});		
+			self.emit("failedGetAllMyProviders",{"error":{"code":"PP001","message":"No seller account exists. Please add a new seller account."}});		
 		}else{
 			providers=JSON.stringify(providers);
 				providers=JSON.parse(providers);
@@ -1292,7 +1292,7 @@ var _getAllMyProviders=function(self,providerarray){
 	})
 }
 var _successfullGetAllMyProvider=function(self,providers){
-	self.emit("successfulGetAllMyProviders",{success:{message:"Getting my provider details successfully","providers":providers}})
+	self.emit("successfulGetAllMyProviders",{success:{message:"Getting my seller details successfully","providers":providers}})
 }
 ProductProvider.prototype.getAllMyProviderBranches = function(user,providerid) {
 	var self = this;
@@ -1303,13 +1303,13 @@ ProductProvider.prototype.getAllMyProviderBranches = function(user,providerid) {
 var _checkUserHaveProviderBranches=function(self,user,providerid){
 	UserModel.findOne({userid:user.userid,"provider.providerid":providerid},{provider:1},function(err,userprovider){
 		if(err){
-			logger.emit('error',"Database Issue fun:_checkUserHaveProviderBranches"+err,user.userid)
-		  self.emit("failedGetAllMyProviderBranches",{"error":{"code":"ED001","message":"Database Issue"}});			
+			logger.emit('error',"Database Error fun:_checkUserHaveProviderBranches"+err,user.userid)
+		  self.emit("failedGetAllMyProviderBranches",{"error":{"code":"ED001","message":"Database Error"}});			
 		}else if(!userprovider){
-			self.emit("failedGetAllMyProviderBranches",{"error":{"message":"User does not belong to provider"}});			
+			self.emit("failedGetAllMyProviderBranches",{"error":{"message":"User does not belong to seller"}});			
 		}else{
 			
-  		////////////////////////////////////////
+  		////////////////////////////////////////Error
   		_getAllMyProviderBranches(self,providerid);
   		/////////////////////////////////
 
@@ -1320,15 +1320,15 @@ var _getAllMyProviderBranches=function(self,providerid){
 	// db.productproviders.aggregate({$unwind:"$branch"},{$project:{branchname:"$branch.branchname",branchid:"$branch.branchid",_id:0}});
 	ProductProviderModel.aggregate({$match:{providerid:providerid,"branch.status":{$ne:"deactive"}}},{"$unwind":"$branch"},{$project:{branchname:"$branch.branchname",branchid:"$branch.branchid",branchdescription:"$branch.branchdescription",location:"$branch.location",giftwrapper:"$branch.giftwrapper",delivery:"$branch.delivery",branch_images:"$branch.branch_images",branch_availability:"$branch.branch_availability",deliverytimingslots:"$branch.deliverytimingslots",branchcode:"$branch.branchcode",status:"$branch.status",_id:0,contact_supports:"$branch.contact_supports",note:"$branch.note"}},function(err,providers){
 		if(err){
-			logger.emit('error',"Database Issue fun:_getAllMyProviders"+err,user.userid)
-		  self.emit("failedGetAllMyProviderBranches",{"error":{"code":"ED001","message":"Database Issue"}});			
+			logger.emit('error',"Database Error fun:_getAllMyProviders"+err,user.userid)
+		  self.emit("failedGetAllMyProviderBranches",{"error":{"code":"ED001","message":"Database Error"}});			
 		}else if(providers.length==0){
 			ProductProviderModel.findOne({providerid:providerid,status:{$ne:"deactive"}},{providername:1},function(err,providername){
 				if(err){
 					logger.emit('error',"Database Issue fun:_getAllMyProviderBranches"+err,user.userid)
-				  self.emit("failedGetAllMyProviderBranches",{"error":{"code":"ED001","message":"Database Issue"}});			
+				  self.emit("failedGetAllMyProviderBranches",{"error":{"code":"ED001","message":"Database Error"}});			
 				}else if(!providername){
-					self.emit("failedGetAllMyProviderBranches",{"error":{"message":"provider not exist"}});			
+					self.emit("failedGetAllMyProviderBranches",{"error":{"message":"Seller does not exist"}});			
 				}else{
 					console.log("providername : "+JSON.stringify(providername));				
 		  			self.emit("failedGetAllMyProviderBranches",{"error":{"code":"PB001","message":"No branch exists for "+providername.providername+", please add atleast one branch"}});		
@@ -1342,7 +1342,7 @@ var _getAllMyProviderBranches=function(self,providerid){
 	})
 }
 var _successfullGetAllMyProviderBranch=function(self,providers){
-	self.emit("successfulGetAllMyProviderBranches",{success:{message:"Getting my Provider Branches details successfully","branches":providers}})
+	self.emit("successfulGetAllMyProviderBranches",{success:{message:"Getting my seller branch details successfully","branches":providers}})
 }
 
 ProductProvider.prototype.getBranch = function(providerid,branchid) {
@@ -1354,10 +1354,10 @@ ProductProvider.prototype.getBranch = function(providerid,branchid) {
 var _getBranch=function(self,providerid,branchid){
 	ProductProviderModel.aggregate({$match:{providerid:providerid}},{$unwind:"$branch"},{$match:{"branch.branchid":branchid}},{$project:{branchid:"$branch.branchid",branchname:"$branch.branchname",location:"$branch.location",branch_images:"$branch.branch_images",branch_availibility:"$branch.branch_availibility",delivery_leadtime:"$branch.delivery_leadtime"}},function(err,branch){
 		if(err){
-			logger.emit('error',"Database Issue fun:_getBranch"+err,user.userid)
-		  self.emit("failedGetBranch",{"error":{"code":"ED001","message":"Database Issue"}});			
+			logger.emit('error',"Database Error fun:_getBranch"+err,user.userid)
+		  self.emit("failedGetBranch",{"error":{"code":"ED001","message":"Database Error"}});			
 		}else if(branch.length==0){
-			self.emit("failedGetBranch",{"error":{"message":"Branch not exists"}});			
+			self.emit("failedGetBranch",{"error":{"message":"Branch does not exists"}});			
 		}else{
 			////////////////////////////////////
 			_successfullGetBranch(self,branch[0])
@@ -1366,7 +1366,7 @@ var _getBranch=function(self,providerid,branchid){
 	})
 }
 var _successfullGetBranch=function(self,branch){
-self.emit("successfulGetBranch",{success:{message:"Get Branch details successfully",branch:branch}})
+self.emit("successfulGetBranch",{success:{message:"Getting branch details successfully",branch:branch}})
 }
 ProductProvider.prototype.deleteBranch = function(user,providerid,branchid) {
 	var self = this;
@@ -1378,10 +1378,10 @@ ProductProvider.prototype.deleteBranch = function(user,providerid,branchid) {
 var _isAuthorizedUserToDeleteBranch=function(self,user,providerid,branchid){
 	UserModel.findOne({userid:user.userid,"provider.providerid":providerid,"provider.isOwner":true},function(err,usersp){
 		if(err){
-			logger.emit('error',"Database Issue  _isAuthorizedUserToDeleteBranch"+err,user.userid)
-			self.emit("failedDeleteBranch",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit('error',"Database Error  _isAuthorizedUserToDeleteBranch"+err,user.userid)
+			self.emit("failedDeleteBranch",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(!usersp){
-			self.emit("failedDeleteBranch",{"error":{"message":"You are not authorized to update Service Proivder Details"}});
+			self.emit("failedDeleteBranch",{"error":{"message":"Only admin is authorized to update seller details"}});
 		}else{
 			////////////////////////////////////////////////////////
 	        _deleteBranch(self,providerid,branchid);
@@ -1392,8 +1392,8 @@ var _isAuthorizedUserToDeleteBranch=function(self,user,providerid,branchid){
 var _deleteBranch=function(self,providerid,branchid){
 	ProductProviderModel.update({providerid:providerid,"branch.branchid":branchid,"branch.status":"active"},{$set:{"branch.$.status":"deactive"}},function(err,branchdeletestatus){
 		if(err){
-			logger.emit('error',"Database Issue fun:_deleteBranch"+err,user.userid)
-		  self.emit("failedDeleteBranch",{"error":{"code":"ED001","message":"Database Issue"}});			
+			logger.emit('error',"Database Error fun:_deleteBranch"+err,user.userid)
+		  self.emit("failedDeleteBranch",{"error":{"code":"ED001","message":"Database Error"}});			
 		}else if(branchdeletestatus==0){
 			self.emit("failedDeleteBranch",{"error":{"message":"Branch already deleted"}});			
 		}else{
@@ -1415,9 +1415,9 @@ ProductProvider.prototype.updateBranch = function(user,providerid,branchid,branc
 };
 var _validateUpdateBranchData=function(self,user,providerid,branchid,branchdata){
 	if(branchdata==undefined){
-		self.emit("failedUpdateBranch",{"error":{code:"AV001",message:"Please provide branchdata"}});
+		self.emit("failedUpdateBranch",{"error":{code:"AV001",message:"Please enter branchdata"}});
 	}else if(branchdata.status!=undefined || branchdata.usergrp!=undefined || branchdata.branch_images!=undefined ){
-		self.emit("failedUpdateBranch",{"error":{code:"AV001",message:"You can not change these details of branch"}});
+		self.emit("failedUpdateBranch",{"error":{code:"AV001",message:"You cannot change [status, usergroup, images] details of branch"}});
 	}else{
 		if(branchdata.delivery==undefined){
 			/////////////////////////////////////////////////////////////
@@ -1429,7 +1429,7 @@ var _validateUpdateBranchData=function(self,user,providerid,branchid,branchdata)
 	      _isAuthorizedUserToUpdateBranch(self,user,providerid,branchid,branchdata)
 	      ////////////////////////////////////////////////////////////
 			}else{
-				self.emit("failedUpdateBranch",{"error":{code:"AV001",message:"You have to select atleast home or pickup"}});
+				self.emit("failedUpdateBranch",{"error":{code:"AV001",message:"You have to select atleast one option home or pickup"}});
 			}
 		}
 	
@@ -1438,10 +1438,10 @@ var _validateUpdateBranchData=function(self,user,providerid,branchid,branchdata)
 var _isAuthorizedUserToUpdateBranch=function(self,user,providerid,branchid,branchdata){
 	UserModel.findOne({userid:user.userid,"provider.providerid":providerid,"provider.isOwner":true},function(err,usersp){
 		if(err){
-			logger.emit('error',"Database Issue  _isAuthorizedUserToDeleteBranch"+err,user.userid)
-			self.emit("failedUpdateBranch",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit('error',"Database Error  _isAuthorizedUserToDeleteBranch"+err,user.userid)
+			self.emit("failedUpdateBranch",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(!usersp){
-			self.emit("failedUpdateBranch",{"error":{"message":"You are not authorized to update Service Proivder Details"}});
+			self.emit("failedUpdateBranch",{"error":{"message":"Only authorized user can update seller details"}});
 		}else{
 			////////////////////////////////////////////////////////
 	        _updateBranch(self,providerid,branchid,branchdata);
@@ -1461,10 +1461,10 @@ var _updateBranch=function(self,providerid,branchid,branchdata){
     logger.emit("log","test"+JSON.stringify(branch_object));
 	  ProductProviderModel.update({providerid:providerid,"branch.branchid":branchid},{$set:branch_object},function(err,branchupdatestatus){
 			if(err){
-				logger.emit('error',"Database Issue fun:_updateBranch"+err,user.userid)
-			  self.emit("failedUpdateBranch",{"error":{"code":"ED001","message":"Database Issue"}});			
+				logger.emit('error',"Database Error fun:_updateBranch"+err,user.userid)
+			  self.emit("failedUpdateBranch",{"error":{"code":"ED001","message":"Database Error"}});			
 			}else if(branchupdatestatus==0){
-				self.emit("failedUpdateBranch",{"error":{"message":"Branch not exists"}});			
+				self.emit("failedUpdateBranch",{"error":{"message":"Branch does not exists"}});			
 			}else{
 
 			/////////////////////////////////
@@ -1477,7 +1477,7 @@ var _updateBranch=function(self,providerid,branchid,branchdata){
 	})
 }
 var _successfullUpdateBranch=function(self){
-self.emit("successfulUpdateBranch",{success:{message:"Branch Updated successfully"}})
+self.emit("successfulUpdateBranch",{success:{message:"Branch updated successfully"}})
 }
 ProductProvider.prototype.addGroupToBranch = function(sessionuser,providerid,branchid,groupdata) {
 	var self=this;
@@ -1488,7 +1488,7 @@ ProductProvider.prototype.addGroupToBranch = function(sessionuser,providerid,bra
 };
 var _validateBranchGroupData=function(self,sessionuser,providerid,branchid,groupdata){
 	if(groupdata==undefined){
-		self.emit("failedAddGroupToBranch",{"error":{code:"AV001",message:"Please provide groupdata"}});
+		self.emit("failedAddGroupToBranch",{"error":{code:"AV001",message:"Please enter groupdata"}});
 	}else if(groupdata.grpname==undefined || groupdata.grpname==""){
 		self.emit("failedAddGroupToBranch",{"error":{code:"AV001",message:"Please enter groupname"}});
 	}else if(groupdata.description==undefined || groupdata.description==""){
@@ -1505,10 +1505,10 @@ var _isAuthorizedUserToAddNewGroup=function(self,sessionuser,providerid,branchid
 				logger.emit("error","Database Issue: _isAuthorizedUserToAddNewGroup"+err);
 				self.emit("failedAddGroupToBranch",{"error":{"message":"Database Issue"}});
 			}else if(userproductprovider.length==0){
-				self.emit("failedAddGroupToBranch",{"error":{"message":"User not belongs to Product Provider branch"}});
+				self.emit("failedAddGroupToBranch",{"error":{"message":"User does not belong to seller branch"}});
 			}else{
 				 if(userproductprovider[0].provider.isOwner!=true){
-				 	 self.emit("failedAddGroupToBranch",{"error":{"message":"You are not owner of ProductProvider to add new group"}});
+				 	 self.emit("failedAddGroupToBranch",{"error":{"message":"Only seller can add new user group"}});
 				 }else{
 				 	///////////////////////////////////////////////////////////////////////////
 				 	_checkGroupNameAlreadyExist(self,sessionuser,providerid,branchid,groupdata);
@@ -1521,8 +1521,8 @@ var _isAuthorizedUserToAddNewGroup=function(self,sessionuser,providerid,branchid
 	var _checkGroupNameAlreadyExist=function(self,sessionuser,providerid,branchid,groupdata){
 		ProductProviderModel.aggregate({$match:{providerid:providerid}},{$unwind:"$branch"},{$match:{"branch.branchid":branchid,"branch.usergrp":{$elemMatch:{grpname:groupdata.grpname.toLowerCase()}}}},function(err,providergroups){
 			if(err){
-				logger.emit("error","Database Issue: _checkGroupNameAlreadyExist"+err);
-				self.emit("failedAddGroupToBranch",{"error":{"message":"Database Issue"}});
+				logger.emit("error","Database Error: _checkGroupNameAlreadyExist"+err);
+				self.emit("failedAddGroupToBranch",{"error":{"message":"Database Error"}});
 			}else if(providergroups.length!=0){
 				self.emit("failedAddGroupToBranch",{"error":{"message":"Group name already exists"}});
 			}else{	
@@ -1537,10 +1537,10 @@ var _isAuthorizedUserToAddNewGroup=function(self,sessionuser,providerid,branchid
 		groupdata.groupid=generateId();
 		ProductProviderModel.update({providerid:providerid,"branch.branchid":branchid},{$push:{"branch.$.usergrp":groupdata}},function(err,grpaddstatus){
 			if(err){
-				logger.emit("error","Database Issue: _checkGroupNameAlreadyExist"+err);
-				self.emit("failedAddGroupToBranch",{"error":{"message":"Database Issue"}});
+				logger.emit("error","Database Error: _checkGroupNameAlreadyExist"+err);
+				self.emit("failedAddGroupToBranch",{"error":{"message":"Database Error"}});
 			}else if(grpaddstatus==0){
-				self.emit("failedAddGroupToBranch",{"error":{"message":"Branch id is wrong"}});
+				self.emit("failedAddGroupToBranch",{"error":{"message":"Incorrect Branch id"}});
 			}else{
 				///////////////////////////////////////
 				_successfullGroupAddToBranch(self)
@@ -1549,7 +1549,7 @@ var _isAuthorizedUserToAddNewGroup=function(self,sessionuser,providerid,branchid
 		})
 	}
 	var _successfullGroupAddToBranch=function(self){
-		self.emit("successfulAddGroupToBranch",{success:{message:"New group added to the branch"}});
+		self.emit("successfulAddGroupToBranch",{success:{message:"New user group added to the branch"}});
 	}
 ProductProvider.prototype.removeGroupFromBranch = function(sessionuser,branchid,groupid) {
 	var self=this;
@@ -1561,13 +1561,13 @@ ProductProvider.prototype.removeGroupFromBranch = function(sessionuser,branchid,
 var _isAuthorizeUserToRemoveGroup=function(self,sessionuser,branchid,groupid){
 	UserModel.aggregate({"$unwind":"$provider"},{$match:{userid:sessionuser.userid,"provider.branchid":branchid}},function(err,userproductprovider){
 		if(err){
-			logger.emit("error","Database Issue: _isAuthorizedUserToAddNewGroup"+err);
-			self.emit("failedRemoveGroupFromBranch",{"error":{"message":"Database Issue"}});
+			logger.emit("error","Database Error: _isAuthorizedUserToAddNewGroup"+err);
+			self.emit("failedRemoveGroupFromBranch",{"error":{"message":"Database Error"}});
 		}else if(userproductprovider.length==0){
-			self.emit("failedRemoveGroupFromBranch",{"error":{"message":"User not belongs to Product Provider branch"}});
+			self.emit("failedRemoveGroupFromBranch",{"error":{"message":"User does not belong to seller branch"}});
 		}else{
 		  if(userproductprovider[0].provider.isOwner!=true){
-			 	self.emit("failedAddGroupToBranch",{"error":{"message":"You are not owner of ProductProvider to remove group"}});
+			 	self.emit("failedAddGroupToBranch",{"error":{"message":"Only seller can remove a user group"}});
 			}else{
 			 /////////////////////////////////////////////
 			 _removeGroupFromBranch(self,branchid,groupid)
@@ -1579,17 +1579,17 @@ var _isAuthorizeUserToRemoveGroup=function(self,sessionuser,branchid,groupid){
 var _removeGroupFromBranch=function(self,branchid,groupid){
 	ProductProviderModel.findOne({"branch.branchid":branchid,"branch.usergrp.groupid":groupid},{providerid:1},function(err,usergrup){
 		if(err){
-			logger.emit("error","Database Issue: _removeGroupFromBranch"+err);
-			self.emit("failedRemoveGroupFromBranch",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit("error","Database Error: _removeGroupFromBranch"+err);
+			self.emit("failedRemoveGroupFromBranch",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(!usergrup){
-			self.emit("failedRemoveGroupFromBranch",{"error":{"message":"groupid is wrong"}});
+			self.emit("failedRemoveGroupFromBranch",{"error":{"message":"Incorrect groupid"}});
 		}else{
 			ProductProviderModel.update({"branch.branchid":branchid},{$pull:{"branch.$.usergrp":{groupid:groupid}}},function(err,groupremovestatus){
 				if(err){
-					logger.emit("error","Database Issue: _removeGroupFromBranch"+err);
-					self.emit("failedRemoveGroupFromBranch",{"error":{"code":"ED001","message":"Database Issue"}});
+					logger.emit("error","Database Error: _removeGroupFromBranch"+err);
+					self.emit("failedRemoveGroupFromBranch",{"error":{"code":"ED001","message":"Database Error"}});
 				}else if(groupremovestatus==0){
-					self.emit("failedRemoveGroupFromBranch",{"error":{"message":"branchid is wrong"}});
+					self.emit("failedRemoveGroupFromBranch",{"error":{"message":"Incorrect branchid"}});
 				}else{
 					///////////////////////////////////////
 					_successfullRemoveGroupFromBranch(self)
@@ -1608,11 +1608,11 @@ ProductProvider.prototype.addMembersToGroup = function(sessionuser,branchid,grou
 };
 var _validateGroupMemberData=function(self,sessionuser,branchid,groupid,invites){
 	if(invites==undefined){
-		self.emit("failedAddMembersToGroup",{error:{message:"please provides invites data"}})
+		self.emit("failedAddMembersToGroup",{error:{message:"please enter invites data"}})
 	}else if(invites.grpname==undefined || invites.grpname==""){
-		self.emit("failedAddMembersToGroup",{error:{message:"please provides group name"}})
+		self.emit("failedAddMembersToGroup",{error:{message:"please enter group name"}})
 	}else if(!isArray(invites.members)){
-		self.emit("failedAddMembersToGroup",{error:{message:"invites should be an array"}})
+		self.emit("failedAddMembersToGroup",{error:{message:"invites should be an JSON array"}})
 	}else if(invites.members.length==0){
 		self.emit("failedAddMembersToGroup",{error:{message:"please enter atleast one member"}})
 	}else{
@@ -1625,18 +1625,18 @@ var _validateGroupMemberData=function(self,sessionuser,branchid,groupid,invites)
 var _isAuthoRizedUserToAddGroupMember=function(self,sessionuser,branchid,groupid,invites){
 	UserModel.aggregate({"$unwind":"$provider"},{$match:{userid:sessionuser.userid,"provider.branchid":branchid}},function(err,userproductprovider){
 		if(err){
-			logger.emit("error","Database Issue: _isAuthorizedUserToAddNewGroup"+err);
-			self.emit("failedAddMembersToGroup",{"error":{"message":"Database Issue"}});
+			logger.emit("error","Database Error: _isAuthorizedUserToAddNewGroup"+err);
+			self.emit("failedAddMembersToGroup",{"error":{"message":"Database Error"}});
 		}else if(userproductprovider.length==0){
-			self.emit("failedAddMembersToGroup",{"error":{"message":"User not belongs to Product Provider branch"}});
+			self.emit("failedAddMembersToGroup",{"error":{"message":"User does not belong to seller branch"}});
 		}else{
 		  if(userproductprovider[0].provider.isOwner!=true){
-			 	self.emit("failedAddMembersToGroup",{"error":{"message":"You are not owner of ProductProvider to add members to group"}});
+			 	self.emit("failedAddMembersToGroup",{"error":{"message":"Only seller can add users to group"}});
 			}else{
 				ProductProviderModel.aggregate({$unwind:"$branch"},{$match:{"branch.branchid":branchid}},{$project:{branchid:"$branch.branchid",branchname:"$branch.branchname",providerid:1,usergrp:"$branch.usergrp"}},function(err,providerbranch){
 					if(err){
-						logger.emit("error","Database Issue: _isAuthorizedUserToAddNewGroup"+err);
-		      	self.emit("failedAddMembersToGroup",{"error":{"message":"Database Issue"}});
+						logger.emit("error","Database Error: _isAuthorizedUserToAddNewGroup"+err);
+		      	self.emit("failedAddMembersToGroup",{"error":{"message":"Database Error"}});
 					}else if(providerbranch.length==0){
 						self.emit("failedAddMembersToGroup",{"error":{"message":"Branch does not exist"}});
 					}else{
@@ -1672,8 +1672,8 @@ var _addUserGrpDetailsToServiceBranch=function(self,branch,sessionuser,members,g
 	
 	UserModel.find({mobileno:{$in:userinvites}},{mobileno:1,username:1}).lean().exec(function(err,user){
     if(err){
-    	logger.emit("error","Database Issue,fun:_addServiceProviderDetailsToTheUser"+err,user.userid);
-	  	self.emit("failedAddMembersToGroup",{"error":{"code":"ED001","message":"Database Issue"}});
+    	logger.emit("error","Database Error,fun:_addServiceProviderDetailsToTheUser"+err,user.userid);
+	  	self.emit("failedAddMembersToGroup",{"error":{"code":"ED001","message":"Database Error"}});
     }else{
     	var existingusers=[];
     	 var existingmobileno=[];
@@ -1703,8 +1703,8 @@ var _addUserGrpDetailsToServiceBranch=function(self,branch,sessionuser,members,g
       	console.log("userdata"+JSON.stringify(userdata));
         UserModel.create(userdata,function(err,grpusers){
           if(err){
-          	logger.emit("error","Database Issue:fun/_addUserGrpDetailsToServiceProvider"+err)
-            self.emit("failedAddMembersToGroup",{"error":{"code":"ED001","message":"Database Issue"}});
+          	logger.emit("error","Database Error:fun/_addUserGrpDetailsToServiceProvider"+err)
+            self.emit("failedAddMembersToGroup",{"error":{"code":"ED001","message":"Database Error"}});
           }else if(grpusers){
           	/////////////////////////////////////////////////
             _sendSMSToInvitees(self,branch,grpname,existingusers,userdata,sessionuser,groupid);
@@ -1723,8 +1723,8 @@ var _sendSMSToInvitees = function(self,branch,grpname,existingusers,newusers,use
 		// self.emit("abc",{"message":"test"});
 		SMSTemplateModel.findOne({name:"serviceprovidermemberinvite"}).lean().exec(function(err,nespusertemplate){
 	  	if(err){
-	  		logger.emit("error","Database Issue :fun-_sendSMSToInvitees")
-	    	self.emit("failedAddMembersToGroup",{"error":{"code":"ED001","message":"Database Issue"}});
+	  		logger.emit("error","Database Error :fun-_sendSMSToInvitees")
+	    	self.emit("failedAddMembersToGroup",{"error":{"code":"ED001","message":"Database Error"}});
 	  	}else if(nespusertemplate){
 	  		SMSTemplateModel.findOne({name:"serviceprovidermemberonlyinvite"}).lean().exec(function(err,spusertemplate){
 	  			if(err){
@@ -1744,11 +1744,11 @@ var _sendSMSToInvitees = function(self,branch,grpname,existingusers,newusers,use
 	           // _addProviderProviderBranchDetailsToTheUser(self,branch,user);
 	           //////////////////////////////////////////////////////
 	    	}else{
-	  				self.emit("failedAddMembersToGroup",{"error":{"code":"ED002","message":"Server setup template issue"}});
+	  				self.emit("failedAddMembersToGroup",{"error":{"code":"ED002","message":"Server setup template Error"}});
 	  		}
 			})//end of orgmemberonlyinvite
 		}else{
-			self.emit("failedAddMembersToGroup",{"error":{"code":"ED002","message":"Server setup template issue"}});		
+			self.emit("failedAddMembersToGroup",{"error":{"code":"ED002","message":"Server setup template Error"}});		
 		}
 	})
 }
@@ -1756,10 +1756,10 @@ var _addProviderProviderBranchDetailsToTheUser=function(self,branch,user){
 	// console.log("userid"+user.userid);
 	UserModel.update({userid:user.userid},{$push:{provider:{providerid:branch.providerid,branch:branch.branchid,isOwner:false,confirmed:false}}},function(err,providerupdatestatus){
 	  if(err){
-	 		logger.emit("error","Database Issue,fun:_addServiceProviderDetailsToTheUser"+err,user.userid);
-			self.emit("failedAddMembersToGroup",{"error":{"code":"ED001","message":"Database Issue"}});
+	 		logger.emit("error","Database Error,fun:_addServiceProviderDetailsToTheUser"+err,user.userid);
+			self.emit("failedAddMembersToGroup",{"error":{"code":"ED001","message":"Database Error"}});
 	  }else if(providerupdatestatus==0){
-	   	self.emit("failedAddMembersToGroup",{"error":{"message":"Userid is wrong"}});
+	   	self.emit("failedAddMembersToGroup",{"error":{"message":"Incorrect Userid"}});
 	  }else{
 	   logger.emit("info","Added ProductProviderBranch Details To The User")
 	  }
@@ -1777,8 +1777,8 @@ var _addBranchMembersToUserGroupOther=function(self,existingusers,newusers,branc
 	console.log("mobidddddddddddlenos"+mobilenos)
 	UserModel.find({mobileno:{$in:mobilenos}},function(err,users){
 		if(err){
-			logger.emit("error","Database Issue _addProductProviderMembersToUserGroupOther"+err);
-			self.emit("failedAddMembersToGroup",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit("error","Database Error _addProductProviderMembersToUserGroupOther"+err);
+			self.emit("failedAddMembersToGroup",{"error":{"code":"ED001","message":"Database Error"}});
     }else if(users.length==0){
     	logger.emit("log","No users find");
 		}else{
@@ -1788,15 +1788,15 @@ var _addBranchMembersToUserGroupOther=function(self,existingusers,newusers,branc
 			}
 			ProductProviderModel.update({"branch.branchid":branch.branchid,"branch.usergrp.groupid":groupid},{$addToSet:{"branch.$.usergrp.$.grpmembers":{$each:grpmembers}}},function(err,addgrpstats){
 				if(err){
-					logger.emit("error","Database Issue _addProviderMembersToUserGroupOther"+err);
-					self.emit("failedAddMembersToGroup",{"error":{"code":"ED001","message":"Database Issue"}});
+					logger.emit("error","Database Error _addProviderMembersToUserGroupOther"+err);
+					self.emit("failedAddMembersToGroup",{"error":{"code":"ED001","message":"Database Error"}});
 				}else if(addgrpstats==1){
 					// logger.emit("error","userinvte not added to the serviceproviderlist");
 				}else{
 					BranchModel.update({branchid:branch.branchid},{$push:{usergrp:{grpname:grpname,grpmembers:grpmembers}}},function(err,newgrpaddstatus){
 		   				if(err){
 		   					logger.emit("error","Database :_addBranchMembersToUserGroupOther:"+err)
-		   					self.emit("failedAddEmployee",{"error":{"code":"ED001","message":"Database Issue"}});
+		   					self.emit("failedAddEmployee",{"error":{"code":"ED001","message":"Database Error"}});
 		   				}else if(newgrpaddstatus==0){
 		   					self.emit("failedAddEmployee",{"error":{"code":"AO002","message":"function:_AddUserIntoOrgGroup\nOrgid is Wrong"}});
 		   				}else{	
@@ -1820,7 +1820,7 @@ ProductProvider.prototype.publishUnpublishBranch = function(user,providerid,bran
 };
 var _validatePublishAndUnpublishBranchData=function(self,user,providerid,branchid,action){
 	if(action==undefined){
-		self.emit("failedPublishUnpublishBranch",{"error":{code:"AV001",message:"Please pass which action should be perform"}});
+		self.emit("failedPublishUnpublishBranch",{"error":{code:"AV001",message:"Please enter which action to be performed"}});
 	}else if(["publish","unpublish"].indexOf(action)<0){
 		self.emit("failedPublishUnpublishBranch",{"error":{code:"AV001",message:"action should be publish or unpublish"}});
 	}else{
@@ -1834,8 +1834,8 @@ var _isAuthorizedUserToPublishUnpublishBranch=function(self,user,providerid,bran
 	console.log("user.userid : "+user.userid+" providerid : "+providerid+" branchid : "+branchid);
 	UserModel.findOne({userid:user.userid,"provider.providerid":providerid,"provider.isOwner":true},function(err,usersp){
 		if(err){
-			logger.emit('error',"Database Issue  _isAuthorizedUserToDeleteBranch"+err,user.userid)
-			self.emit("failedPublishUnpublishBranch",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit('error',"Database Error  _isAuthorizedUserToDeleteBranch"+err,user.userid)
+			self.emit("failedPublishUnpublishBranch",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(!usersp){
 			self.emit("failedPublishUnpublishBranch",{"error":{"message":"You are not authorized to "+action+" branch"}});
 		}else{
@@ -1848,10 +1848,10 @@ var _isAuthorizedUserToPublishUnpublishBranch=function(self,user,providerid,bran
 var _isAuthorizedProviderToPublishUnpublishBranch=function(self,providerid,branchid,action){
 	ProductProviderModel.findOne({providerid:providerid},function(err,provider){
 		if(err){
-			logger.emit('error',"Database Issue  _isAuthorizedProviderToPublishUnpublishBranch"+err,user.userid);
-			self.emit("failedPublishUnpublishBranch",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit('error',"Database Error  _isAuthorizedProviderToPublishUnpublishBranch"+err,user.userid);
+			self.emit("failedPublishUnpublishBranch",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(!provider){
-			self.emit("failedPublishUnpublishBranch",{"error":{"message":"providerid is wrong"}});
+			self.emit("failedPublishUnpublishBranch",{"error":{"message":"Incorrect seller id"}});
 		}else{
 			console.log("provider : "+JSON.stringify(provider));
 			if(provider.status=="init"){
@@ -1861,7 +1861,7 @@ var _isAuthorizedProviderToPublishUnpublishBranch=function(self,providerid,branc
 		        _publishUnpublishBranch(self,providerid,branchid,action);
 		        ////////////////////////////////////////////////////////
 			}else{
-				self.emit("failedPublishUnpublishBranch",{"error":{"message":"Provider not published please contact to admin person"}});
+				self.emit("failedPublishUnpublishBranch",{"error":{"message":"Seller not published, please contact to orderZapp support team"}});
 			}
 		}
 	})
@@ -1869,10 +1869,10 @@ var _isAuthorizedProviderToPublishUnpublishBranch=function(self,providerid,branc
 var _publishUnpublishBranch=function(self,providerid,branchid,action){
 	ProductProviderModel.aggregate({$match:{providerid:providerid}},{$unwind:"$branch"},{$match:{"branch.branchid":branchid,"branch.status":{$ne:"deactive"}}},function(err,branch){
 		if(err){
-				logger.emit('error',"Database Issue  _isAuthorizedUserToDeleteBranch"+err,user.userid)
-			self.emit("failedPublishUnpublishBranch",{"error":{"code":"ED001","message":"Database Issue"}});
+				logger.emit('error',"Database Error  _isAuthorizedUserToDeleteBranch"+err,user.userid)
+			self.emit("failedPublishUnpublishBranch",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(branch.length==0){
-			self.emit("failedPublishUnpublishBranch",{"error":{"message":"branchid or providerid is wrong"}});
+			self.emit("failedPublishUnpublishBranch",{"error":{"message":"Incorrect branchid or seller id"}});
 		}else{
 			var providerbranch=branch[0].branch;
 			if(action=="publish"){
@@ -1898,10 +1898,10 @@ var _publishUnpublishBranch=function(self,providerid,branchid,action){
 var _publishAndUnpublishBranch=function(self,providerid,branchid,action){
   	ProductProviderModel.update({providerid:providerid,"branch.branchid":branchid},{$set:{"branch.$.status":action}},function(err,branchupdatestatus){
 		if(err){
-			logger.emit('error',"Database Issue fun:_publishAndUnpublishBranch"+err,user.userid);
-		  self.emit("failedPublishUnpublishBranch",{"error":{"code":"ED001","message":"Database Issue"}});			
+			logger.emit('error',"Database Error fun:_publishAndUnpublishBranch"+err,user.userid);
+		  self.emit("failedPublishUnpublishBranch",{"error":{"code":"ED001","message":"Database Error"}});			
 		}else if(branchupdatestatus==0){
-			self.emit("failedPublishUnpublishBranch",{"error":{"message":"Branch not exists"}});			
+			self.emit("failedPublishUnpublishBranch",{"error":{"message":"Branch does not exists"}});			
 		}else{
 			////////////////////////////////////////////////////////////////////////
 			_publishAndUnpublishAllProductsOfBranch(self,providerid,branchid,action);
@@ -1912,8 +1912,8 @@ var _publishAndUnpublishBranch=function(self,providerid,branchid,action){
 var _publishAndUnpublishAllProductsOfBranch=function(self,providerid,branchid,action){
   	ProductCatalogModel.update({"branch.branchid":branchid},{$set:{status:action}},function(err,productupdatestatus){
 		if(err){
-			logger.emit('error',"Database Issue fun:_publishAndUnpublishAllProductsOfBranch"+err,user.userid);
-		  self.emit("failedPublishUnpublishBranch",{"error":{"code":"ED001","message":"Database Issue"}});			
+			logger.emit('error',"Database Error fun:_publishAndUnpublishAllProductsOfBranch"+err,user.userid);
+		  self.emit("failedPublishUnpublishBranch",{"error":{"code":"ED001","message":"Database Error"}});			
 		}else if(productupdatestatus==0){
 			// self.emit("failedPublishUnpublishBranch",{"error":{"message":"Product not exists"}});
 			///////////////////////////////////////////////////
@@ -1942,17 +1942,17 @@ ProductProvider.prototype.getAllNewProductProviders = function(user) {
 var _getAllNewProductProviders = function(self,user){
 	ProductProviderModel.find({status:{$in:["init","reject"]}},{providerid:1,providername:1,providerdescription:1,user:1,providerlogo:1,status:1,_id:0},function(err,provider){
 		if(err){
-			logger.emit('error',"Database Issue  _getAllNewProductProviders "+err,user.userid);
-			self.emit("failedGetAllNewProviders",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit('error',"Database Error  _getAllNewProductProviders "+err,user.userid);
+			self.emit("failedGetAllNewProviders",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(provider.length==0){
-			self.emit("failedGetAllNewProviders",{"error":{"message":"New provider not exist"}});
+			self.emit("failedGetAllNewProviders",{"error":{"message":"New seller does not exist"}});
 		}else{
 			_successfulGetAllNewProviders(self,provider);
 		}
 	})
 }
 var _successfulGetAllNewProviders=function(self,provider){
-  self.emit("successfulGetAllNewProviders",{success:{message:"Getting New Providers Successfully",provider:provider}});
+  self.emit("successfulGetAllNewProviders",{success:{message:"Getting New Sellers Successfully",provider:provider}});
 }
 
 ProductProvider.prototype.manageDeliveryCharges = function(userid,branchid,deliverychargedata) {
@@ -1963,7 +1963,7 @@ ProductProvider.prototype.manageDeliveryCharges = function(userid,branchid,deliv
 };
 var _validateDeliveryChargeData=function(self,userid,branchid,deliverychargedata){
 	if(deliverychargedata==undefined){
-		self.emit("failedManageDeliveryCharges",{error:{code:"AV001",message:"Please provide deliverychargedata"}})
+		self.emit("failedManageDeliveryCharges",{error:{code:"AV001",message:"Please enter deliverychargedata"}})
 	}else if( !isArray(deliverychargedata)){
 		self.emit("failedManageDeliveryCharges",{error:{code:"AV001",message:"deliverychargedata should be JSON Array"}})	
 	}else if( deliverychargedata.length<=0){
@@ -1978,10 +1978,10 @@ var _isAuthorizedUserAddDeliveryCharges=function(self,userid,branchid,deliverych
 	
 	UserModel.findOne({userid:userid,"provider.branchid":branchid,"provider.isOwner":true},function(err,usersp){
 		if(err){
-			logger.emit('error',"Database Issue  _isAuthorizedUserToDeleteBranch"+err,user.userid)
-			self.emit("failedManageDeliveryCharges",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit('error',"Database Error  _isAuthorizedUserToDeleteBranch"+err,user.userid)
+			self.emit("failedManageDeliveryCharges",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(!usersp){
-			self.emit("failedManageDeliveryCharges",{"error":{"message":"You are not authorized to manage delivery charges"}});
+			self.emit("failedManageDeliveryCharges",{"error":{"message":"Only authorized user can manage delivery charges"}});
 		}else{
 			/////////////////////////////////////////
 			_checkValueInPercentOrAmount(self,userid,branchid,deliverychargedata)
@@ -1992,10 +1992,10 @@ var _isAuthorizedUserAddDeliveryCharges=function(self,userid,branchid,deliverych
 var _checkValueInPercentOrAmount=function(self,userid,branchid,deliverychargedata){
 	ProductProviderModel.aggregate({$match:{"branch.branchid":branchid}},{$unwind:"$branch"},{$match:{"branch.branchid":branchid}},function(err,branch){
 		if(err){
-			logger.emit('error',"Database Issue  _checkValueInPercentOrAmount"+err,userid)
-			self.emit("failedManageDeliveryCharges",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit('error',"Database Error  _checkValueInPercentOrAmount"+err,userid)
+			self.emit("failedManageDeliveryCharges",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(branch.length==0){
-			self.emit("failedManageDeliveryCharges",{"error":{"message":"branchid is wrong"}});
+			self.emit("failedManageDeliveryCharges",{"error":{"message":"Incorrect branchid"}});
 		}else{
 			logger.emit("log","braddddnch"+JSON.stringify(branch[0]))
 			branch=branch[0].branch;
@@ -2016,7 +2016,7 @@ var _checkDeliveryChargeData=function(self,userid,branchid,deliverychargedata,is
 		}
 	}
 	if(validated_data.length==0){
-		self.emit("failedManageDeliveryCharges",{"error":{"message":"Please pass valid deliverychargedata"}});
+		self.emit("failedManageDeliveryCharges",{"error":{"message":"Please enter valid deliverychargedata"}});
 	}else{
 		/////////////////////////////////
 		_checkDeliveryChargesAlreadyApplied(self,userid,branchid,validated_data,coveragearray)
@@ -2026,8 +2026,8 @@ var _checkDeliveryChargeData=function(self,userid,branchid,deliverychargedata,is
 var _checkDeliveryChargesAlreadyApplied=function(self,userid,branchid,validated_data,coveragearray){
 	ProductProviderModel.aggregate({$match:{"branch.branchid":branchid}},{$unwind:"$branch"},{$match:{"branch.branchid":branchid}},{$unwind:"$branch.deliverycharge"},{$match:{"branch.deliverycharge.coverage":{$in:coveragearray}}},{$project:{value:"$branch.deliverycharge.value",coverage:"$branch.deliverycharge.coverage",_id:0}},function(err,deliverycharges){
 		if(err){
-			logger.emit("error","Database Issue :_checkDeliveryChargesAlreadyApplied"+err);
-			self.emit("failedManageDeliveryCharges",{error:{code:"ED001",message:"Database Issue"}});
+			logger.emit("error","Database Error :_checkDeliveryChargesAlreadyApplied"+err);
+			self.emit("failedManageDeliveryCharges",{error:{code:"ED001",message:"Database Error"}});
 		}else{
 			var validappliedareas=[];
 			var alreadyappliedareas=[];
@@ -2067,10 +2067,10 @@ var _checkDeliveryChargesAlreadyApplied=function(self,userid,branchid,validated_
 var _addDeliveryCharges=function(self,validappliedareas,alreadyappliedareas,userid,branchid){
 	ProductProviderModel.update({"branch.branchid":branchid},{$addToSet:{"branch.$.deliverycharge":{$each:validappliedareas}}},function(err,deliverychargestatus){
 		if(err){
-			logger.emit("error","Database Issue :_addDeliveryCharges"+err)
-			self.emit("failedManageDeliveryCharges",{error:{code:"ED001",message:"Database Issue"}})
+			logger.emit("error","Database Error :_addDeliveryCharges"+err)
+			self.emit("failedManageDeliveryCharges",{error:{code:"ED001",message:"Database Error"}})
 		}else if(deliverychargestatus==0){
-			self.emit("failedManageDeliveryCharges",{error:{message:"branchid is wrong"}})
+			self.emit("failedManageDeliveryCharges",{error:{message:"Incorrect branchid"}})
 		}else{
 			if(alreadyappliedareas.length==0){
 				//////////////////////////////////////////
@@ -2090,8 +2090,8 @@ var _updateAlreadyAppliedChargesAreas=function(self,branchid,alreadyappliedareas
  if(alreadyappliedareas.length>value){
  	ProductProviderModel.update({"branch.branchid":branchid},{$pull:{"branch.$.deliverycharge":{coverage:alreadyappliedareas[value].coverage}}},function(err,deliveryareastatus){
  		if(err){
-			logger.emit("error","Database Issue :_updateAlreadyAppliedChargesAreas"+err)
-			self.emit("failedManageDeliveryCharges",{error:{code:"ED001",message:"Database Issue"}})		
+			logger.emit("error","Database Error :_updateAlreadyAppliedChargesAreas"+err)
+			self.emit("failedManageDeliveryCharges",{error:{code:"ED001",message:"Database Error"}})		
  		}else{
  			++value;
  			_updateAlreadyAppliedChargesAreas(self,branchid,alreadyappliedareas,value)
@@ -2100,10 +2100,10 @@ var _updateAlreadyAppliedChargesAreas=function(self,branchid,alreadyappliedareas
  }else{
  	ProductProviderModel.update({"branch.branchid":branchid},{$push:{"branch.$.deliverycharge":{$each:alreadyappliedareas}}},function(err,updatedeliverychargestatus){
 		if(err){
-			logger.emit("error","Database Issue :_updateAlreadyAppliedChargesAreas"+err)
-	    self.emit("failedManageDeliveryCharges",{error:{code:"ED001",message:"Database Issue"}})	
+			logger.emit("error","Database Error :_updateAlreadyAppliedChargesAreas"+err)
+	    self.emit("failedManageDeliveryCharges",{error:{code:"ED001",message:"Database Error"}})	
 		}else if(updatedeliverychargestatus==0){
-			self.emit("failedManageDeliveryCharges",{error:{message:"Branch id is wrong"}})	
+			self.emit("failedManageDeliveryCharges",{error:{message:"Incorrect Branch id"}})	
 		}else{
 			//////////////////////////////////////////
 	 		_successfullManageDeliveryCharges(self,alreadyappliedareas)
@@ -2113,7 +2113,7 @@ var _updateAlreadyAppliedChargesAreas=function(self,branchid,alreadyappliedareas
  }
 }
 var _successfullManageDeliveryCharges=function(self,alreadyappliedareas){
-	self.emit("successfulManageDeliveryCharges",{success:{message:"Delivery Charges Manage Successfully"}})
+	self.emit("successfulManageDeliveryCharges",{success:{message:"Delivery Charges Managed Successfully"}})
 }
 
 ProductProvider.prototype.sellersAgreementUpload = function(providerid,user,agreementfile) {
@@ -2127,34 +2127,34 @@ ProductProvider.prototype.sellersAgreementUpload = function(providerid,user,agre
 var _validateSellersAgreementData=function(self,providerid,agreementdata,user,agreementfile){
 	console.log("agreementdata 11: "+JSON.stringify(agreementdata));
 	if(agreementdata==undefined){
-		self.emit("failedUploadSellersAgreement",{"error":{"code":"AV001","message":"Please pass data"}});
+		self.emit("failedUploadSellersAgreement",{"error":{"code":"AV001","message":"Please enter data"}});
 	// }else if(agreementdata.data.description==undefined){
 	// 	self.emit("failedUploadSellersAgreement",{"error":{"code":"AV001","message":"Please enter description"}});
 	}else{
      	if(agreementfile!=undefined){
      		if(agreementfile.originalname==""){
-     			self.emit("failedUploadSellersAgreement",{"error":{"code":"AV001","message":"Please upload agreement file"}});	
+     			self.emit("failedUploadSellersAgreement",{"error":{"code":"AV001","message":"Please upload seller agreement file"}});	
      		}else{
      			//////////////////////////////
 			    _isProviderAlreadyExist(self,providerid,agreementdata,user,agreementfile);
 		      	////////////////////////////
      		}
      	}else{
-     		self.emit("failedUploadSellersAgreement",{"error":{"code":"AV001","message":"Please upload agreement file"}});	
+     		self.emit("failedUploadSellersAgreement",{"error":{"code":"AV001","message":"Please upload seller agreement file"}});	
      	}		
 	}
 }
 var _isProviderAlreadyExist = function(self,providerid,agreementdata,user,agreementfile){
 	SellersAgreementModel.findOne({providerid:providerid},{providerid:1,agreement:1,_id:0},function(err,sellersagreement){
 		if(err){
-			logger.emit('error',"Database Issue  _isProviderAlreadyExist"+err,user.userid);
-			self.emit("failedUploadSellersAgreement",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit('error',"Database Error  _isProviderAlreadyExist"+err,user.userid);
+			self.emit("failedUploadSellersAgreement",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(!sellersagreement){
 			//////////////////////////////
 			_sellersAgreementUpload(self,providerid,agreementdata,user,agreementfile);
 			////////////////////////////
 		}else{
-			self.emit("failedUploadSellersAgreement",{"error":{"code":"AV001","message":"Sellers Agreement Already Exist"}});	
+			self.emit("failedUploadSellersAgreement",{"error":{"code":"AV001","message":"Sellers Agreement Already exists"}});	
 		}
 	})
 }
@@ -2163,8 +2163,8 @@ var _sellersAgreementUpload=function(self,providerid,agreementdata,user,agreemen
 	var sellersagreement=new SellersAgreementModel(agreementdata);
 	sellersagreement.save(function(err,sellersagreementdata){
 		if(err){
-			logger.emit("error","Database Issue,fun:_sellersAgreementUpload "+err,user.userid);
-			self.emit("failedUploadSellersAgreement",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit("error","Database Error,fun:_sellersAgreementUpload "+err,user.userid);
+			self.emit("failedUploadSellersAgreement",{"error":{"code":"ED001","message":"Database Error"}});
 		}else{
             if(agreementfile!=undefined){
 	            ///////////////////////////////////////////////////////////////////
@@ -2190,7 +2190,7 @@ var _addSellersAgreement =function(providerid,user,agreementfile,callback){
 	console.log("agreementfile.path : "+JSON.stringify(agreementfile));
 	fs.readFile(agreementfile.path,function (err, data) {
   		if(err){
-  			callback({error:{code:"ED001",message:"Database Issue"}});
+  			callback({error:{code:"ED001",message:"Database Error"}});
   		}else{
   			var ext = path.extname(agreementfile.originalname || '').split('.');
   			ext=ext[ext.length - 1];
@@ -2232,21 +2232,21 @@ var _addSellersAgreementToAmazonServer=function(awsparams,providerid,user,agreem
          SellersAgreementModel.findAndModify({providerid:providerid},[],{$set:{agreement:sellersagreementurl}},{new:false},function(err,seller_agree_file){
          	if(err){
          		logger.emit('error',"Database Issue  _addSellersAgreementToAmazonServer"+err,user.userid);
-			    callback({"error":{"code":"ED001","message":"Database Issue"}});
+			    callback({"error":{"code":"ED001","message":"Database Error"}});
          	}else if(!seller_agree_file){
-         		callback({"error":{"message":"Provider does not exist"}});
+         		callback({"error":{"message":"Seller does not exist"}});
          	}else{
 			      var sellersagreement_obj = seller_agree_file.agreementfile;
           	if(sellersagreement_obj==undefined){
-              logger.emit("log","First time sellersagreement changed");
+              logger.emit("log","First time sellers agreement changed");
           	}else{
           	  var awsdeleteparams={Bucket:providerlogo_object.bucket,Key:sellersagreement_obj.key};
             	logger.emit("log",awsdeleteparams);
             	s3bucket.deleteObject(awsdeleteparams, function(err, deletesellaggrestatus) {
               	if (err) {
-               	 logger.emit("error","sellersagreement not deleted from amzon s3 bucket "+err,user.userid);
+               	 logger.emit("error","sellers agreement not deleted from amzon s3 bucket "+err,user.userid);
               	}else if(deletesellaggrestatus){
-               	 logger.emit("log","sellersagreement delete from Amazon S3");
+               	 logger.emit("log","sellers agreement deleted from Amazon S3");
               	}
             	}) 
             }
@@ -2271,8 +2271,8 @@ ProductProvider.prototype.getSellersAgreement = function(providerid,user) {
 var _getSellersAgreement = function(self,providerid,user){
 	SellersAgreementModel.findOne({providerid:providerid},{providerid:1,agreement:1,_id:0},function(err,sellersagreement){
 		if(err){
-			logger.emit('error',"Database Issue  _getSellersAgreement"+err,user.userid);
-			self.emit("failedGetSellersAgreement",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit('error',"Database Error  _getSellersAgreement"+err,user.userid);
+			self.emit("failedGetSellersAgreement",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(!sellersagreement){
 			self.emit("failedGetSellersAgreement",{"error":{"message":"Sellers Agreement Does Not Exist"}});
 		}else{
@@ -2311,7 +2311,7 @@ var _isAuthorizedUserToChangeSellersAgreement=function(self,providerid,user,agre
 			logger.emit('error',"Database Issue  _isAuthorizedUserToChangeSellersAgreement"+err,user.userid);
 			self.emit("failedChangeSellersAgreement",{"error":{"code":"ED001","message":"Database Issue"}});
 		}else if(!admin){
-			self.emit("failedChangeSellersAgreement",{"error":{"message":"You are not authorized to update sellers agreement details"}});
+			self.emit("failedChangeSellersAgreement",{"error":{"message":"Only OrderZapp admin can update sellers agreement details"}});
 		}else{
 			////////////////////////////////////////////////////////////////////////////
 	     	_addSellersAgreement(providerid,user,agreementfile,function(err,result){
@@ -2342,10 +2342,10 @@ ProductProvider.prototype.GetBranchDeliveryCharges = function(sessionuserid,bran
 var _isAuthorizedUserToGetDeliveryBranch=function(self,sessionuserid,branchid,zipcode,city){
 	UserModel.findOne({userid:sessionuserid,"provider.branchid":branchid},{provider:1},function(err,userprovider){
 		if(err){
-			logger.emit('error',"Database Issue fun:_checkUserHaveProviderBranches"+err,user.userid)
-		  self.emit("failedGetBranchDeiliveryCharges",{"error":{"code":"ED001","message":"Database Issue"}});			
+			logger.emit('error',"Database Error fun:_checkUserHaveProviderBranches"+err,user.userid)
+		  self.emit("failedGetBranchDeiliveryCharges",{"error":{"code":"ED001","message":"Database Error"}});			
 		}else if(!userprovider){
-			self.emit("failedGetBranchDeiliveryCharges",{"error":{"message":"User does not belong to provider"}});			
+			self.emit("failedGetBranchDeiliveryCharges",{"error":{"message":"User does not belong to seller"}});			
 		}else{
 			
   		////////////////////////////////////////
@@ -2373,10 +2373,10 @@ var _GetBranchDeliveryCharges=function(self,sessionuserid,branchid,zipcode,city)
 	
 	ProductProviderModel.aggregate({$match:{"branch.branchid":branchid}},{$unwind:"$branch"},{$match:{"branch.branchid":branchid}},{$unwind:"$branch.deliverycharge"},{$project:{value:"$branch.deliverycharge.value",coverage:"$branch.deliverycharge.coverage",id:"$branch.deliverycharge._id",_id:0}},query,function(err,branchdeliverycharges){
 		if(err){
-			logger.emit('error',"Database Issue fun:_checkUserHaveProviderBranches"+err,user.userid)
-		  self.emit("failedGetBranchDeiliveryCharges",{"error":{"code":"ED001","message":"Database Issue"}});			
+			logger.emit('error',"Database Error fun:_checkUserHaveProviderBranches"+err,user.userid)
+		  self.emit("failedGetBranchDeiliveryCharges",{"error":{"code":"ED001","message":"Database Error"}});			
 		}else if(branchdeliverycharges==0){
-			self.emit("successfulGetBranchDeliveryCharges",{success:{message:"No deliverycharge exist for ",branchdeliverycharges:[]}})
+			self.emit("successfulGetBranchDeliveryCharges",{success:{message:"No delivery charge exists for ",branchdeliverycharges:[]}})
 		}else{
 			///////////////////////////////
 			_successfullGetBranchDeliveryCharges(self,branchdeliverycharges)
@@ -2385,12 +2385,12 @@ var _GetBranchDeliveryCharges=function(self,sessionuserid,branchid,zipcode,city)
 	})
 }
 var _successfullGetBranchDeliveryCharges=function(self,branchdeliverycharges){
-	self.emit("successfulGetBranchDeliveryCharges",{success:{message:"Gettin Branch Delivery Charges Successfully",branchdeliverycharges:branchdeliverycharges}})
+	self.emit("successfulGetBranchDeliveryCharges",{success:{message:"Getting Branch Delivery Charges Successfully",branchdeliverycharges:branchdeliverycharges}})
 }
 ProductProvider.prototype.deleteDeliveryChargesArea = function(sessionuserid,branchid,deliveryareaids) {
 	var self=this;
 	if(deliveryareaids==undefined || deliveryareaids==""){
-		self.emit("failedDeleteDeliveryChargesArea",{error:{code:"AV001",message:"Please pass deliveryareaids"}})
+		self.emit("failedDeleteDeliveryChargesArea",{error:{code:"AV001",message:"Please enter deliveryareaids"}})
 	}else if(!isArray(deliveryareaids)){
 		self.emit("failedDeleteDeliveryChargesArea",{error:{code:"AV001",message:"deliveryareaids should be an array"}})
 	}else if(deliveryareaids.length==0){
@@ -2406,10 +2406,10 @@ ProductProvider.prototype.deleteDeliveryChargesArea = function(sessionuserid,bra
 var _isAuthorizedUserToDeleteDeliveryBranch=function(self,sessionuserid,branchid,deliveryareaids){
 	UserModel.findOne({userid:sessionuserid,"provider.branchid":branchid},{provider:1},function(err,userprovider){
 		if(err){
-			logger.emit('error',"Database Issue fun:_checkUserHaveProviderBranches"+err,user.userid)
-		  self.emit("failedDeleteDeliveryChargesArea",{"error":{"code":"ED001","message":"Database Issue"}});			
+			logger.emit('error',"Database Error fun:_checkUserHaveProviderBranches"+err,user.userid)
+		  self.emit("failedDeleteDeliveryChargesArea",{"error":{"code":"ED001","message":"Database Error"}});			
 		}else if(!userprovider){
-			self.emit("failedDeleteDeliveryChargesArea",{"error":{"message":"User does not belong to provider"}});			
+			self.emit("failedDeleteDeliveryChargesArea",{"error":{"message":"User does not belong to seller"}});			
 		}else{
 			
   		////////////////////////////////////////
@@ -2422,10 +2422,10 @@ var _isAuthorizedUserToDeleteDeliveryBranch=function(self,sessionuserid,branchid
 var _deleteBranchDeliveryCharges=function(self,sessionuserid,branchid,deliveryareaids){
 	ProductProviderModel.update({"branch.branchid":branchid},{$pull:{"branch.$.deliverycharge":{_id:{$in:deliveryareaids}}}},function(err,updatedeletedeliverarea){
 		if(err){
-			logger.emit('error',"Database Issue fun:_checkUserHaveProviderBranches"+err,user.userid)
-		  self.emit("failedDeleteDeliveryChargesArea",{"error":{"code":"ED001","message":"Database Issue"}});			
+			logger.emit('error',"Database Error fun:_checkUserHaveProviderBranches"+err,user.userid)
+		  self.emit("failedDeleteDeliveryChargesArea",{"error":{"code":"ED001","message":"Database Error"}});			
 		}else if(updatedeletedeliverarea==0){
-			self.emit("failedDeleteDeliveryChargesArea",{success:{message:"Given area and zipcode does not exists"}})
+			self.emit("failedDeleteDeliveryChargesArea",{success:{message:"Area and zipcode does not exists"}})
 		}else{
 			///////////////////////////////
 			_successfullDeleteBranchDeliveryCharges(self)
@@ -2473,10 +2473,10 @@ var _validateAddPickupAddresses=function(self,location,user,providerid){
 var _isProivderAdminToAddPickupAddresses = function(self,location,user,providerid){
 	UserModel.findOne({userid:user.userid,"provider.providerid":providerid,"provider.isOwner":true},function(err,usersp){
 		if(err){
-			logger.emit('error',"Database Issue  _isProivderAdminToAddPickupAddresses"+err,user.userid)
-			self.emit("failedAddPickupAddress",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit('error',"Database Error  _isProivderAdminToAddPickupAddresses"+err,user.userid)
+			self.emit("failedAddPickupAddress",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(!usersp){
-			self.emit("failedAddPickupAddress",{"error":{"message":"You are not authorized to add pickup address"}});
+			self.emit("failedAddPickupAddress",{"error":{"message":"Only authorized user can add pickup address"}});
 		}else{
 			///////////////////////////////////////////////////
 	     	_isProvideTrueOrFalse(self,location,user,providerid);
@@ -2488,10 +2488,10 @@ var _isProivderAdminToAddPickupAddresses = function(self,location,user,provideri
 var _isProvideTrueOrFalse = function(self,location,user,providerid){
 	ProductProviderModel.findOne({providerid:providerid},{pickupaddresses:1,_id:0},function(err,userpp){
 		if(err){
-			logger.emit('error',"Database Issue  _isProvideTrueOrFalse"+err,user.userid)
-			self.emit("failedAddPickupAddress",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit('error',"Database Error  _isProvideTrueOrFalse"+err,user.userid)
+			self.emit("failedAddPickupAddress",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(!userpp){
-			self.emit("failedAddPickupAddress",{"error":{"message":"You are not authorized to add pickup address"}});
+			self.emit("failedAddPickupAddress",{"error":{"message":"Only authorized user can add pickup address"}});
 		}else{
 			if(userpp.pickupaddresses.provide == true){
 				_pushPickupAddresses(self,location,user,providerid);
@@ -2510,10 +2510,10 @@ var _addPickupAddresses=function(self,location,user,providerid){
 	var pickupaddresses = {provide:true,addresses:[location]}
 	ProductProviderModel.update({providerid:providerid},{$set:{pickupaddresses:pickupaddresses}},function(err,ppupdatestatus){
 		if(err){
-			logger.emit('error',"Database Issue ,function:_addPickupAddresses"+err,user.userid);
-			self.emit("failedAddPickupAddress",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit('error',"Database Error ,function:_addPickupAddresses"+err,user.userid);
+			self.emit("failedAddPickupAddress",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(ppupdatestatus==0){
-		    self.emit("failedAddPickupAddress",{"error":{"message":"providerid is wrong"}});
+		    self.emit("failedAddPickupAddress",{"error":{"message":"Incorrect seller id"}});
 		}else{
 			//////////////////////////////////
 			_successfulAddPickupAddress(self);
@@ -2526,10 +2526,10 @@ var _pushPickupAddresses=function(self,location,user,providerid){
 	location.addressid = "pa"+generateId();
 	ProductProviderModel.update({providerid:providerid},{$push:{"pickupaddresses.addresses":location}},function(err,ppupdatestatus){
 		if(err){
-			logger.emit('error',"Database Issue ,function:_pushPickupAddresses"+err,user.userid)
-			self.emit("failedAddPickupAddress",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit('error',"Database Error ,function:_pushPickupAddresses"+err,user.userid)
+			self.emit("failedAddPickupAddress",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(ppupdatestatus==0){
-		    self.emit("failedAddPickupAddress",{"error":{"message":"providerid is wrong"}});
+		    self.emit("failedAddPickupAddress",{"error":{"message":"Incorrect seller id"}});
 		}else{
 			//////////////////////////////////
 			_successfulAddPickupAddress(self);
@@ -2578,10 +2578,10 @@ var _validateUpdatePickupAddresses=function(self,location,user,providerid,addres
 var _isProviderAdminToUpdatePickupAddresses = function(self,location,user,providerid,addressid){
 	UserModel.findOne({userid:user.userid,"provider.providerid":providerid,"provider.isOwner":true},function(err,usersp){
 		if(err){
-			logger.emit('error',"Database Issue  _isProviderAdminToUpdatePickupAddresses"+err,user.userid);
-			self.emit("failedUpdatePickupAddress",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit('error',"Database Error  _isProviderAdminToUpdatePickupAddresses"+err,user.userid);
+			self.emit("failedUpdatePickupAddress",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(!usersp){
-			self.emit("failedUpdatePickupAddress",{"error":{"message":"You are not authorized to add pickup address"}});
+			self.emit("failedUpdatePickupAddress",{"error":{"message":"Only authorized user can add pickup address"}});
 		}else{
 			///////////////////////////////////////////////////
 	     	_updatePickupAddresses(self,location,user,providerid,addressid);
@@ -2592,10 +2592,10 @@ var _isProviderAdminToUpdatePickupAddresses = function(self,location,user,provid
 var _updatePickupAddresses=function(self,location,user,providerid,addressid){
 	ProductProviderModel.update({providerid:providerid,"pickupaddresses.addresses.addressid":addressid},{$set:{"pickupaddresses.addresses.$.address1":location.address1,"pickupaddresses.addresses.$.address2":location.address2,"pickupaddresses.addresses.$.area":location.area,"pickupaddresses.addresses.$.zipcode":location.zipcode,"pickupaddresses.addresses.$.city":location.city,"pickupaddresses.addresses.$.state":location.state,"pickupaddresses.addresses.$.country":location.country}},function(err,ppupdatestatus){
 		if(err){
-			logger.emit('error',"Database Issue ,function:_updatePickupAddresses"+err,user.userid);
-			self.emit("failedUpdatePickupAddress",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit('error',"Database Error ,function:_updatePickupAddresses"+err,user.userid);
+			self.emit("failedUpdatePickupAddress",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(ppupdatestatus==0){
-		    self.emit("failedUpdatePickupAddress",{"error":{"message":"providerid or addressid is wrong"}});
+		    self.emit("failedUpdatePickupAddress",{"error":{"message":"Incorrect seller id or addressid"}});
 		}else{
 			/////////////////////////////////////
 			_successfulUpdatePickupAddress(self);
@@ -2616,10 +2616,10 @@ ProductProvider.prototype.getPickupAddresses = function(user,providerid) {
 var _isProivderAdminToGetPickupAddresses = function(self,user,providerid){
 	UserModel.findOne({userid:user.userid,"provider.providerid":providerid,"provider.isOwner":true},function(err,usersp){
 		if(err){
-			logger.emit('error',"Database Issue  _isProivderAdminToGetPickupAddresses"+err,user.userid);
-			self.emit("failedGetPickupAddress",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit('error',"Database Error  _isProivderAdminToGetPickupAddresses"+err,user.userid);
+			self.emit("failedGetPickupAddress",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(!usersp){
-			self.emit("failedGetPickupAddress",{"error":{"message":"You are not authorized to get pickup address"}});
+			self.emit("failedGetPickupAddress",{"error":{"message":"Only authorized user can get pickup address"}});
 		}else{
 			//////////////////////////////////////////
 	     	_getPickupAddresses(self,user,providerid);
@@ -2630,24 +2630,24 @@ var _isProivderAdminToGetPickupAddresses = function(self,user,providerid){
 var _getPickupAddresses = function(self,user,providerid){
 	ProductProviderModel.findOne({providerid:providerid},{pickupaddresses:1,_id:0},function(err,doc){
 		if(err){
-			logger.emit('error',"Database Issue  _getPickupAddresses"+err);
-			self.emit("failedGetPickupAddress",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit('error',"Database ErrorError  _getPickupAddresses"+err);
+			self.emit("failedGetPickupAddress",{"error":{"code":"ED001","message":"Database ErrorError"}});
 		}else if(doc){
 			if(doc == undefined){
-				self.emit("failedGetPickupAddress",{"error":{"message":"Pickup addresses not exists"}});
+				self.emit("failedGetPickupAddress",{"error":{"message":"Pickup addresses does not exists"}});
 			}else{
 				if(doc.pickupaddresses.addresses == undefined){
-					self.emit("failedGetPickupAddress",{"error":{"message":"Pickup addresses not exists"}});	
+					self.emit("failedGetPickupAddress",{"error":{"message":"Pickup addresses does not exists"}});	
 				}else if(doc.pickupaddresses.addresses.length>0){
 					////////////////////////////////////////////////////////////////
 		    		_successfulGetPickupAddress(self,doc.pickupaddresses.addresses);
 					////////////////////////////////////////////////////////////////
 				}else{
-					self.emit("failedGetPickupAddress",{"error":{"message":"pickup address not exists"}});	
+					self.emit("failedGetPickupAddress",{"error":{"message":"pickup address does not exists"}});	
 				}
 			}
 		}else{
-			self.emit("failedGetPickupAddress",{"error":{"message":"providerid is wrong"}});
+			self.emit("failedGetPickupAddress",{"error":{"message":"Incorrect seller id"}});
 		}
 	})
 }
@@ -2664,10 +2664,10 @@ ProductProvider.prototype.deletePickupAddresses = function(user,providerid,addre
 var _isProivderAdminToDeletePickupAddresses = function(self,user,providerid,addressid){
 	UserModel.findOne({userid:user.userid,"provider.providerid":providerid,"provider.isOwner":true},function(err,usersp){
 		if(err){
-			logger.emit('error',"Database Issue  _isProivderAdminToDeletePickupAddresses"+err,user.userid)
-			self.emit("failedDeletePickupAddress",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit('error',"Database Error  _isProivderAdminToDeletePickupAddresses"+err,user.userid)
+			self.emit("failedDeletePickupAddress",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(!usersp){
-			self.emit("failedDeletePickupAddress",{"error":{"message":"You are not authorized to delete pickup address"}});
+			self.emit("failedDeletePickupAddress",{"error":{"message":"Only authorized user can delete pickup address"}});
 		}else{
 			///////////////////////////////////////////////////////
 	     	_deletePickupAddresses(self,user,providerid,addressid);
@@ -2679,10 +2679,10 @@ var _deletePickupAddresses=function(self,user,providerid,addressid){
 	console.log("providerid : "+providerid+" addressid : "+addressid);
 	ProductProviderModel.update({providerid:providerid,"pickupaddresses.addresses.addressid":addressid},{$pull:{"pickupaddresses.addresses":{addressid:addressid}}},function(err,addressupdatestatus){
 		if(err){
-			logger.emit('error',"Database Issue ,function:_deletePickupAddresses"+err,user.userid);
-			self.emit("failedDeletePickupAddress",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit('error',"Database Error ,function:_deletePickupAddresses"+err,user.userid);
+			self.emit("failedDeletePickupAddress",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(addressupdatestatus==0){
-		    self.emit("failedDeletePickupAddress",{"error":{"message":"Provided addressid is not belongs with this provider"}});
+		    self.emit("failedDeletePickupAddress",{"error":{"message":"The addressid does not belong to seller"}});
 		}else{			
 			/////////////////////////////////////
 			_successfulDeletePickupAddress(self);
@@ -2696,14 +2696,14 @@ var _deletePickupAddresses=function(self,user,providerid,addressid){
 var _updateIsProvidePickupAddress = function(self,user,providerid){
 	ProductProviderModel.findOne({providerid:providerid},{pickupaddresses:1,_id:0},function(err,doc){
 		if(err){
-			logger.emit('error',"Database Issue  _updateIsProvidePickupAddress"+err);
+			logger.emit('error',"Database Error  _updateIsProvidePickupAddress"+err);
 		}else if(doc){
 			if(doc.pickupaddresses.addresses.length == 0){
 				ProductProviderModel.update({providerid:providerid},{$set:{"pickupaddresses.provide":false}},function(err,addressupdatestatus){
 					if(err){
-						logger.emit('error',"Database Issue ,function:_updateIsProvidePickupAddress"+err,user.userid);
+						logger.emit('error',"Database Error ,function:_updateIsProvidePickupAddress"+err,user.userid);
 					}else if(addressupdatestatus==0){
-					    logger.emit('error',"Database Issue"+err,user.userid);
+					    logger.emit('error',"Database Error"+err,user.userid);
 					}else{			
 						logger.emit('info',"Pickup Address Deleted Successfully");
 					}
@@ -2719,9 +2719,9 @@ ProductProvider.prototype.manageProductCategoryLeadTime = function(sessionuserid
 	var self=this;
 	
 	if(productcategoryleadtimedata==undefined){
-		self.emit("failedManageProductCategoryLeadTime",{"error":{"code":"AV001",message:"Please pass product category lead time data"}});
+		self.emit("failedManageProductCategoryLeadTime",{"error":{"code":"AV001",message:"Please enter product category lead time data"}});
 	}else if(!isArray(productcategoryleadtimedata)){
-		self.emit("failedManageProductCategoryLeadTime",{"error":{"code":"AV001",message:"product category lead time should be an array"}});
+		self.emit("failedManageProductCategoryLeadTime",{"error":{"code":"AV001",message:"product category lead time should be an JSON array"}});
 	}else{
 			////////////////////////////////////////////////////////////////////////
 	_isProivderAdminTomanageProductCategoryLeadTime(self,sessionuserid,providerid,productcategoryleadtimedata);
@@ -2731,10 +2731,10 @@ ProductProvider.prototype.manageProductCategoryLeadTime = function(sessionuserid
 var _isProivderAdminTomanageProductCategoryLeadTime = function(self,sessionuserid,providerid,productcategoryleadtimedata){
 	UserModel.findOne({userid:sessionuserid,"provider.providerid":providerid,"provider.isOwner":true},function(err,usersp){
 		if(err){
-			logger.emit('error',"Database Issue  _isProivderAdminTomanageProductCategoryLeadTime"+err,user.userid);
-			self.emit("failedManageProductCategoryLeadTime",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit('error',"Database Error  _isProivderAdminTomanageProductCategoryLeadTime"+err,user.userid);
+			self.emit("failedManageProductCategoryLeadTime",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(!usersp){
-			self.emit("failedManageProductCategoryLeadTime",{"error":{"message":"You are not authorized Manage Product Category Leadtime"}});
+			self.emit("failedManageProductCategoryLeadTime",{"error":{"message":"Only authorized user can Manage Product Category Leadtime"}});
 		}else{
 			///////////////////////////////////////////////////
 	     	_validateProductCategoryLeadTime(self,sessionuserid,providerid,productcategoryleadtimedata);
@@ -2745,15 +2745,15 @@ var _isProivderAdminTomanageProductCategoryLeadTime = function(self,sessionuseri
 var _validateProductCategoryLeadTime=function(self,sessionuserid,providerid,productcategoryleadtimedata){
 	ProductProviderModel.findOne({providerid:providerid},{category:1},function(err,provider){
 		if(err){
-			logger.emit('error',"Database Issue  _validateProductCategoryLeadTime"+err,user.userid);
-			self.emit("failedManageProductCategoryLeadTime",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit('error',"Database Error  _validateProductCategoryLeadTime"+err,user.userid);
+			self.emit("failedManageProductCategoryLeadTime",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(!provider){
-			self.emit("failedManageProductCategoryLeadTime",{"error":{"message":"Providerid is wrong"}});
+			self.emit("failedManageProductCategoryLeadTime",{"error":{"message":"Incorrect seller id"}});
 		}else{
 			ProductCategoryModel.find({"ancestors.categoryid":provider.category.categoryid,level:4},function(err,level4categories){
 				if(err){
-					logger.emit('error',"Database Issue  _validateProductCategoryLeadTime"+err,user.userid);
-			    self.emit("failedManageProductCategoryLeadTime",{"error":{"code":"ED001","message":"Database Issue"}});
+					logger.emit('error',"Database Error  _validateProductCategoryLeadTime"+err,user.userid);
+			    self.emit("failedManageProductCategoryLeadTime",{"error":{"code":"ED001","message":"Database Error"}});
 				}else if(level4categories.length!=0){
 					///valid leadtimedata
 					var level4categoryids=[];
@@ -2776,7 +2776,7 @@ var _validateProductCategoryLeadTime=function(self,sessionuserid,providerid,prod
 					  }
 					}
 						if(validproductcategoryleadtimedata.length==0){
-						  self.emit("failedManageProductCategoryLeadTime",{error:{message:"Please provide valid lead time data"}})	
+						  self.emit("failedManageProductCategoryLeadTime",{error:{message:"Please enter valid lead time data"}})	
 						}else{
 								////////////////////////////////////
 					_manageProductCategoryLeadTimeData(self,sessionuserid,providerid,productcategoryleadtimedata)
@@ -2786,7 +2786,7 @@ var _validateProductCategoryLeadTime=function(self,sessionuserid,providerid,prod
 
 
 				}else{
-					 self.emit("failedManageProductCategoryLeadTime",{"error":{"message":"No category exists for this provider"}});
+					 self.emit("failedManageProductCategoryLeadTime",{"error":{"message":"No category exists for this seller"}});
 				}
 			})		
 		}
@@ -2796,10 +2796,10 @@ var _validateProductCategoryLeadTime=function(self,sessionuserid,providerid,prod
 var _manageProductCategoryLeadTimeData=function(self,sessionuserid,providerid,productcategoryleadtimedata){
 	ProductProviderModel.update({providerid:providerid},{$set:{productcategoryleadtime:productcategoryleadtimedata}},function(err,updatecategoryleadtime){
 		if(err){
-			logger.emit('error',"Database Issue  _manageProductCategoryLeadTimeData"+err,user.userid);
-			self.emit("failedManageProductCategoryLeadTime",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit('error',"Database Error  _manageProductCategoryLeadTimeData"+err,user.userid);
+			self.emit("failedManageProductCategoryLeadTime",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(updatecategoryleadtime==0){
-			self.emit("failedManageProductCategoryLeadTime",{error:{message:"Provider id is wrong"}})
+			self.emit("failedManageProductCategoryLeadTime",{error:{message:"Incorrect seller id"}})
 		}else{
 		//////////////////////////////////////////////
 		_successfulManageCategoryLeadTimeData(self)
@@ -2820,10 +2820,10 @@ ProductProvider.prototype.getProviderProductCategoryLeadTime = function(sessionu
 var _getProviderCategoryLeadTime=function(self,providerid){
 	ProductProviderModel.findOne({providerid:providerid},{productcategoryleadtime:1},function(err,provider){
 		if(err){
-			logger.emit('error',"Database Issue  _getProviderCategoryLeadTime"+err,user.userid);
-			self.emit("failedGetProviderProductCategoryLeadTime",{"error":{"code":"ED001","message":"Database Issue"}});	
+			logger.emit('error',"Database Error  _getProviderCategoryLeadTime"+err,user.userid);
+			self.emit("failedGetProviderProductCategoryLeadTime",{"error":{"code":"ED001","message":"Database Error"}});	
 		}else if(!provider){
-			self.emit("failedGetProviderProductCategoryLeadTime",{"error":{"message":"providerid is wrong"}});	
+			self.emit("failedGetProviderProductCategoryLeadTime",{"error":{"message":"Incorrect Seller id"}});	
 		}else{
 			var productcategoryleadtime=provider.productcategoryleadtime;
 

@@ -17,7 +17,7 @@ exports.addTags=function(req,res){
     	res.send(result);
   	});
   	if(req.user.isAdmin==false){
-    	tagsearch.emit("failedAddTags",{"error":{"message":"You are not an admin user to add tag details"}});
+    	tagsearch.emit("failedAddTags",{"error":{"message":"Only OrderZapp admin user can add tag details"}});
   	}else{
     	tagsearch.addTags(req.user);
   	} 
@@ -36,7 +36,7 @@ exports.getTags=function(req,res){
     	res.send(result);
   	});
   	if(req.user.isAdmin==false){
-    	tagsearch.emit("failedGetTags",{"error":{"message":"You are not an admin user to get tag details"}});
+    	tagsearch.emit("failedGetTags",{"error":{"message":"Only OrderZapp admin user can get tag details"}});
   	}else{
     	tagsearch.getTags(req.user);
   	} 
@@ -56,7 +56,7 @@ exports.deleteTags=function(req,res){
     	res.send(result);
   	});
   	if(req.user.isAdmin==false){
-    	tagsearch.emit("failedDeleteTags",{"error":{"message":"You are not an admin user to delete tags"}});
+    	tagsearch.emit("failedDeleteTags",{"error":{"message":"Only OrderZapp admin user can delete tags"}});
   	}else{
     	tagsearch.deleteTags(req.user);
   	} 

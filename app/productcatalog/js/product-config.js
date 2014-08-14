@@ -33,7 +33,7 @@ var _validateProductConfigurationData = function(self,categoryid,productconfig,u
 	}else if(productconfig.configuration == undefined){
 		self.emit("failedAddProductConfig",{"error":{"code":"PC001","message":"Please enter configuration"}});
 	}else if(!isArray(productconfig.configuration)){
-		self.emit("failedAddProductConfig",{"error":{"code":"PC001","message":"configuration should be an array"}});
+		self.emit("failedAddProductConfig",{"error":{"code":"PC001","message":"product configuration should be an JSON array"}});
 	}else if(productconfig.configuration.length == 0){
 		self.emit("failedAddProductConfig",{"error":{"code":"PC001","message":"Please enter atleast one configuration"}});
 	}else{
@@ -47,12 +47,12 @@ var _isValidCategoryID = function(self,categoryid,productconfig,user){
 			logger.emit("error","Database Error : _isValidCategoryID " + err);
 			self.emit("failedAddProductConfig",{"error":{"code":"ED001","message":"Database Issue"}});
 		}else if(!doc){
-			self.emit("failedAddProductConfig",{"error":{"code":"AD001","message":"Wrong categoryid"}});
+			self.emit("failedAddProductConfig",{"error":{"code":"AD001","message":"Incorrect categoryid"}});
 		}else{
 			if(doc.categoryname == productconfig.categoryname){
 				_isConfigurationAlreadyExist(self,categoryid,productconfig,user);
 			}else{
-				self.emit("failedAddProductConfig",{"error":{"code":"AD001","message":"Provided categoryname is wrong"}});
+				self.emit("failedAddProductConfig",{"error":{"code":"AD001","message":"categoryname is wrong"}});
 			}	  		
 	  	}
 	});
@@ -67,7 +67,7 @@ var _isConfigurationAlreadyExist = function(self,categoryid,productconfig,user){
 	     	_addProductConfiguration(self,categoryid,productconfig,user);
 		    /////////////////////////////////////////////////////////////
 		}else{
-			self.emit("failedAddProductConfig",{"error":{"message":"Product configuration already exist's for provided category"}});
+			self.emit("failedAddProductConfig",{"error":{"message":"Product configuration already exist's for category"}});
 		}
 	})
 }
@@ -103,11 +103,11 @@ var _validateUpdateProductConfigurationData = function(self,categoryid,productco
 	if(productconfig == undefined){
 		self.emit("failedUpdateProductConfig",{"error":{"code":"PC001","message":"Please enter product configuration"}});
 	}else if(productconfig.categoryname != undefined || productconfig.categoryid){
-		self.emit("failedUpdateProductConfig",{"error":{"code":"PC001","message":"You can not update categoryname and categoryid"}});
+		self.emit("failedUpdateProductConfig",{"error":{"code":"PC001","message":"You cannot update categoryname and categoryid"}});
 	}else if(productconfig.configuration == undefined){
 		self.emit("failedUpdateProductConfig",{"error":{"code":"PC001","message":"Please enter configuration"}});
-	}else if(!isArray(productconfig.configuration)){
-		self.emit("failedUpdateProductConfig",{"error":{"code":"PC001","message":"configuration should be an array"}});
+	}else if(!isArray(productconfig.configuration)){ 
+		self.emit("failedUpdateProductConfig",{"error":{"code":"PC001","message":"configuration should be an JSON array"}});
 	// }else if(productconfig.configuration.length == 0){
 	// 	self.emit("failedUpdateProductConfig",{"error":{"code":"PC001","message":"Please enter atleast one configuration"}});
 	}else{
@@ -120,7 +120,7 @@ var _updateProductConfiguration = function(self,categoryid,productconfig,user){
 		  	logger.emit('error',"Database Issue fun:_updateProductConfiguration"+err,user.userid);
 		  	self.emit("failedUpdateProductConfig",{"error":{"code":"ED001","message":"Database Issue"}});		
 	  	}else if(updateStatus==0){
-	  		self.emit("failedUpdateProductConfig",{"error":{"message":"categoryid is wrong"}});		
+	  		self.emit("failedUpdateProductConfig",{"error":{"message":"Incorrect categoryid"}});		
 	  	}else{
 	  		//////////////////////////////////////
         	_successfulUpdateProductConfig(self);
@@ -144,7 +144,7 @@ var _getProductConfiguration = function(self,user){
 			logger.emit('error',"Database Issue  _getProductConfiguration "+err,user.userid);
 			self.emit("failedGetProductConfig",{"error":{"code":"ED001","message":"Database Issue"}});
 		}else if(configdata.length == 0){
-			self.emit("failedGetProductConfig",{"error":{"message":"Product Configuration Does Not Exist's"}});
+			self.emit("failedGetProductConfig",{"error":{"message":"Product Configuration Does Not Exist"}});
 		}else{	
 			/////////////////////////////////////////////
 	     	_successfulGetProductConfig(self,configdata);
@@ -168,7 +168,7 @@ var _getProductConfigurationByCategory = function(self,categoryid,user){
 			logger.emit('error',"Database Issue  _getProductConfiguration "+err,user.userid);
 			self.emit("failedGetProductConfigByCategory",{"error":{"code":"ED001","message":"Database Issue"}});
 		}else if(!configdata){
-			self.emit("failedGetProductConfigByCategory",{"error":{"message":"Product Configuration Does Not Exist's"}});
+			self.emit("failedGetProductConfigByCategory",{"error":{"message":"Product Configuration Does Not Exist"}});
 		}else{	
 			///////////////////////////////////////////////////////
 	     	_successfulGetProductConfigByCategory(self,configdata);
@@ -199,7 +199,7 @@ var _isAlreadyDeletedConfig = function(self,configid,user){
 				  	logger.emit('error',"Database Issue fun:_isAlreadyDeletedConfig"+err,user.userid);
 				  	self.emit("failedDeleteProductConfig",{"error":{"code":"ED001","message":"Database Issue"}});		
 			  	}else if(updateStatus==0){
-			  		self.emit("failedDeleteProductConfig",{"error":{"message":"configid is wrong"}});		
+			  		self.emit("failedDeleteProductConfig",{"error":{"message":"Incorrect configid"}});		
 			  	}else{
 			  		//////////////////////////////////////
 		        	_successfulDeleteProductConfig(self);

@@ -136,10 +136,10 @@ var sendOrderReceivedNotificationToSeller=function(suborders,index){
 			  
 				var selleremail=provider.provideremail;
 				console.log('selleremail'+selleremail);
-				var subject="You have recieved new Order.Order No:<suborderid>";
+				var subject="You have recieved new Order. Order No:<suborderid>";
 				subject=S(subject);
 				subject=subject.replaceAll("<suborderid>",suborder.suborderid);
-				var html="You have recieved new Order.<br><b>Order No</b>:<suborderid>.<br>So Please goto Seller Web Application for more Order details";
+				var html="You have received a new Order.<br><b>Order No</b>:<suborderid>.<br>Check the Seller Web Application for further information on Order details";
 				html=S(html);
 				html=html.replaceAll("<suborderid>",suborder.suborderid);
 				var emailmessage = {
@@ -171,9 +171,9 @@ Order.prototype.createOrder = function(user){
 
 var _validateCreateOrderData = function(self,orderdata,user){
 	if(orderdata == undefined){
-		self.emit("failedCreateOrder",{"error":{"code":"AV001","message":"Please passs orderdata"}});
+		self.emit("failedCreateOrder",{"error":{"code":"AV001","message":"Please enter orderdata"}});
 	}else if(orderdata.cart== undefined){
-		self.emit("failedCreateOrder",{"error":{"code":"AV001","message":"Please pass cart details"}});
+		self.emit("failedCreateOrder",{"error":{"code":"AV001","message":"Please enter cart details"}});
 	}else if(orderdata.cart.length == 0){
 		self.emit("failedCreateOrder",{"error":{"code":"AV001","message":"Please add atleast one product into your cart"}});
 	}else if(orderdata.billing_address == undefined){
@@ -197,9 +197,9 @@ var _validateCreateOrderData = function(self,orderdata,user){
 	// }else if(!isArray(orderdata.deliverycharges)){
 	// 	self.emit("failedCreateOrder",{"error":{"code":"AV001","message":"deliverycharges should not be Array"}});	
 	}else if(orderdata.sellerdelivery==undefined){
-			self.emit("failedCreateOrder",{"error":{"code":"AV001","message":"please provide sellerdelivery"}});	
+			self.emit("failedCreateOrder",{"error":{"code":"AV001","message":"please enter sellerdelivery"}});	
 	}else if(!isArray(orderdata.sellerdelivery)){
-		self.emit("failedCreateOrder",{"error":{"code":"AV001","message":"sellerdelivery should not be array"}});	
+		self.emit("failedCreateOrder",{"error":{"code":"AV001","message":"sellerdelivery should not be JSON array"}});	
 	}else if(orderdata.sellerdelivery.length==0){
 		self.emit("failedCreateOrder",{"error":{"code":"AV001","message":"sellerdelivery should not be empty"}});	
 	
@@ -256,7 +256,7 @@ var _validateCartProducts=function(self,orderdata,user){
 		  logger.emit("error","Database Issue"+err,user.userid)
 		 self.emit("failedCreateOrder",{"error":{"code":"ED001","message":"Database Issue"}});	
 		}else if(correctprouctids.length==0){
-			self.emit("failedCreateOrder",{"error":{"message":"Provided product in cart not exist"}});	
+			self.emit("failedCreateOrder",{"error":{"message":"Seller product in cart does not exist"}});	
 		}else{
 			var validproductids=[];
 			for(var i=0;i<correctprouctids.length;i++){
@@ -287,7 +287,7 @@ var _ProviderBranchSpecificCartsProducts=function(self,orderdata,validproductids
 			logger.emit("error","Database Issue _ProviderBranchSpecificCartsProducts"+err)
 			self.emit("failedCreateOrder",{"error":{"code":"ED001","message":"Database Issue"}});
 		}else if(branchproducts.length==0){
-			self.emit("failedCreateOrder",{"error":{"message":"Provided products not exists"}});
+			self.emit("failedCreateOrder",{"error":{"message":"Products does not exists"}});
 		}else{
 			var suborders=[];
 			var totalorderprice=0;
@@ -572,7 +572,7 @@ var _SubOrderInvoiceCreation=function(suborders,value,order){
 			if(err){
 				logger.emit("error","Database Issue :_SubOrderInvoiceCreation"+err)
 			}else if(branch.length==0){
-				logger.emit("error","branchid is wrong for _SubOrderInvoiceCreation")
+				logger.emit("error","Incorrect branchid for _SubOrderInvoiceCreation")
 			}else{
 				var selleruserid=branch[0].user.userid;
 				var branch=branch[0].branch;
@@ -581,7 +581,7 @@ var _SubOrderInvoiceCreation=function(suborders,value,order){
 					if(err){
 							logger.emit("error","Database Issue :_SubOrderInvoiceCreation"+err)
 					}else if(!selleruser){
-						logger.emit("error","give selleruser id wrong")
+						logger.emit("error","Incorrect seller user")
 					}else{
 
 						var contacts=branch.contact_supports;
@@ -744,7 +744,7 @@ Order.prototype.getAllOrderDetailsForBranch = function(branchid,type,userid){
 
 var _valdateGetAllOrderDetailsForBranch = function(self,branchid,type,userid){
 	if(type == undefined){
-		self.emit("failedGetAllOrdersForAllProviders",{"error":{"message":"Please pass type"}});
+		self.emit("failedGetAllOrdersForAllProviders",{"error":{"message":"Please enter type"}});
 	}else if(["order","product"].indexOf(type.toLowerCase())<0){
 		self.emit("failedGetAllOrdersForAllProviders",{"error":{"code":"AV001","message":"type should be order or product"}});
 	}else{
@@ -753,7 +753,7 @@ var _valdateGetAllOrderDetailsForBranch = function(self,branchid,type,userid){
 		}else if(type == "product"){
 			_getAllProductOrdersForBranch(self,branchid,userid);
 		}else{
-			self.emit("failedGetAllOrdersForAllProviders",{"error":{"message":"Please pass valid type"}});
+			self.emit("failedGetAllOrdersForAllProviders",{"error":{"message":"Please enter valid type"}});
 		}
 	}
 }
@@ -765,7 +765,7 @@ var _getAllOrdersForBranch=function(self,branchid,userid){
 		if(err){
 			self.emit("failedGetAllOrdersForAllProviders",{"error":{"code":"ED001","message":"Database Issue : "+err}});
 		}else if(orders.length==0){
-			self.emit("failedGetAllOrdersForAllProviders",{"error":{"message":"Order not exist"}});
+			self.emit("failedGetAllOrdersForAllProviders",{"error":{"message":"Order does not exist"}});
 		}else{
 			//////////////////////////////////////////////
 			_successfulGetAllOrdersForBranch(self,orders);
@@ -782,7 +782,7 @@ var _getAllProductOrdersForBranch=function(self,branchid,userid){
 		if(err){
 			self.emit("failedGetAllOrdersForAllProviders",{"error":{"code":"ED001","message":"Database Issue : "+err}});
 		}else if(products.length==0){
-			self.emit("failedGetAllOrdersForAllProviders",{"error":{"message":"Product order not exist"}});
+			self.emit("failedGetAllOrdersForAllProviders",{"error":{"message":"Product Order does not exist"}});
 		}else{
 			//////////////////////////////////////////////////////
 			_successfulGetAllProductOrdersForBranch(self,products);
@@ -811,7 +811,7 @@ var _getDateTimeOfOrder=function(self,orderid,userid){
 		if(err){
 			self.emit("failedLoadMoreOrders",{"error":{"code":"ED001","message":"Database Issue : "+err}});
 		}else if(!order){
-			self.emit("failedLoadMoreOrders",{"error":{"message":"orderid is wrong"}});
+			self.emit("failedLoadMoreOrders",{"error":{"message":"Incorrect order id"}});
 		}else{
 			////////////////////////////
 			_loadMoreOrders(self,orderid,order);
@@ -824,7 +824,7 @@ var _loadMoreOrders = function(self,orderid,order){
 		if(err){
 			self.emit("failedLoadMoreOrders",{"error":{"code":"ED001","message":"Database Issue : "+err}});
 		}else if(orders.length==0){
-			self.emit("failedLoadMoreOrders",{"error":{"message":"No more orders"}});
+			self.emit("failedLoadMoreOrders",{"error":{"message":"No more orders found"}});
 		}else{
 			///////////////////////////////////////
 			_successfulLoadMoreOrders(self,orders);
@@ -833,7 +833,7 @@ var _loadMoreOrders = function(self,orderid,order){
 	});
 }
 var _successfulLoadMoreOrders=function(self,orders){
-	self.emit("successfulLoadMoreOrders",{success:{message:"Getting load more order successfully",orders:orders}});
+	self.emit("successfulLoadMoreOrders",{success:{message:"Loading more orders successfully",orders:orders}});
 }
 
 Order.prototype.getMySubOrders = function(userid,providerid,branchid,criteriastatus){
@@ -871,7 +871,7 @@ var _criteriawiseSuborders=function(self,userid,providerid,branchid,criteriastat
 		////////////////////////////////////////////////////
 	}else{
 		if(["recieved","approved","packing","delivery","past"].indexOf(criteriastatus)<0){
-			self.emit("failedGetMySubOrders",{"error":{"message":"criteriastatus should be approved,packing,delivery,recieved,past"}});
+			self.emit("failedGetMySubOrders",{"error":{"message":"criteriastatus should be approved, packing, delivery, recieved, past"}});
 		}else{
 			var statusarray={recieved:["orderreceived"],past:["ordercomplete","cancelled","rejected"],approved:["accepted"],packing:["inproduction","packing","factorytostore"],delivery:["indelivery"]};
 			var query=[];
@@ -939,7 +939,7 @@ var _getMySubOrders=function(self,userid,providerid,branchid,query,criteriastatu
 	})
 } 
 var _successfullgetMySubOrders=function(self,suborders){
-	self.emit("successfulGetMySubOrders",{success:{message:"Getting  suborders successfully",suborders:suborders}});
+	self.emit("successfulGetMySubOrders",{success:{message:"Getting suborders successfully",suborders:suborders}});
 }
 Order.prototype.getDeliveryCharges = function(city,area,branchdata){
 	var self = this;
@@ -955,7 +955,7 @@ var _validateDeliveryChargeData=function(self,city,area,branchdatas){
 	}else if(area==undefined || area==""){
 		self.emit("failedGetDeliveryCharges",{"error":{"code":"AV001","message":"please select area"}});
 	}else if(!isArray(branchdatas)){
-		self.emit("failedGetDeliveryCharges",{"error":{"code":"AV001","message":"branchids should be json array"}});
+		self.emit("failedGetDeliveryCharges",{"error":{"code":"AV001","message":"branchids should be JSON array"}});
 	}else if(branchdatas.length==0){
 		self.emit("failedGetDeliveryCharges",{"error":{"code":"AV001","message":"branchdatas should not be empty"}});
 	}else{
@@ -1019,9 +1019,9 @@ var _successfullGetDeliveryCharges=function(self,deliverycharges){
 Order.prototype.getLatestProductPrices = function(productcart){
 	var self = this;
 	if(productcart==undefined){
-		self.emit("failedGetLatestProductPrices",{error:{message:"Please pass productcart"}})
+		self.emit("failedGetLatestProductPrices",{error:{message:"Please enter productcart"}})
 	}else if(!isArray(productcart)){
-		self.emit("failedGetLatestProductPrices",{error:{message:"productcart should be an Array"}})
+		self.emit("failedGetLatestProductPrices",{error:{message:"productcart should be an JSON Array"}})
 	}else{
 		///////////////////////////////
 			_getLatestProductPrice(self,productcart)
@@ -1036,7 +1036,7 @@ var _getLatestProductPrice=function(self,productcart){
 			logger.emit("error","Database Issue _getLatestProductPrice"+err)
 		  self.emit("failedGetLatestProductPrices",{"error":{"code":"ED001","message":"Database Issue"}});
 		}else if(productprices.length==0){
-			self.emit("failedGetLatestProductPrices",{error:{message:"Provided product are wrong"}});
+			self.emit("failedGetLatestProductPrices",{error:{message:"Incorrect product id"}});
 		}else{
 			///////////////////////////////////////////////////
 			_successfullGetLatestProductPrice(self,productprices)
@@ -1076,10 +1076,10 @@ var _checkTokenAssociatedWithOrder=function(self,user,message){
       logger.emit("error","Database Issue:/_checkMobileNumberIsValidForConfirmOrder "+err)
 			self.emit("failedConfirmOrder",{error:{message:"Database Issue"}})
 		}else if(!otpdata){
-			self.emit("failedConfirmOrder",{error:{message:"Token is Wrong or expired for confirm order"}})
+			self.emit("failedConfirmOrder",{error:{message:"Confirm order token is incorrect or expired"}})
 		}else{
 			if(otpdata._userId!=user.userid){
-				self.emit("failedConfirmOrder",{error:{message:"Verification token should be send by consumer mobileno"}})
+				self.emit("failedConfirmOrder",{error:{message:"Verification token should be send from consumer mobileno"}})
 			}else{
 				otpdata.status="deactive"
 				otpdata.save(function(err,otp_data){
@@ -1103,7 +1103,7 @@ var _confirmOrder=function(self,otpdata){
 			logger.emit("error","Database Issue:/_confirmOrder "+err)
 			self.emit("failedConfirmOrder",{error:{message:"Database Issue"}})
 		}else if(orderupdatestaus==0){
-			self.emit("failedConfirmOrder",{error:{message:"Order Number not exists"}})
+			self.emit("failedConfirmOrder",{error:{message:"Order Number does not exists"}})
 		}else{
 			///////////////////////////////////////
 			_successfullConfirmOrder(self)
@@ -1112,7 +1112,7 @@ var _confirmOrder=function(self,otpdata){
 	})
 }
 var _successfullConfirmOrder=function(self){
-	self.emit("successfulConfirmOrder",{success:{message:"Order Confirmed successfully"}});
+	self.emit("successfulConfirmOrder",{success:{message:"Order Confirmed Successfully"}});
 }
 Order.prototype.confirmOrderByWeb = function(userid,token){
 	var self=this;
@@ -1126,7 +1126,7 @@ var _checkMobileNumberIsValidForConfirmOrderByWeb=function(self,userid,token){
 			logger.emit("error","Database Issue:/_checkMobileNumberIsValidForConfirmOrderByWeb "+err)
 			self.emit("failedConfirmOrderByWeb",{error:{message:"Database Issue"}})
 		}else if(!user){
-			self.emit("failedConfirmOrderByWeb",{error:{message:"userid is wrong"}});
+			self.emit("failedConfirmOrderByWeb",{error:{message:"Incorrect User"}});
 		}else{
 			///////////////////////////////////////
 			_checkTokenAssociatedWithOrderByWeb(self,user,token)
@@ -1142,10 +1142,10 @@ var _checkTokenAssociatedWithOrderByWeb=function(self,user,token){
       logger.emit("error","Database Issue:/_checkTokenAssociatedWithOrderByWeb "+err)
 			self.emit("failedConfirmOrderByWeb",{error:{message:"Database Issue"}})
 		}else if(!otpdata){
-			self.emit("failedConfirmOrderByWeb",{error:{message:"Token is Wrong or expired for confirm order"}})
+			self.emit("failedConfirmOrderByWeb",{error:{message:"Confirm order token is incorrect or expired"}})
 		}else{
 			if(otpdata._userId!=user.userid){
-				self.emit("failedConfirmOrderByWeb",{error:{message:"Verification token should be send by consumer mobileno"}})
+				self.emit("failedConfirmOrderByWeb",{error:{message:"Verification token should be send from consumer mobileno"}})
 			}else{
 				otpdata.status="deactive"
 				otpdata.save(function(err,otp_data){
@@ -1169,7 +1169,7 @@ var _confirmOrderByWeb=function(self,otpdata){
 			logger.emit("error","Database Issue:/_confirmOrder "+err)
 			self.emit("failedConfirmOrderByWeb",{error:{message:"Database Issue"}})
 		}else if(orderupdatestaus==0){
-			self.emit("failedConfirmOrderByWeb",{error:{message:"Order Number not exists"}})
+			self.emit("failedConfirmOrderByWeb",{error:{message:"Order Number does not exist"}})
 		}else{
 			///////////////////////////////////////
 			_successfullConfirmOrderByWeb(self)
@@ -1178,7 +1178,7 @@ var _confirmOrderByWeb=function(self,otpdata){
 	})
 }
 var _successfullConfirmOrderByWeb=function(self){
-	self.emit("successfulConfirmOrderByWeb",{success:{message:"Order Confirmed successfully"}});
+	self.emit("successfulConfirmOrderByWeb",{success:{message:"Order Confirmed Successfully"}});
 }
 
 Order.prototype.manageOrder = function(user,suborderid,action,deliverydate,remark,deliverytimeslot){
@@ -1228,7 +1228,7 @@ var _checkSubOrderIsExistOrNot=function(self,user,suborderid,action,deliverydate
 					}
 		  }else if(action=="reject" || action=="cancel"){
 					if(remark==undefined || remark==""){
-						self.emit("failedManageOrder",{error:{message:"please enter remark for cancel or reject order"}})
+						self.emit("failedManageOrder",{error:{message:"please enter comment for cancelation or rejection of order"}})
 					}else{
 						// suborder=JSON
 						suborder.suborder.reasontocancelreject=remark;
@@ -1255,7 +1255,7 @@ var _isAuthorizeToManageOrder=function(self,user,order,action){
 			logger.emit("error","Database Issue:/_isAuthorizeToManageOrder "+err)
 			self.emit("failedManageOrder",{error:{message:"Database Issue"}})
 		}else if(!userprovider){
-			self.emit("failedManageOrder",{error:{message:"You have not authorize to manageOrder"}})
+			self.emit("failedManageOrder",{error:{message:"You have not authorized to manage orders"}})
 		}else{
 			//////////////////////////////////////
 			_getProviderProcessConfiguration(self,user,order.suborder,action,order)
@@ -1269,7 +1269,7 @@ var _getProviderProcessConfiguration=function(self,user,suborder,action,order){
 			logger.emit("error","Database Issue:/_getProviderProcessConfiguration "+err)
 			self.emit("failedManageOrder",{error:{message:"Database Issue"}})
 		}else if(!provider){
-			self.emit("failedManageOrder",{error:{message:"Providerid is wrong"}})
+			self.emit("failedManageOrder",{error:{message:"Incorrect Seller id"}})
 		}else{
 		
 			var providerprocessconfiguration=provider.orderprocess_configuration;
@@ -1315,9 +1315,9 @@ var _checkManageOrderAction=function(self,user,suborder,action,order,order_staus
 		if(suborder.status=="orderreceived"){
 			_manageOrder(self,action,user,suborder,"rejected",order);
 		}else if(suborder.status=="rejected"){
-			self.emit("failedManageOrder",{error:{message:"Sub Order is already rejected"}});
+			self.emit("failedManageOrder",{error:{message:"SubOrder is already rejected"}});
 		}else{
-			self.emit("failedManageOrder",{error:{message:"You can  not reject this Order after you accept"}});
+			self.emit("failedManageOrder",{error:{message:"You cannot reject an accepted order"}});
 		}
 	}else{
 	  var actionstatus={accept:"accepted",cancel:"cancelled",reject:"rejected",production:"inproduction",shiptostore:"factorytostore",pack:"packing",deliver:"indelivery",pickfromstore:"storepickup",done:"ordercomplete"};
@@ -1328,7 +1328,7 @@ var _checkManageOrderAction=function(self,user,suborder,action,order,order_staus
   	 var indexofcurrentstatus=order_staus.indexOf(suborder.status);
     var deliverystatuslength=order_staus.length;
     if(indexofcurrentstatus==deliverystatuslength-1){
-    	logger.emit("error","We can not perform any action order is already completed");
+    	logger.emit("error","We cannot perform any action once the order is already completed");
     	self.emit("failedManageOrder",{error:{message:"Order is already completed"}})
     }else{
     	indexofcurrentstatus=indexofcurrentstatus+1;
@@ -1341,7 +1341,7 @@ var _checkManageOrderAction=function(self,user,suborder,action,order,order_staus
       		//////////////////////////////////
       }else{
       	// logger.emit("error","You can not change status previous status");
-      	self.emit("failedManageOrder",{error:{message:"You can not perform this action"}})
+      	self.emit("failedManageOrder",{error:{message:"You cannot perform manage order actions"}})
       }	
     }
   }
@@ -1363,14 +1363,14 @@ var _manageOrder=function(self,action,user,suborder,status,order){
 			logger.emit("error","Database Issue:/_manageOrder "+err)
 			self.emit("failedManageOrder",{error:{message:"Database Issue"}})
 		}else if(suborderupdatestatus==0){
-			self.emit("failedManageOrder",{error:{message:"suborderid is wrong"}})
+			self.emit("failedManageOrder",{error:{message:"Incorrect suborderid"}})
 		}else{
 			OrderModel.update({suborder:{$elemMatch:{suborderid:suborder.suborderid}}},{$addToSet:{"suborder.$.tracking":tracking}},function(err,suborderupdatestatus){
 				if(err){
 					logger.emit("error","Database Issue:/_manageOrder "+err);
 					self.emit("failedManageOrder",{error:{message:"Database Issue"}});
 				}else if(suborderupdatestatus==0){
-					self.emit("failedManageOrder",{error:{message:"suborderid is wrong"}});
+					self.emit("failedManageOrder",{error:{message:"Incorrect suborder id"}});
 				}else{
 					console.log("actiondddd"+action)
 					// if(action.toLowerCase()=="deliver")
@@ -1408,20 +1408,20 @@ var _sendNotificationToUser=function(suborder,status){
 		if(err){
 			logger.emit("error","Database Issue"+err)
 		}else if(!order){
-			logger.emit("error","suborderid is wrong")
+			logger.emit("error","Incorrect suborder id")
 		}else{
 			UserModel.findOne({userid:order.consumer.userid},{gcmregistrationid:1,mobileno:1,preffered_lang:1,email:1},function(err,user){
 				if(err){
 					logger.emit("error","Database Issue"+err);
 				}else if(!user){
-					logger.emit("error","userid is wrong");
+					logger.emit("error","Incorrect user");
 				}else{
 					if(status == "cancelled" || status == "rejected"){						
 						_sendSMSToUsersMobileNumber(user.mobileno,user.preffered_lang,"order"+status,suborder,function(result){
 				         	if(result.error!=undefined){
 				            	logger.emit("error",result.error.message);
 				          	}else{
-				           		logger.emit("log","order "+status+" SMS send to consumer mobileno");
+				           		logger.emit("log","Order "+status+" SMS send to consumer mobileno");
 				          	}
 				        });
 					}else if(status == "accepted"){
@@ -1435,7 +1435,7 @@ var _sendNotificationToUser=function(suborder,status){
 					         	if(result.error!=undefined){
 					            	logger.emit("error",result.error.message);
 					          	}else{
-					           		logger.emit("log","order "+status+" SMS send to consumer mobileno");
+					           		logger.emit("log","Order "+status+" SMS send to consumer mobileno");
 					          	}
 					        });
 						}
@@ -1456,7 +1456,7 @@ var _sendNotificationToUser=function(suborder,status){
 				         	if(result.error!=undefined){
 				            	logger.emit("error",result.error.message);
 				          	}else{
-				           		logger.emit("log","order "+status+" SMS send to consumer mobileno");
+				           		logger.emit("log","Order "+status+" SMS send to consumer mobileno");
 				          	}
 				        });
 					}
@@ -1510,7 +1510,7 @@ var _createJSONForInvoice=function(suborderid,sessionuserid){
       logger.emit(" error","Database Issue:_createJSONForInvoice"+err)
       // self.emit("failedCreateInvoice",{error:{message:"Database Issue",code:"ED001"}})
     }else if(suborder.length==0){
-    	logger.emit("error","suborderid is wrong")
+    	logger.emit("error","Incorrect suborder id")
         // self.emit("failedCreateInvoice",{error:{message:"suborderid is wrong "}})
     }else{
       var order=suborder[0];
@@ -1530,7 +1530,7 @@ var _createJSONForInvoice=function(suborderid,sessionuserid){
             if(err){
                 logger.emit("error","Database Issue :_createJSONForInvoice"+err)
             }else if(!selleruser){
-              logger.emit("error","give selleruser id wrong")
+              logger.emit("error","Incorrect seller id")
             }else{
               var contacts=branch.contact_supports;
               var selleremail=selleruser.email;
@@ -1586,7 +1586,7 @@ var _createJSONForInvoice=function(suborderid,sessionuserid){
 var _createPDFInvocie=function(inoviceobject,branch){
   fs.readFile('invoicesample1.html', function (err, data) {
     if(err){
-      logger.emit("error","Invoice Sample html Issue:_createPDFInvocie "+err);
+      logger.emit("error","Invoice html Issue:_createPDFInvocie "+err);
       // self.emit("failedCreateInvoice",{error:{message:""}})
     }else{
       var monthNames = [ "January", "February", "March", "April", "May", "June",
@@ -1679,7 +1679,7 @@ var _writeHtmlDataToFile=function(inoviceobject,htmldata,branch){
     exec("phantomjs/bin/phantomjs phantomjs/bin/rasterize.js "+filename+" "+pdfinvoice,function(err,out,code){
       if(err){
         // self.emit("failedCreateInvoice",{error:{message:"Invoice Pdf creation issue"}})
-        logger.emit("error","Invoice Sample html Issue:_writeHtmlDataToFile "+err);
+        logger.emit("error","Invoice html Issue:_writeHtmlDataToFile "+err);
       }else{
         exec("rm -rf "+filename);
         //////////////////////////////////////////////////
@@ -1693,7 +1693,7 @@ var _saveInvoiceToAmazonServer=function(inoviceobject,htmldata,pdfinvoice,branch
   fs.readFile(pdfinvoice,function (err, data) {
     if(err){
        // self.emit("failedCreateInvoice",{error:{message:"Invoice Pdf creation issue"}})
-        logger.emit("error","Invoice Sample html Issue:_saveInvoiceToAmazonServer "+err);
+        logger.emit("error","Invoice html Issue:_saveInvoiceToAmazonServer "+err);
     }else{
       var bucketFolder;
       var params;
@@ -1749,9 +1749,9 @@ var _updateSuborderInvoiceStatus=function(suborderid){
 		if(err){
 			logger.emit("error","Database Issue :_updateSuborderInvoiceStatus"+err)
 		}else if(suborderinvoicegeneratestatus==0){
-			logger.emit("error","suborderid is wrong for _updateSuborderInvoiceStatus")
+			logger.emit("error","Incorrect suborder id for _updateSuborderInvoiceStatus")
 		}else{
-			logger.emit("log","suborder invoice generated updated");
+			logger.emit("log","suborder invoice updated");
 		}
 	})
 }
@@ -1767,7 +1767,7 @@ var _validateSubOrderPaymentDone=function(self,user,suborderid){
 			logger.emit("error","Database Issue:/_validateSubOrderPaymentDone "+err)
 			self.emit("failedSubOrderPaymentDone",{error:{message:"Database Issue"}})
 		}else if(suborders.length==0){
-			self.emit("failedSubOrderPaymentDone",{error:{message:"suborderid is wrong"}})
+			self.emit("failedSubOrderPaymentDone",{error:{message:"Incorrect suborderid"}})
 		}else{
 			var suborder=suborders[0].suborder;
 			UserModel.findOne({userid:user.userid,"provider.providerid":suborder.productprovider.providerid},function(err,userprovider){
@@ -1775,7 +1775,7 @@ var _validateSubOrderPaymentDone=function(self,user,suborderid){
 					logger.emit("error","Database Issue:/_isAuthorizeToManageOrder "+err)
 					self.emit("failedSubOrderPaymentDone",{error:{message:"Database Issue"}})
 				}else if(!userprovider){
-					self.emit("failedSubOrderPaymentDone",{error:{message:"You have not authorize to manageOrder"}})
+					self.emit("failedSubOrderPaymentDone",{error:{message:"Only seller admin user can Manage Order"}})
 				}else{
 				  ////////////////////////////////////////
 				  _validateSubOrderStatusForPayment(self,user,suborder)
@@ -1787,7 +1787,7 @@ var _validateSubOrderPaymentDone=function(self,user,suborderid){
 }
 var _validateSubOrderStatusForPayment=function(self,user,suborder){
 	if(suborder.buyerpayment.mode=="paytm"){
-		self.emit("failedSubOrderPaymentDone",{error:{message:"Payment throudh banking"}})	
+		self.emit("failedSubOrderPaymentDone",{error:{message:"Payment through banking"}})	
 	}else if(suborder.sellerpayment.status=="done"){
 		self.emit("failedSubOrderPaymentDone",{error:{message:"Payment already made"}})	
 	}else{
@@ -1803,7 +1803,7 @@ var _validateSubOrderStatusForPayment=function(self,user,suborder){
 				logger.emit("error","Database Issue:/_suborderpaymentdone "+err)
 				self.emit("failedSubOrderPaymentDone",{error:{message:"Database Issue"}})
 			}else if(suborderupdatestatus==0){
-				self.emit("failedSubOrderPaymentDone",{error:{message:"suborderid is wrong"}})
+				self.emit("failedSubOrderPaymentDone",{error:{message:"Incorrect suborderid"}})
 			}else{
 				//////////////////////////////////////
 				_successfullPaymentForSubOrderDone(self)
@@ -1812,7 +1812,7 @@ var _validateSubOrderStatusForPayment=function(self,user,suborder){
 		})
 	}
 	var _successfullPaymentForSubOrderDone=function(self){
-		self.emit("successfulSubOrderPaymentDone",{success:{message:"Provider Suborder Payment Done"}})
+		self.emit("successfulSubOrderPaymentDone",{success:{message:"Seller Suborder Payment Done"}})
 	}
 
 Order.prototype.getCurrentAndPastOrders = function(userid,criteriastatus){
@@ -1851,7 +1851,7 @@ var _getCurrentAndPastOrders=function(self,query,criteriastatus){
 			logger.emit("error","Database Issue _getCurrentAndPastOrders"+err);
 			self.emit("failedGetCurrentAndPastOrders",{"error":{"code":"ED001","message":"Database Issue"}});
 		}else if(orders.length==0){
-			self.emit("failedGetCurrentAndPastOrders",{"error":{"message":"You have not any "+criteriastatus+" orders"}});
+			self.emit("failedGetCurrentAndPastOrders",{"error":{"message":"You do not have any "+criteriastatus+" orders"}});
 		}else{
 			////////////////////////////////////////
 			_successfullGetAllMyOrder(self,orders)
@@ -1883,7 +1883,7 @@ var _searchSuborder=function(self,suborderid,userid){
 					logger.emit("error","Database Issue _getCurrentAndPastOrders"+err);
 					self.emit("failedSearchsuborder",{"error":{"code":"ED001","message":"Database Issue"}});
 				}else if(branchname.length==0){
-					self.emit("failedSearchsuborder",{"error":{"message":"branchid is wrong"}});
+					self.emit("failedSearchsuborder",{"error":{"message":"Incorrect branchid"}});
 				}else{
 					orders[0].suborder.productprovider.branchname = branchname[0].branchname;
 					///////////////////////////////////////
@@ -1895,7 +1895,7 @@ var _searchSuborder=function(self,suborderid,userid){
 	});
 }
 var _successfulSearchsuborder=function(self,orders){
-	self.emit("successfulSearchsuborder",{success:{message:"Getting Order Successfully",orders:orders}});
+	self.emit("successfulSearchsuborder",{success:{message:"Getting Orders Successfully",orders:orders}});
 }
 Order.prototype.generatePayTmCheckSum = function(userid,checksumdata){
 	var self = this;		
@@ -1907,23 +1907,23 @@ var _validategeneratePayTmCheckSum=function(self,userid,checksumdata){
 	var generatechecksumresponse={CHECKSUMHASH :null,ORDER_ID :checksumdata.ORDER_ID,payt_STATUS :2};
 	
 	if(checksumdata==undefined){
-		self.emit("failedgeneratePayTmCheckSum",{error:{message:"Please pass checksumdata",generatechecksumresponse:generatechecksumresponse}})
+		self.emit("failedgeneratePayTmCheckSum",{error:{message:"Please enter checksumdata",generatechecksumresponse:generatechecksumresponse}})
 	}else if(checksumdata.CHANNEL_ID==undefined){
-		self.emit("failedgeneratePayTmCheckSum",{error:{message:"Please pass CHANNEL_ID",generatechecksumresponse:generatechecksumresponse}})
+		self.emit("failedgeneratePayTmCheckSum",{error:{message:"Please enter CHANNEL_ID",generatechecksumresponse:generatechecksumresponse}})
 	}else if(checksumdata.CUST_ID==undefined){
-		self.emit("failedgeneratePayTmCheckSum",{error:{message:"Please pass CUST_ID",generatechecksumresponse:generatechecksumresponse}})
+		self.emit("failedgeneratePayTmCheckSum",{error:{message:"Please enter CUST_ID",generatechecksumresponse:generatechecksumresponse}})
 	}else if(checksumdata.EMAIL==undefined){
-		self.emit("failedgeneratePayTmCheckSum",{error:{message:"Please pass EMAIL",generatechecksumresponse:generatechecksumresponse}})
+		self.emit("failedgeneratePayTmCheckSum",{error:{message:"Please enter EMAIL",generatechecksumresponse:generatechecksumresponse}})
 	}else if(checksumdata.INDUSTRY_TYPE_ID==undefined){
-		self.emit("failedgeneratePayTmCheckSum",{error:{message:"Please pass INDUSTRY_TYPE_ID",generatechecksumresponse:generatechecksumresponse}})
+		self.emit("failedgeneratePayTmCheckSum",{error:{message:"Please enter INDUSTRY_TYPE_ID",generatechecksumresponse:generatechecksumresponse}})
 	}else if(checksumdata.MID==undefined){
-		self.emit("failedgeneratePayTmCheckSum",{error:{message:"Please pass MID",generatechecksumresponse:generatechecksumresponse}})
+		self.emit("failedgeneratePayTmCheckSum",{error:{message:"Please enter MID",generatechecksumresponse:generatechecksumresponse}})
 	}else if(checksumdata.TXN_AMOUNT==undefined){
-		self.emit("failedgeneratePayTmCheckSum",{error:{message:"Please pass TXN_AMOUNT",generatechecksumresponse:generatechecksumresponse}})
+		self.emit("failedgeneratePayTmCheckSum",{error:{message:"Please enter TXN_AMOUNT",generatechecksumresponse:generatechecksumresponse}})
 	}else if(checksumdata.THEME==undefined){
-		self.emit("failedgeneratePayTmCheckSum",{error:{message:"Please pass THEME",generatechecksumresponse:generatechecksumresponse}})
+		self.emit("failedgeneratePayTmCheckSum",{error:{message:"Please enter THEME",generatechecksumresponse:generatechecksumresponse}})
 	}else if(checksumdata.WEBSITE==undefined){
-		self.emit("failedgeneratePayTmCheckSum",{error:{message:"Please pass WEBSITE",generatechecksumresponse:generatechecksumresponse}})
+		self.emit("failedgeneratePayTmCheckSum",{error:{message:"Please enter WEBSITE",generatechecksumresponse:generatechecksumresponse}})
 	}else{
 		///////////////////////////////////////
 		_validateCheckSumDataForChecksumCreation(self,userid,checksumdata,generatechecksumresponse)
@@ -1936,7 +1936,7 @@ var _validateCheckSumDataForChecksumCreation=function(self,userid,checksumdata,g
 		if(err){
 			self.emit("failedgeneratePayTmCheckSum",{error:{code:"ED001",message:"Database Issue",generatechecksumresponse:generatechecksumresponse}})
 		}else if(!order){
-			self.emit("failedgeneratePayTmCheckSum",{error:{message:"Given Orderid is not assocated with customer for checksum creation",generatechecksumresponse:generatechecksumresponse}})
+			self.emit("failedgeneratePayTmCheckSum",{error:{message:"checksum creation error - Order does not belong to customer",generatechecksumresponse:generatechecksumresponse}})
 		}else{
 			////////////////////////////////////
 			_checkForThatOrderPaymentAlreadyDone(self,checksumdata,generatechecksumresponse,order)
@@ -1946,7 +1946,7 @@ var _validateCheckSumDataForChecksumCreation=function(self,userid,checksumdata,g
 }
 var _checkForThatOrderPaymentAlreadyDone=function(self,checksumdata,generatechecksumresponse,order){
 	if(order.payment.STATUS=="TXN_SUCCESS"){
-		self.emit("failedgeneratePayTmCheckSum",{error:{message:"For Order :"+order.orderid+" payment has already done",generatechecksumresponse:generatechecksumresponse}})
+		self.emit("failedgeneratePayTmCheckSum",{error:{message:"For Order : "+order.orderid+" payment has already done",generatechecksumresponse:generatechecksumresponse}})
 	}else{
        ///////////////////////////////////
 			_generateChecksum(self,checksumdata,generatechecksumresponse)
@@ -1994,7 +1994,7 @@ Order.prototype.paytmCallbackUrl = function(paytmresponsedata){
 var _validatePaytmCallbackData=function(self,paytmresponsedata,responseobject){
 	if(paytmresponsedata==undefined){
 
-		self.emit("failedPaytmCallbackUrl",{error:{message:"Please pass paytm server callback data",responseobject:responseobject}})
+		self.emit("failedPaytmCallbackUrl",{error:{message:"Please enter paytm server callback data",responseobject:responseobject}})
 	 }else{
 	  // if(paytmresponsedata.TXNID==undefined){
 	//  self.emit("failedPaytmCallbackUrl",{error:{message:"Please pass TXNID",responseobject:responseobject}})
@@ -2116,16 +2116,16 @@ var _updateOrderPaymentDatails=function(self,responseobject){
 	}
 	OrderModel.update({orderid:responseobject.ORDERID},{$set:ordersetdata},function(err,paymentupdatestatus){
 		if(err){
-			logger.emit("error",{error:{code:"ED001",message:"Database Issueerr::"+err}})
+			logger.emit("error",{error:{code:"ED001",message:"Database Issue err::"+err}})
 		}else if(paymentupdatestatus==0){
-			logger.emit("error",{error:{message:"Order id is wrong"}})
+			logger.emit("error",{error:{message:"Incorrect Order id"}})
 		}else{
 			responseobject.IS_CHECKSUM_VALID="Y";
 			OrderModel.findOne({orderid:responseobject.ORDERID},function(err,order){
 				if(err){
 					logger.emit("error","Database Issue")
 				}else if(!order){
-					logger.emit("error","Order id is wrong")
+					logger.emit("error","Incorrect Order id")
 				}else{
 					var suborderids=[];
 					for(var i=0;i<order.suborder.length;i++){
@@ -2153,9 +2153,9 @@ var _makeSubOrderPaymentDone=function(orderid,suborderid,responseobject){
 		if(err){
 			logger.emit("error","Database Issue :_makeSubOrderPaymentDone"+err)
 		}else if(suborderpaymentstaus==0){
-			logger.emit("error","suborderid is wrong")
+			logger.emit("error","Incorrect suborderid")
 		}else{
-			logger.emit("log","suborder payment done"+suborderid)
+			logger.emit("log","suborder payment is done "+suborderid)
 		}
 	})
 }
@@ -2175,7 +2175,7 @@ var _IsAuthorizedToGetSuborderStatusWiseCount=function(self,userid,providerid,br
 			logger.emit("error","Database Issue _IsAuthorizedToGetSuborderStatusWiseCount"+err)
 			self.emit("failedgetOrderStatusWiseCount",{"error":{"code":"ED001","message":"Database Issue"}});
 		}else if(!userprovider){
-			self.emit("failedgetOrderStatusWiseCount",{"error":{"message":"Branch details is not associated with user"}});
+			self.emit("failedgetOrderStatusWiseCount",{"error":{"message":"Only branch User can access the branch details"}});
 		}else{
 			/////////////////////////////////////////////////
 			_getSubOrderStatusWiseCount(self,userid,branchid)
@@ -2210,7 +2210,7 @@ var _getSubOrderStatusWiseCount=function(self,userid,branchid){
 	 })
 }
 var _successfullGetSubOrderStatusWisecount=function(self,statuswisecountarray){
-	self.emit("successfulGetOrderStatusWiseCount",{success:{message:"Getting Suborderwisecount sucessfully",statuswisecount:statuswisecountarray}})
+	self.emit("successfulGetOrderStatusWiseCount",{success:{message:"Getting Suborder Status Count Successfully",statuswisecount:statuswisecountarray}})
 }
 Order.prototype.getProviderSubOrderStatusWiseCount = function(userid,providerid){
 	var self = this;	
@@ -2225,7 +2225,7 @@ var _IsAuthorizedToGetProviderSuborderStatusWiseCount=function(self,userid,provi
 			logger.emit("error","Database Issue _IsAuthorizedToGetSuborderStatusWiseCount"+err)
 			self.emit("failedgetPrviderOrderStatusWiseCount",{"error":{"code":"ED001","message":"Database Issue"}});
 		}else if(!userprovider){
-			self.emit("failedgetPrviderOrderStatusWiseCount",{"error":{"message":"Branch details is not associated with user"}});
+			self.emit("failedgetPrviderOrderStatusWiseCount",{"error":{"message":"Only branch User can access the branch details"}});
 		}else{
 			/////////////////////////////////////////////////
 			_getProviderSubOrderStatusWiseCount(self,userid,providerid)
@@ -2260,7 +2260,7 @@ var _getProviderSubOrderStatusWiseCount=function(self,userid,providerid){
 	 })
 }
 var _successfullGetProvierSubOrderStatusWisecount=function(self,statuswisecountarray){
-	self.emit("successfulGetProviderOrderStatusWiseCount",{success:{message:"Getting Suborderwisecount sucessfully",statuswisecount:statuswisecountarray}})
+	self.emit("successfulGetProviderOrderStatusWiseCount",{success:{message:"Getting Suborder status count Successfully",statuswisecount:statuswisecountarray}})
 }
 
 Order.prototype.getDeliveryTimeSlots = function(){
@@ -2279,7 +2279,7 @@ var _validateGetDeliveryTimeSlots = function(self,data){
 	}else if(data.productids == undefined){
 		self.emit("failedGetDeliveryTimeSlots",{"error":{"code":"DT001","message":"Please enter productids"}});
 	}else if(!isArray(data.productids)){
-		self.emit("failedGetDeliveryTimeSlots",{"error":{"code":"DT001","message":"productids should be array"}});
+		self.emit("failedGetDeliveryTimeSlots",{"error":{"code":"DT001","message":"productids should be JSON array"}});
 	}else if(data.productids.length==0){
 		self.emit("failedGetDeliveryTimeSlots",{"error":{"code":"DT001","message":"Please enter atleast one productid"}});
 	}else{
@@ -2293,7 +2293,7 @@ var _checkMaxLeadTime = function(self,data){
 			logger.emit("error","Database Issue _checkMaxLeadTime"+err)
 			self.emit("failedGetDeliveryTimeSlots",{"error":{"code":"ED001","message":"Database Issue"}});
 		}else if(doc.length==0){
-			self.emit("failedGetDeliveryTimeSlots",{"error":{"message":"leadtime not available for provided products"}});
+			self.emit("failedGetDeliveryTimeSlots",{"error":{"message":"lead time not available for products"}});
 		}else{			
 			_checkAvailableTimeSlots(self,data,doc);
 		}
@@ -2310,7 +2310,7 @@ var _checkAvailableTimeSlots = function(self,data,leadtimearr){
 			logger.emit("error","Database Issue _checkMaxLeadTime"+err)
 			self.emit("failedGetDeliveryTimeSlots",{"error":{"code":"ED001","message":"Database Issue"}});
 		}else if(branchdata.length==0){
-			self.emit("failedGetDeliveryTimeSlots",{"error":{"message":"Wrong branchids"}});
+			self.emit("failedGetDeliveryTimeSlots",{"error":{"message":"Incorrect branchids"}});
 		}else{
 			_getDeliveryTimeSlots(self,data,leadtimearr,branchdata);
 		}
@@ -2354,10 +2354,10 @@ var _manageTimeSlots=function(timeslots,branchid,preferred_del_date,expected_dat
 	console.log("preftest"+preftest+"   exptest"+exptest);
 	if(timeslots == undefined){
 		result_arr.push({branchid:branchid,expected_date:expected_date,deliverytimingslots:[]});
-		callback({"error":{"message":"Delivery timing slots not available for branch ("+branchid+")","doc":result_arr[0]}});
+		callback({"error":{"message":"Delivery time slots not available for branch ("+branchid+")","doc":result_arr[0]}});
 	}else if(timeslots.deliverytimingslots == undefined){
 		result_arr.push({branchid:branchid,expected_date:expected_date,deliverytimingslots:[]});
-		callback({"error":{"message":"Delivery timing slots not available for branch ("+branchid+")","doc":result_arr[0]}});
+		callback({"error":{"message":"Delivery time slots not available for branch ("+branchid+")","doc":result_arr[0]}});
 	}else{
 		if(preftest > exptest){
 			console.log("prefte max");			
@@ -2414,7 +2414,7 @@ var _manageTimeSlots=function(timeslots,branchid,preferred_del_date,expected_dat
 	}
 }
 var _successfulGetDeliveryTimeSlots=function(self,doc){
-	self.emit("successfulGetDeliveryTimeSlots",{success:{message:"Getting Result sucessfully","doc":doc}});
+	self.emit("successfulGetDeliveryTimeSlots",{success:{message:"Getting Delivery Time Slots Successfully","doc":doc}});
 }
 
 			

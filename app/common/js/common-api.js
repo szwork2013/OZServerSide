@@ -101,7 +101,7 @@ exports.loadSMSTemplates=function (req,res) {
 	
 	"lang" : "EN",
 	"name" : "register",
-	"template" : "To register to OrderZapp ,\nplease type : <registerformat> .\nsend on 9243007462"
+	"template" : "To register with OrderZapp, \nplease type : <registerformat> .\nsend on 9243007462"
 },
 {
 	
@@ -251,7 +251,7 @@ exports.loadSMSTemplates=function (req,res) {
 	
 	"name" : "productprovidermemberinvite",
 	"lang" : "EN",
-	"template" : "Welcome to OrderZapp-Sellers. You have been added to the group <groupname> by <providername> of <branchname>.\n Your new password is: <password>.\nPlease reply OTP <otp> to 9243007462 to verify your account."
+	"template" : "Welcome to OrderZapp-Sellers. You have been added to the group <groupname> by <providername> of <branchname>.\n Your new password is: <password>.\nPlease enter your OTP with app <otp> to verify your account."
 },
 {
 	
@@ -293,7 +293,7 @@ exports.loadSMSTemplates=function (req,res) {
 	
 	"lang" : "EN",
 	"name" : "joinproviderrequest",
-	"template" : "Your verification token for join as a provider is <otp>"
+	"template" : "Your seller verification token is <otp>"
 },
 {
 	
@@ -337,7 +337,7 @@ exports.loadSMSTemplates=function (req,res) {
 {	
 	"lang" : "EN",
 	"name" : "ordercancelled",
-	"template" : "Unfortunately your sub order has been canceled due to <reason> and hence cannot be shipped.\n Sub Order id : <suborderid> \n Sub Order amt: Rs. <suborder_price> \n Seller- <sellername>"
+	"template" : "Unfortunately your Suborder No. <suborderid> has been canceled due to '<reason>'."
 },
 {	
 	"lang" : "HI",
@@ -357,7 +357,7 @@ exports.loadSMSTemplates=function (req,res) {
 {	
 	"lang" : "EN",
 	"name" : "orderrejected",
-	"template" : "Unfortunately your sub order has been rejected due to <reason> and hence cannot be shipped. \n Sub Order id : <suborderid> \n Sub Order amt: <suborder_price> \n Seller- <sellername>"
+	"template" : "Unfortunately your SubOrder No. <suborderid> has been rejected due to '<reason>'."
 },
 {	
 	"lang" : "HI",
@@ -377,12 +377,12 @@ exports.loadSMSTemplates=function (req,res) {
 {	
 	"lang" : "EN",
 	"name" : "orderaccepted",
-	"template" : "We have a new delivery date <deliverydate> for your suborder <suborderid>, \n if you DO NOT want to continue the order with new delivery date, \n please cancel the order"
+	"template" : "We have a new delivery date <deliverydate> for your SubOrder No: <suborderid>, \n if you do not want to continue the order with new delivery date, \n please CANCEL the order"
 },
 {
 	"lang" : "HI",
 	"name" : "orderaccepted",
-	"template" : "We have a new delivery date <deliverydate> for your suborder <suborderid>, \n if you DO NOT want to continue the order with new delivery date, \n please cancel the order"
+	"template" : "We have a new delivery date <deliverydate> for your suborder no. <suborderid>, \n if you DO NOT want to continue the order with new delivery date, \n please cancel the order"
 },
 {	
 	"lang" : "MR",
@@ -397,22 +397,22 @@ exports.loadSMSTemplates=function (req,res) {
 {	
 	"lang" : "EN",
 	"name" : "finaldeliveryhomeonline",
-	"template" : "Your OrderZapp shipment Suborder No: <suborderid> is ready to be delivered to <delivery_address>."
+	"template" : "Your OrderZapp shipment SubOrder No: <suborderid> is ready to be delivered to <delivery_address>."
 },
 {	
 	"lang" : "EN",
 	"name" : "finaldeliveryhomecod",
-	"template" : "Your OrderZapp shipment Suborder No: <suborderid> is ready to be delivered to <delivery_address>. please try to keep change of Rs.<suborder_price> with you"
+	"template" : "Your OrderZapp shipment SubOrder No: <suborderid> is ready to be delivered to <delivery_address>. please keep change of Rs.<suborder_price> with you"
 },
 {	
 	"lang" : "EN",
 	"name" : "finaldeliverypickuponline",
-	"template" : "Your OrderZapp shipment Suborder No: <suborderid> is ready for pickup from <pickup_address>"
+	"template" : "Your OrderZapp shipment SubOrder No: <suborderid> is ready for pickup from <pickup_address>"
 },
 {	
 	"lang" : "EN",
 	"name" : "finaldeliverypickupcod",
-	"template" : "Your OrderZapp shipment with SubOrderId:<suborderid> is ready for pickup.So Please pick up your Order from <pickup_address> and Keep change of Rs.<suborder_price> with you."
+	"template" : "Your OrderZapp shipment with SubOrder No: <suborderid> is ready for pickup at <pickup_address> and keep change of Rs.<suborder_price> with you."
 }]
 for(var i=0;i<smstemplates.length;i++){
 		SMSTemplateModel.update({name:smstemplates[i].name,lang:smstemplates[i].lang},{$set:smstemplates[i]},{upsert:true},function(err,langcodeupdatestatus){

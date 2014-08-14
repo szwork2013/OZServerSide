@@ -21,9 +21,9 @@ ProductCategory.prototype.createProductCategory = function(session_userid) {
 var _validateProductCategoryData = function(self,productcategorydata,session_userid){
 	console.log("productcategorydata "+ JSON.stringify(productcategorydata)+ " user_id " +session_userid);
 	if(productcategorydata == undefined){
-		self.emit("failedAddProductCategory",{"error":{"code":"AV001","message":"Please provide categorydata"}});
+		self.emit("failedAddProductCategory",{"error":{"code":"AV001","message":"Please enter categorydata"}});
 	}else if(productcategorydata.categoryname == undefined || productcategorydata.categoryname == ""){
-		self.emit("failedAddProductCategory",{"error":{"code":"AV001","message":"Please provide categoryname"}});
+		self.emit("failedAddProductCategory",{"error":{"code":"AV001","message":"Please enter categoryname"}});
 	}else{
 		_checkCategoryNameAlreadyExistOrNot(self,productcategorydata);
 	}
@@ -36,7 +36,7 @@ var _checkCategoryNameAlreadyExistOrNot = function(self,productcategorydata){
 			logger.emit("error","Error in db to getCategory name");
 			self.emit("failedAddProductCategory",{"error":{"code":"ED001","message":"Database Issue"}});
 		} else if(c_name){
-			self.emit("failedAddProductCategory",{"error":{"code":"AD001","message":"Category name already exist"}});
+			self.emit("failedAddProductCategory",{"error":{"code":"AD001","message":"Category name already exists"}});
 		}else{
 			// Add New Product Category
 			_addNewProductCategory(self,productcategorydata);
@@ -76,9 +76,9 @@ ProductCategory.prototype.addSubCategory = function(categoryid,session_userid) {
 var _validateSubCategoryData = function(self,subcategory,categoryid,session_userid){
 	console.log("subcategory "+ JSON.stringify(subcategory)+ " user_id " +session_userid);
 	if(subcategory == undefined){
-		self.emit("failedAddSubCategory",{"error":{"code":"AV001","message":"Please provide subcategorydata"}});
+		self.emit("failedAddSubCategory",{"error":{"code":"AV001","message":"Please enter subcategorydata"}});
 	}else if(subcategory.categoryname == undefined){
-		self.emit("failedAddSubCategory",{"error":{"code":"AV001","message":"Please provide categoryname"}});
+		self.emit("failedAddSubCategory",{"error":{"code":"AV001","message":"Please enter categoryname"}});
 	}else{
 		_addSubCategory(self,subcategory,categoryid,session_userid);
 	}
@@ -92,7 +92,7 @@ var _addSubCategory = function(self,subcategory,categoryid,session_userid){
 		} else if(category_data){
 			_checkSubCategoryNameAlreadyExistOrNot(self,subcategory,category_data);
 		}else{
-			self.emit("failedAddSubCategory",{"error":{"code":"AV001","message":"Wrong Categoryid"}});
+			self.emit("failedAddSubCategory",{"error":{"code":"AV001","message":"Incorrect Categoryid"}});
 		}
 	});	
 }
@@ -104,7 +104,7 @@ var _checkSubCategoryNameAlreadyExistOrNot = function(self,subcategory,category_
 			logger.emit("error","Error in db to getCategory name");
 			self.emit("failedAddSubCategory",{"error":{"code":"ED001","message":"Database Issue"}});
 		} else if(c_name){
-			self.emit("failedAddSubCategory",{"error":{"code":"AD001","message":"Subcategory name already exist"}});
+			self.emit("failedAddSubCategory",{"error":{"code":"AD001","message":"Subcategory name already exists"}});
 		}else{
 			subcategory.level = category_data.level+1;
 			subcategory.isleaf = true;
@@ -133,7 +133,7 @@ var _updateMainCategory = function(self,category_data){
 		}else if(categorystatus==1){
 			_successfulladdSubCategory(self);
 		}else{
-			self.emit("failedAddSubCategory",{"error":{"code":"AD001","message":"Wrong categoryname or categoryid"}});
+			self.emit("failedAddSubCategory",{"error":{"code":"AD001","message":"Incorrect categoryname or categoryid"}});
 		}
 	})
 }
@@ -159,7 +159,7 @@ var _getProviderLevelOneCategory = function(self,providerid,session_userid){
 			console.log("doc "+JSON.stringify(doc));
 	  		_getAllProductCategory(self,doc,session_userid);			
 		}else{
-			self.emit("failedGetAllProductCategory",{"error":{"code":"AD001","message":"providerid is wrong"}});
+			self.emit("failedGetAllProductCategory",{"error":{"code":"AD001","message":"Incorrect seller id"}});
 	  	}
 	});
 }
@@ -255,7 +255,7 @@ var _updateProductCategory = function(self,categorydata,categoryid,oldcategoryna
 				}
 			})
 		}else{
-			self.emit("failedUpdateProductCategory",{"error":{"code":"AD001","message":"Wrong categoryid"}});
+			self.emit("failedUpdateProductCategory",{"error":{"code":"AD001","message":"Incorrect categoryid"}});
 		}
 	})
 }

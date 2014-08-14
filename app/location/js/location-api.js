@@ -47,7 +47,7 @@ exports.addLocation=function(req,res){
       res.send(result);
     });
     if(req.user.isAdmin == false){
-    	location.emit("failedAddLocationDetails",{error:{message:"You are not an admin to do this action"}});
+    	location.emit("failedAddLocationDetails",{error:{message:"Only users with admin role can perform this action"}});
     }else{
     	location.addLocation(req.user); 
     }   
@@ -75,7 +75,7 @@ exports.updateLocation=function(req,res){
       res.send(result);
     });
     if(req.user.isAdmin == false){
-    	location.emit("failedUpdateLocationDetails",{error:{message:"You are not an admin to do this action"}});
+    	location.emit("failedUpdateLocationDetails",{error:{message:"Only users with admin role can perform this action"}});
     }else{
     	location.updateLocation(req.user); 
     }   
