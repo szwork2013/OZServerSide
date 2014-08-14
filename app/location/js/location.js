@@ -52,15 +52,15 @@ LocationRefference.prototype.manageLocations = function() {
 	  		things.aggregate({$group:{_id:"$zipcode",area:{$addToSet:"$location"},country:{$addToSet:"$country"},state:{$addToSet:"$state"},city:{$addToSet:"$city"}}},function(err,doc){
 				if(err){
 					logger.emit("error","Database Error : manageLocations " + err);
-					self.emit("failedManageLocation",{"error":{"code":"ED001","message":"Database Issue"}});
+					self.emit("failedManageLocation",{"error":{"code":"ED001","message":"Database Error"}});
 				}else if(doc){
 					// for (var i = 0; i < doc.length; i++) {
 					// 	console.log(doc[0]._id);
 					// 	LocationModel.update({zipcode:doc[i]._id},{$addToSet:{area:{$each:doc[i].area}}},function(err,updateStatus){
 					// 		if(err){
-					// 		  	logger.emit('error',"Database Issue fun:_updateLocation "+err);
+					// 		  	logger.emit('error',"Database Error fun:_updateLocation "+err);
 					// 	  	}else if(updateStatus==0){
-					// 	  		logger.emit('error',"Server Issue");
+					// 	  		logger.emit('error',"Server Error");
 					// 	  	}else{
 					// 	  		logger.emit('info',"Location updated sucessfully");
 					// 	  	}
@@ -83,11 +83,11 @@ LocationRefference.prototype.getLocationDetails = function(user,key,value) {
 };
 var _validateKyeValues = function(self,user,key,value){
 	if(key == undefined){
-		self.emit("failedGetLocationDetails",{"error":{"code":"AV001","message":"Please pass key"}});
+		self.emit("failedGetLocationDetails",{"error":{"code":"AV001","message":"Please enter filter key"}});
 	}else if(value == undefined){
-		self.emit("failedGetLocationDetails",{"error":{"code":"AV001","message":"Please pass value"}});
+		self.emit("failedGetLocationDetails",{"error":{"code":"AV001","message":"Please enter filter value"}});
 	}else if(["country","state","city","zipcode","area"].indexOf(key)<0){
-		self.emit("failedGetLocationDetails",{"error":{"code":"AV001","message":"key must be country,state,city,zipcode,area"}});
+		self.emit("failedGetLocationDetails",{"error":{"code":"AV001","message":"Filter key must be country,state,city,zipcode,area"}});
 	}else{
 		if(key == "country" && value != ""){
 			_getAllCountries(self,key,value,user);
@@ -100,7 +100,7 @@ var _validateKyeValues = function(self,user,key,value){
 		}else if(key == "area" && value != ""){
 			_getAllAreaForSpecificZipcodes(self,key,value,user);
 		}else{
-			self.emit("failedGetLocationDetails",{"error":{"code":"AV001","message":"Please pass valid key and value"}});	
+			self.emit("failedGetLocationDetails",{"error":{"code":"AV001","message":"Please enter valid filter key and value"}});	
 		}
 	}
 }
@@ -108,12 +108,12 @@ var _getAllCountries = function(self,key,value,user){
 	LocationModel.distinct("country").exec(function(err,doc){
 		if(err){
 			logger.emit("error","Database Error : _getAllCountries " + err);
-			self.emit("failedGetLocationDetails",{"error":{"code":"ED001","message":"Database Issue"}});
+			self.emit("failedGetLocationDetails",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(doc.length>0){
 			console.log(doc);
 			self.emit("successfulGetLocationDetails",{"success":{"message":"Getting All Countries Sucessfully","country":doc}});
 		}else{
-	  		self.emit("failedGetLocationDetails",{"error":{"code":"AD001","message":"Countries not exists"}});
+	  		self.emit("failedGetLocationDetails",{"error":{"code":"AD001","message":"Countries does not exist"}});
 	  	}
 	});
 }
@@ -121,11 +121,11 @@ var _getAllStatesForSpecificCountry = function(self,key,value,user){
 	LocationModel.aggregate({$match:{country:value}},{$group:{_id:"$country",states:{$addToSet:"$state"}}},{$project:{country:"$_id",states:"$states",_id:0}}).exec(function(err,doc){
 		if(err){
 			logger.emit("error","Database Error : _getAllStatesForSpecificCountry " + err);
-			self.emit("failedGetLocationDetails",{"error":{"code":"ED001","message":"Database Issue"}});
+			self.emit("failedGetLocationDetails",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(doc.length>0){
 			self.emit("successfulGetLocationDetails",{"success":{"message":"Getting All States For "+value+" Sucessfully","states":doc[0].states}});
 		}else{
-	  		self.emit("failedGetLocationDetails",{"error":{"code":"AD001","message":"States not exists for provided country"}});
+	  		self.emit("failedGetLocationDetails",{"error":{"code":"AD001","message":"States does not exist for provided country"}});
 	  	}
 	});
 }
@@ -133,11 +133,11 @@ var _getAllcityForSpecificState = function(self,key,value,user){
 	LocationModel.aggregate({$match:{state:value}},{$group:{_id:"$state",city:{$addToSet:"$city"}}},{$project:{state:"$_id",city:"$city",_id:0}}).exec(function(err,doc){
 		if(err){
 			logger.emit("error","Database Error : _getAllcityForSpecificState " + err);
-			self.emit("failedGetLocationDetails",{"error":{"code":"ED001","message":"Database Issue"}});
+			self.emit("failedGetLocationDetails",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(doc.length>0){
 			self.emit("successfulGetLocationDetails",{"success":{"message":"Getting All Cities For "+value+" Sucessfully","city":doc[0].city}});
 		}else{
-	  		self.emit("failedGetLocationDetails",{"error":{"code":"AD001","message":"Cities not exists for provided state"}});
+	  		self.emit("failedGetLocationDetails",{"error":{"code":"AD001","message":"Cities does not exist for provided state"}});
 	  	}
 	});
 }
@@ -145,11 +145,11 @@ var _getAllZipcodesForSpecificCity = function(self,key,value,user){
 	LocationModel.aggregate({$match:{city:value}},{$group:{_id:"$city",zipcode:{$addToSet:"$zipcode"}}}).exec(function(err,doc){
 		if(err){
 			logger.emit("error","Database Error : _getAllZipcodesForSpecificCity " + err);
-			self.emit("failedGetLocationDetails",{"error":{"code":"ED001","message":"Database Issue"}});
+			self.emit("failedGetLocationDetails",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(doc.length>0){
 			self.emit("successfulGetLocationDetails",{"success":{"message":"Getting All Zipcodes For "+value+" Sucessfully","zipcode":doc[0].zipcode}});
 		}else{
-	  		self.emit("failedGetLocationDetails",{"error":{"code":"AD001","message":"Zipcodes not exists for provided city"}});
+	  		self.emit("failedGetLocationDetails",{"error":{"code":"AD001","message":"Zipcodes does not exist for provided city"}});
 	  	}
 	});
 }
@@ -157,11 +157,11 @@ var _getAllAreaForSpecificZipcodes = function(self,key,value,user){
 	LocationModel.findOne({zipcode:value},{area:1,_id:0}).exec(function(err,doc){
 		if(err){
 			logger.emit("error","Database Error : _getAllAreaForSpecificZipcodes " + err);
-			self.emit("failedGetLocationDetails",{"error":{"code":"ED001","message":"Database Issue"}});
+			self.emit("failedGetLocationDetails",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(doc){
 			self.emit("successfulGetLocationDetails",{"success":{"message":"Getting All Areas For "+value+" Sucessfully","area":doc.area}});
 		}else{
-	  		self.emit("failedGetLocationDetails",{"error":{"code":"AD001","message":"Areas not exists for provided zipcode"}});
+	  		self.emit("failedGetLocationDetails",{"error":{"code":"AD001","message":"Areas does not exist for provided zipcode"}});
 	  	}
 	});
 }
@@ -188,7 +188,7 @@ var _validateAddLocationData = function(self,location,user){
 	}else if(location.area == undefined || location.area == ""){
 		self.emit("failedAddLocationDetails",{"error":{"code":"AV001","message":"Please enter area"}});
 	}else if(!isArray(location.area)){
-		self.emit("failedAddLocationDetails",{"error":{"code":"AV001","message":"area should be an array"}});
+		self.emit("failedAddLocationDetails",{"error":{"code":"AV001","message":"Area should be sent in a JSON array"}});
 	}else if(location.area.length==0){
 		self.emit("failedAddLocationDetails",{"error":{"code":"AV001","message":"Please enter atleast one area"}});
 	}else if(location.geo == undefined || location.geo == ""){
@@ -205,7 +205,7 @@ var _checkZipcodeAlreadyExist = function(self,location,user){
 	LocationModel.findOne({city:location.city,zipcode:location.zipcode}).exec(function(err,doc){
 		if(err){
 			logger.emit("error","Database Error : _checkZipcodeAlreadyExist " + err);
-			self.emit("failedAddLocationDetails",{"error":{"code":"ED001","message":"Database Issue"}});
+			self.emit("failedAddLocationDetails",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(doc){
 			self.emit("failedAddLocationDetails",{"error":{"message":"Zipcode("+location.zipcode+") already exist for "+location.city+" city"}});
 		}else{
@@ -218,7 +218,7 @@ var _addLocation = function(self,location,user){
 	locationdata.save(function(err,prod_catalog){
 		if(err){
 			logger.emit("error","Database Error:_addLocation"+err,user.userid);
-			self.emit("failedAddLocationDetails",{"error":{"code":"ED001","message":"Database Issue"}});
+			self.emit("failedAddLocationDetails",{"error":{"code":"ED001","message":"Database Error"}});
 		}else{
 			///////////////////////////////////////
         	_successfulAddLocationDetails(self);
@@ -246,7 +246,7 @@ var _validateUpdateLocationData = function(self,location,user){
 	}else if(location.area == undefined || location.area == ""){
 		self.emit("failedUpdateLocationDetails",{"error":{"code":"AV001","message":"Please enter area"}});
 	}else if(!isArray(location.area)){
-		self.emit("failedUpdateLocationDetails",{"error":{"code":"AV001","message":"area should be an array"}});
+		self.emit("failedUpdateLocationDetails",{"error":{"code":"AV001","message":"Area should be sent in a JSON array"}});
 	}else if(location.area.length==0){
 		self.emit("failedUpdateLocationDetails",{"error":{"code":"AV001","message":"Please enter atleast one area"}});
 	}else{
@@ -256,10 +256,10 @@ var _validateUpdateLocationData = function(self,location,user){
 var _updateLocation = function(self,location,user){
 	LocationModel.update({zipcode:location.zipcode},{$set:{area:location.area}},function(err,updateStatus){
 		if(err){
-		  	logger.emit('error',"Database Issue fun:_updateLocation "+err);
-		  	self.emit("failedUpdateLocationDetails",{"error":{"code":"ED001","message":"Database Issue"}});
+		  	logger.emit('error',"Database Error fun:_updateLocation "+err);
+		  	self.emit("failedUpdateLocationDetails",{"error":{"code":"ED001","message":"Database Error"}});
 	  	}else if(updateStatus==0){
-	  		self.emit("failedUpdateLocationDetails",{"error":{"message":"Wrong zipcode"}});
+	  		self.emit("failedUpdateLocationDetails",{"error":{"message":"Incorrect zipcode"}});
 	  	}else{
 	  		///////////////////////////////////////
         	_successfulUpdateLocationDetails(self);
@@ -268,7 +268,7 @@ var _updateLocation = function(self,location,user){
 	});
 }
 var _successfulUpdateLocationDetails = function(self){
-	self.emit("successfulUpdateLocationDetails",{"success":{"message":"Location Updated Sucessfully"}});
+	self.emit("successfulUpdateLocationDetails",{"success":{"message":"Location Updated Successfully"}});
 }
 
 LocationRefference.prototype.getAllAreasByCity = function(city) {
@@ -285,9 +285,9 @@ var _getAllAreasByCity = function(self,city){
 	LocationModel.aggregate({$unwind:"$area"},{$match:{city:city}},{$group:{_id:"$city",area:{$addToSet:"$area"}}}).exec(function(err,doc){
 		if(err){
 			logger.emit("error","Database Error : _getAllAreasByCity " + err);
-			self.emit("failedGetAllAreasByCity",{"error":{"code":"ED001","message":"Database Issue"}});
+			self.emit("failedGetAllAreasByCity",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(doc.length>0){
-			self.emit("successfulGetAllAreasByCity",{"success":{"message":"Getting All Areas For "+city+" Sucessfully","area":doc[0].area}});
+			self.emit("successfulGetAllAreasByCity",{"success":{"message":"Getting All Areas For "+city+" Successfully","area":doc[0].area}});
 		}else{
 	  		self.emit("failedGetAllAreasByCity",{"error":{"code":"AD001","message":"Please enter valid city"}});
 	  	}

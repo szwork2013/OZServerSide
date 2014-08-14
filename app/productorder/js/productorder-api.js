@@ -72,7 +72,7 @@ exports.getAllOrderDetailsForBranch = function(req,res){
         provider_arr.push(req.user.provider[i].providerid);
       }
       if(provider_arr.indexOf(providerid)<0){
-        order.emit("failedGetAllOrdersForAllProviders",{"error":{"message":"You are not authorized to get all order details"}});
+        order.emit("failedGetAllOrdersForAllProviders",{"error":{"message":"Only authorized users can get all order details"}});
       }else{
         order.getAllOrderDetailsForBranch(branchid,type,userid);
       }
@@ -99,7 +99,7 @@ exports.loadMoreOrders = function(req,res){
       res.send(result);
     });
     if(req.user.isAdmin==false){
-      order.emit("failedLoadMoreOrders",{"error":{"message":"You are not authorized to get all order details"}});
+      order.emit("failedLoadMoreOrders",{"error":{"message":"Only authorized users can get all order details"}});
     }else{
       order.loadMoreOrders(orderid,userid);
     }    
@@ -122,7 +122,7 @@ exports.searchSuborder = function(req,res){
       res.send(result);
     });
     if(req.user.isAdmin==false){
-      order.emit("failedSearchsuborder",{"error":{"message":"You are not authorized to search order details"}});
+      order.emit("failedSearchsuborder",{"error":{"message":"Only authorized users can search order details"}});
     }else{
       order.searchSuborder(suborderid,userid);
     }    
@@ -149,7 +149,7 @@ exports.getMySubOrders = function(req,res){
       res.send(result);
     });
     if(req.user.provider.length==0){
-      order.emit("failedGetMySubOrders",{"error":{"message":"There is no Product Provider associated with your account"}})
+      order.emit("failedGetMySubOrders",{"error":{"message":"There is no seller associated with your account"}})
     }else{
         order.getMySubOrders(userid,providerid,branchid,criteriastatus);
     }
@@ -439,6 +439,25 @@ exports.getDeliveryTimeSlots = function(req,res){
       res.send(result);
     });
     order.getDeliveryTimeSlots();
+}
+exports.cancelOrderByConsumer = function(req,res){
+  // var session_userid = req.user.userid;
+  var suborderids=req.body.suborderids;
+  var orderid=req.params.orderid;
+  var order = new Order();
+  // logger.emit("log","req body"+JSON.stringify(req.body));
+  order.removeAllListeners("failedCancelOrderByConsumer");
+    order.on("failedCancelOrderByConsumer",function(err){
+      logger.emit("error", err.error.message);
+      //order.removeAllListeners();
+      res.send(err);
+    });
+    order.removeAllListeners("successfulCancelOrderByConsumer");
+    order.on("successfulCancelOrderByConsumer",function(result){
+      // order.removeAllListeners();
+      res.send(result);
+    });
+    order.cancelOrderByConsumer(orderid,suborderids);
 }
 
 // exports.getServiceOrderRequest = function(req,res){

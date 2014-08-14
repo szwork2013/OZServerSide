@@ -24,7 +24,7 @@ exports.addOrderProcessingStatus = function(req,res){
     res.send(result);
   });  
   if(req.user.isAdmin == "false"){
-    orderstatusreff.emit("failedAddOrderProcessingStatus",{error:{message:"You are not an admin user to do this action"}});
+    orderstatusreff.emit("failedAddOrderProcessingStatus",{error:{message:"Only OrderZapp admin user can perform this action"}});
   }else{
     orderstatusreff.addOrderProcessingStatus(req.user);
   }  
@@ -52,7 +52,7 @@ exports.getOrderProcessingStatus = function(req,res){
   if(req.user.isAdmin ==true ||  req.user.usertype == "provider"){
     orderstatusreff.getOrderProcessingStatus(req.user);
   }else{
-    location.emit("failedGetOrderProcessingStatus",{error:{message:"You are not an authorized to do this action"}});  
+    location.emit("failedGetOrderProcessingStatus",{error:{message:"Only admin can perform this action"}});  
   } 
 }
 
@@ -77,7 +77,7 @@ exports.deleteOrderProcessingStatus = function(req,res){
     res.send(result);
   });
   if(req.user.isAdmin == "false"){
-    orderstatusreff.emit("failedDeleteOrderProcessingStatus",{error:{message:"You are not an admin user to do this action"}});
+    orderstatusreff.emit("failedDeleteOrderProcessingStatus",{error:{message:"Only admin can perform this action"}});
   }else{
     orderstatusreff.deleteOrderProcessingStatus(req.user,index);
   }

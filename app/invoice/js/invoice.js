@@ -28,10 +28,10 @@ Invoice.prototype.getInvoiceDetials= function(branchid,suborderid) {
 var _getInvoiceDetails=function(self,branchid,suborderid){
   InvoiceModel.findOne({suborderid:suborderid},{invoice:1},function(err,invoice){
   	if(err){
-  		logger.emit("error","Database Issue"+err);
-  		self.emit("failedGetInvoiceDetails",{error:{code:"ED001",message:"Database Issue"}})
+  		logger.emit("error","Database Error"+err);
+  		self.emit("failedGetInvoiceDetails",{error:{code:"ED001",message:"Database Error"}})
   	}else if(!invoice){
-  		self.emit("failedGetInvoiceDetails",{error:{message:"Until Invoice not generated for order"}})
+  		self.emit("failedGetInvoiceDetails",{error:{message:"Invoice cannot be generated for the order"}})
   	}else{
 
   		//////////////////////////////////
@@ -53,8 +53,8 @@ Invoice.prototype.createInvoice= function(branchid,suborderid,sessionuserid) {
 var _checkInvoiceAlreadyCreated=function(self,suborderid,sessionuserid){
   InvoiceModel.findOne({suborderid:suborderid},function(err,invoice){
     if(err){
-      logger.emit(" error","Database Issue:_checkInvoiceAlreadyCreated"+err)
-      self.emit("failedCreateInvoice",{error:{message:"Database Issue",code:"ED001"}})
+      logger.emit(" error","Database Error:_checkInvoiceAlreadyCreated"+err)
+      self.emit("failedCreateInvoice",{error:{message:"Database Error",code:"ED001"}})
     }else if(invoice){
       var url=invoice.invoice.image;
       ////////////////////////////
@@ -70,10 +70,10 @@ var _checkInvoiceAlreadyCreated=function(self,suborderid,sessionuserid){
 var _createJSONForInvoice=function(self,suborderid){
   ProductOrderModel.aggregate({$match:{"suborder.suborderid":suborderid}},{$unwind:"$suborder"},{$match:{"suborder.suborderid":suborderid}},function(err,suborder){
     if(err){
-      logger.emit(" error","Database Issue:_createJSONForInvoice"+err)
-      self.emit("failedCreateInvoice",{error:{message:"Database Issue",code:"ED001"}})
+      logger.emit(" error","Database Error:_createJSONForInvoice"+err)
+      self.emit("failedCreateInvoice",{error:{message:"Database Error",code:"ED001"}})
     }else if(suborder.length==0){
-      self.emit("failedCreateInvoice",{error:{message:"suborderid is wrong "}})
+      self.emit("failedCreateInvoice",{error:{message:"Incorrect SubOrder No "}})
     }else{
       var order=suborder[0];
       var suborder=suborder[0].suborder;
@@ -84,11 +84,11 @@ var _createJSONForInvoice=function(self,suborderid){
       
       ProductProviderModel.aggregate({$match:{providerid:suborder.productprovider.providerid}},{$unwind:"$branch"},{$match:{"branch.branchid":suborder.productprovider.branchid}},function(err,branch){
         if(err){
-          self.emit("failedCreateInvoice",{error:{message:"Database issue",code:"ED001"}})
-          logger.emit("error","Database Issue :_createJSONForInvoice"+err)
+          self.emit("failedCreateInvoice",{error:{message:"Database Error",code:"ED001"}})
+          logger.emit("error","Database Error :_createJSONForInvoice"+err)
         }else if(branch.length==0){
           logger.emit("error","branchid is wrong");
-          self.emit("failedCreateInvoice",{error:{message:"branchid is wrong"}})
+          self.emit("failedCreateInvoice",{error:{message:"Incorrect Branch ID"}})
           logger.emit("error","branchid is wrong for _createJSONForInvoice")
         }else{
           var selleruserid=branch[0].user.userid;
@@ -97,10 +97,10 @@ var _createJSONForInvoice=function(self,suborderid){
           console.log("provider"+JSON.stringify(provider));
           UserModel.findOne({userid:selleruserid},{email:1,firstname:1,lastname:1},function(err,selleruser){
             if(err){
-              self.emit("failedCreateInvoice",{error:{message:"Database issue",code:"ED001"}})
-              logger.emit("error","Database Issue :_createJSONForInvoice"+err)
+              self.emit("failedCreateInvoice",{error:{message:"Database Error",code:"ED001"}})
+              logger.emit("error","Database Error :_createJSONForInvoice"+err)
             }else if(!selleruser){
-              logger.emit("error","give selleruser id wrong")
+              logger.emit("error","Incorrect User")
             }else{
               var contacts=branch.contact_supports;
               var selleremail=selleruser.email;
@@ -158,7 +158,7 @@ var _createJSONForInvoice=function(self,suborderid){
 var _createPDFInvocie=function(self,inoviceobject,branch){
   fs.readFile('invoicesample1.html', function (err, data) {
     if(err){
-      logger.emit("error","Invoice Sample html Issue:_createPDFInvocie "+err);
+      logger.emit("error","Invoice Sample html Error:_createPDFInvocie "+err);
       self.emit("failedCreateInvoice",{error:{message:""}})
     }else{
       var monthNames = [ "January", "February", "March", "April", "May", "June",
@@ -325,8 +325,8 @@ var _writeHtmlDataToFile=function(self,inoviceobject,htmldata,branch){
     stream.write(htmldata);
     exec("phantomjs/bin/phantomjs phantomjs/bin/rasterize.js "+filename+" "+pdfinvoice+" A4",function(err,out,code){
       if(err){
-        self.emit("failedCreateInvoice",{error:{message:"Invoice Pdf creation issue"}})
-        logger.emit("error","Invoice Sample html Issue:_writeHtmlDataToFile "+err);
+        self.emit("failedCreateInvoice",{error:{message:"Invoice Pdf creation Error"}})
+        logger.emit("error","Invoice html Error:_writeHtmlDataToFile "+err);
       }else{
         exec("rm -rf "+filename);
         //////////////////////////////////////////////////
@@ -339,8 +339,8 @@ var _writeHtmlDataToFile=function(self,inoviceobject,htmldata,branch){
 var _saveInvoiceToAmazonServer=function(self,inoviceobject,htmldata,pdfinvoice,branch){
   fs.readFile(pdfinvoice,function (err, data) {
     if(err){
-       self.emit("failedCreateInvoice",{error:{message:"Invoice Pdf creation issue"}})
-        logger.emit("error","Invoice Sample html Issue:_saveInvoiceToAmazonServer "+err);
+       self.emit("failedCreateInvoice",{error:{message:"Invoice PDF creation Error"}})
+        logger.emit("error","Invoice html Error:_saveInvoiceToAmazonServer "+err);
     }else{
       var bucketFolder;
       var params;
@@ -382,7 +382,7 @@ var _saveInvoiceDataIntoCollection=function(self,inoviceobject,invoicedata){
   invoice.save(function(err,invoice){
     if(err){
       logger.emit("error")
-      self.emit("failedCreateInvoice",{error:{code:"ED001",message:"Database Issue"}})
+      self.emit("failedCreateInvoice",{error:{code:"ED001",message:"Database Error"}})
     }else{
       ////////////////////////////////
       _successfullInvoiceCreation(self,invoicedata.image)
@@ -392,7 +392,7 @@ var _saveInvoiceDataIntoCollection=function(self,inoviceobject,invoicedata){
 
 }
 var _successfullInvoiceCreation=function(self,invoicepdf){
-  self.emit("successfulCreateInvoice",{success:{message:"Invoice created Successfully",invoice:invoicepdf}})
+  self.emit("successfulCreateInvoice",{success:{message:"Invoice Created Successfully",invoice:invoicepdf}})
 }
 
       ////////////////////////////////////////////////////////////////////////////

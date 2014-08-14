@@ -20,7 +20,7 @@ exports.addDiscount=function(req,res){
     res.send(result)
   });
   if(req.user.usertype!="provider"){
-    discount.emit("failedAddDiscount",{error:{message:"You are not an provider user to add discount details"}});
+    discount.emit("failedAddDiscount",{error:{message:"You are not a seller group user to add discount details"}});
   }else{
     discount.addDiscount(sessionuserid,providerid,branchid);
   }
@@ -42,7 +42,7 @@ exports.getAllProducts=function(req,res){
     res.send(result)
   });
   if(req.user.usertype!="provider"){
-    discount.emit("failedGetAllProducts",{error:{message:"You are not an provider user to get all product details"}});
+    discount.emit("failedGetAllProducts",{error:{message:"You are not a seller group user to get all product details"}});
   }else{
     discount.getAllProducts(sessionuserid,providerid,branchid);
   }
@@ -64,7 +64,7 @@ exports.getDiscountCodes=function(req,res){
     res.send(result)
   });
   if(req.user.usertype!="provider"){
-    discount.emit("failedGetDiscountCodes",{error:{message:"You are not an provider user to get discount details"}});
+    discount.emit("failedGetDiscountCodes",{error:{message:"You are not a seller group user to get discount details"}});
   }else{
     discount.getDiscountCodes(sessionuserid,providerid,branchid);
   }
@@ -88,7 +88,7 @@ exports.updateDiscount=function(req,res){
     res.send(result)
   });
   if(req.user.usertype!="provider"){
-    discount.emit("failedUpdateDiscount",{error:{message:"You are not an provider user to update discount details"}});
+    discount.emit("failedUpdateDiscount",{error:{message:"You are not a seller group user to update discount details"}});
   }else{
     discount.updateDiscount(sessionuser,discountid);
   }
@@ -113,7 +113,7 @@ exports.manageProductsToDiscountCode=function(req,res){
     res.send(result)
   });
   if(req.user.usertype!="provider"){
-    discount.emit("failedUpdateDiscount",{error:{message:"You are not an provider user to add products to discount"}});
+    discount.emit("failedUpdateDiscount",{error:{message:"You are not a seller group user to add products to discount"}});
   }else{
     discount.manageProductsToDiscountCode(sessionuser,discountid,products,branchid);
   }
@@ -138,7 +138,7 @@ exports.removeProductsFromDiscountCode=function(req,res){
     res.send(result)
   });
   if(req.user.usertype!="provider"){
-    discount.emit("failedRemoveProductsFromDiscountCode",{error:{message:"You are not an provider user to remove products from discount"}});
+    discount.emit("failedRemoveProductsFromDiscountCode",{error:{message:"You are not a seller group user to remove products from discount"}});
   }else{
     discount.removeProductsFromDiscountCode(sessionuser,discountid,products,branchid);
   }
@@ -161,7 +161,7 @@ exports.getDiscountedProducts=function(req,res){
     res.send(result)
   });
   if(req.user.usertype!="provider"){
-    discount.emit("failedGetDiscountedProducts",{error:{message:"You are not an provider user to get discounted product details"}});
+    discount.emit("failedGetDiscountedProducts",{error:{message:"You are not a seller group user to get discounted product details"}});
   }else{
     discount.getDiscountedProducts(sessionuserid,branchid,discountid);
   }
@@ -185,7 +185,7 @@ exports.deleteDiscount=function(req,res){
     res.send(result)
   });
   if(req.user.usertype!="provider"){
-    discount.emit("failedDeleteDiscount",{error:{message:"You are not an provider user to delete discount details"}});
+    discount.emit("failedDeleteDiscount",{error:{message:"You are not a seller group user to delete discount details"}});
   }else{
     discount.deleteDiscount(sessionuserid,providerid,branchid,discountid);
   }

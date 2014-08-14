@@ -60,7 +60,7 @@ exports.addGroupToBranch=function(req,res){
   if(req.user.usertype=="provider"){
     providergroup.addGroupToBranch(req.user,providerid,branchid,groupdata);
   }else{
-    providergroup.emit("failedAddGroupToBranch",{"error":{code:"EA001",message:"You are not an provider to add new group"}});
+    providergroup.emit("failedAddGroupToBranch",{"error":{code:"EA001",message:"Only a provider can add new user group"}});
   } 
 }
 exports.removeGroupFromBranch=function(req,res){
@@ -86,7 +86,7 @@ exports.removeGroupFromBranch=function(req,res){
   if(req.user.usertype=="provider"){
     providergroup.removeGroupFromBranch(req.user,branchid,groupid);
   }else{
-    providergroup.emit("failedRemoveGroupFromBranch",{"error":{code:"EA001",message:"You are not an provider to remove group"}});
+    providergroup.emit("failedRemoveGroupFromBranch",{"error":{code:"EA001",message:"Only a provider can remove group"}});
   } 
 }
 exports.addMembersToGroup=function(req,res){
@@ -137,20 +137,20 @@ exports.addMembersToGroup=function(req,res){
               from: "OrderZapp  <noreply@orderzapp.com>", // sender address
               to: newuser.email, // list of receivers
               subject:"You hav been added to the group"+grpname+" for "+branch.branchname, // Subject line
-              html: " Your account has been created on OrderZapp .<br>Your password is:"+newuser.password+".So please login with your mobile number and password to OrderZapp" // html body
+              html: " Your account has been created on OrderZapp.<br>Your password is:"+newuser.password+". You can login anytime using the mobile number and password" // html body
             };
             commonapi.sendMail(emailmessage,CONFIG.smtp_general, function (result){
               if(result=="failure"){
-                logger.emit("error","Branch members inivte not sent to "+message.to);
+                logger.emit("error","Branch members invite not sent to "+message.to);
               }else{
-                logger.emit("log","Branch member Invite Sent Successfully to"+message.to);
+                logger.emit("log","Branch members invite sent successfully to"+message.to);
               }
             });
             commonapi.sendMessage(message.s,user.mobileno,function(result){
               if(result=="failure"){
-                logger.emit("log","invite sms not sent to "+user.mobileno); 
+                logger.emit("log","invite SMS not sent to "+user.mobileno); 
               }else{
-                logger.emit("info","invite sms sent to "+user.mobileno);                    
+                logger.emit("info","invite SMS sent to "+user.mobileno);                    
               }
             })  
           }
@@ -190,14 +190,14 @@ exports.addMembersToGroup=function(req,res){
               if(result=="failure"){
                 logger.emit("error","Branch members inivte not sent to "+message.to);
               }else{
-                logger.emit("log","Branch member Invite Sent Successfully to"+message.to);
+                logger.emit("log","Branch members invite sent successfully to"+message.to);
               }
             });
         commonapi.sendMessage(message.s,user.mobileno,function(result){
           if(result=="failure"){
-            logger.emit("log","invite sms not sent to "+user.mobileno); 
+            logger.emit("log","invite SMS not sent to "+user.mobileno); 
           }else{
-            logger.emit("info","invite sms sent to "+user.mobileno);                    
+            logger.emit("info","invite SMS sent to "+user.mobileno);                    
           }
         })
       }
@@ -206,7 +206,7 @@ exports.addMembersToGroup=function(req,res){
   if(req.user.usertype=="provider"){
     providergroup.addMembersToGroup(req.user,branchid,groupid,invites);
   }else{
-    providergroup.emit("failedAddMembersToGroup",{"error":{code:"EA001",message:"You are not an provider to add member to group"}});
+    providergroup.emit("failedAddMembersToGroup",{"error":{code:"EA001",message:"Only seller can add member to user group"}});
   } 
 }
 exports.getMyGroupMembers=function(req,res){
@@ -233,7 +233,7 @@ exports.getMyGroupMembers=function(req,res){
   if(req.user.usertype=="provider"){
     providergroup.getMyGroupMembers(req.user,providerid,branchid);
   }else{
-    providergroup.emit("failedGetMyGroupMembers",{"error":{code:"EA001",message:"You are not an provider to get member details"}});
+    providergroup.emit("failedGetMyGroupMembers",{"error":{code:"EA001",message:"Only seller can get group user details"}});
   } 
 }
 exports.removeMemberFromGroup=function(req,res){
@@ -286,14 +286,14 @@ exports.removeMemberFromGroup=function(req,res){
       if(result=="failure"){
         logger.emit("error","Branch members remove notification not sent to "+emailmessage.to);
       }else{
-        logger.emit("log","Branch members remove notification Sent Successfully to"+emailmessage.to);
+        logger.emit("log","Branch members remove notification sent successfully to"+emailmessage.to);
       }
      });
   });
   if(req.user.usertype=="provider"){
     providergroup.removeMemberFromGroup(req.user,branchid,groupid,memberid);
   }else{
-    providergroup.emit("failedRemoveMemberFromGroup",{"error":{code:"EA001",message:"You are not authorized to remove member group from branch"}});
+    providergroup.emit("failedRemoveMemberFromGroup",{"error":{code:"EA001",message:"Only seller can remove user group from branch"}});
   } 
 }
 exports.updateGroupBranch=function(req,res){
@@ -319,6 +319,6 @@ exports.updateGroupBranch=function(req,res){
   if(req.user.usertype=="provider"){
     providergroup.updateGroupBranch(req.user,providerid,branchid,groupdata,groupid);
   }else{
-    providergroup.emit("failedUpdateGroupBranch",{"error":{code:"EA001",message:"You are not an provider to update group details"}});
+    providergroup.emit("failedUpdateGroupBranch",{"error":{code:"EA001",message:"Only seller can update user group details"}});
   } 
 }

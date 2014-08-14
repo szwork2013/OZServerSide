@@ -96,7 +96,7 @@ exports.searchProvider = function(req,res){
       res.send(doc);
     });
   if(req.user.isAdmin==false){
-    productsearch.emit("failedTosearchProvider",{"error":{"message":"You are not an admin user to search provider"}});
+    productsearch.emit("failedTosearchProvider",{"error":{"message":"Only OrderZapp Admin user can search sellers"}});
   }else{
     productsearch.searchProvider(); 
   }  

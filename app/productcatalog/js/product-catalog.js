@@ -44,39 +44,39 @@ ProductCatalog.prototype.addProductCatalog = function(branchid,providerid,catego
 
 var _validateServiceCatalogData=function(self,branchid,providerid,categoryid,productcatalog,user,productlogo){
 	if(productcatalog==undefined){
-		self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"Please pass productcatalog"}});
+		self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"Please enter productcatalog- JSON FORMAT ERROR"}})
 	}else if(productcatalog.productname==undefined || productcatalog.productname==""){
-		self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"Please pass productname"}});
+		self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"Please enter productname"}})
 	}else if(productcatalog.price==undefined || productcatalog.price==""){
-		self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"Please pass price"}});
+		self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"Please enter product price key"}})
 	}else if(productcatalog.price.value==undefined || productcatalog.price.value==""){
-		self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"Please pass value in price"}});
+		self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"Please enter value in price"}})
 	}else if(!isNumber(S(productcatalog.price.value))){
 		self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"price should be numeric"}});
 	}else if(productcatalog.price.uom==undefined || productcatalog.price.uom==""){
-		self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"Please pass unit of measurement"}});
+		self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"Please enter unit of measurement"}})
 	}else  if(["kg","no","ltr","lb","gm"].indexOf(productcatalog.price.uom.toLowerCase())<0){
 		self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"unit of measurement should be kg,lt,lb,no,gm"}});
 	}else if(productcatalog.productdescription==undefined || productcatalog.productdescription==""){
-		self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"Please pass productdescription"}});
+		self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"Please enter productdescription"}});
 	}else if(productcatalog.productcode==undefined || productcatalog.productcode==""){
-		self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"Please pass productcode"}});
+		self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"Please enter productcode"}});
 	}else if(productcatalog.foodtype==undefined){
-		self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"Please pass foodtype"}});
+		self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"Please enter foodtype"}});
 	}else if(["veg","non-veg","both"].indexOf(productcatalog.foodtype.toLowerCase())<0){
-		self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"foodtype must be veg non-veg or both"}});
+		self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"foodtype must be veg, non-veg or both"}});
 	// }else if(productcatalog.delivery==undefined){
 	// 	self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"Please enter delivery details"}});
 	}else if(productcatalog.leadtime==undefined){
-		self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"Please enter leadtime details"}});
+		self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"Please enter lead time details"}});
 	}else if(productcatalog.leadtime.value == undefined || productcatalog.leadtime.value == ""){
-		self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"Please enter leadtime value"}});
+		self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"Please enter lead time value"}});
 	}else if(!Number(productcatalog.leadtime.value)){
-		self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"leadtime value should be numeric"}});
+		self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"Lead time value should be numeric"}});
 	}else if(productcatalog.leadtime.option == undefined || productcatalog.leadtime.option == ""){
-		self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"Please enter leadtime option"}});
+		self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"Please enter lead time option"}});
 	}else if(["minutes","hours","days","weeks"].indexOf(productcatalog.leadtime.option.toLowerCase())<0){
-		self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"option should be minutes,hours,days,weeks"}});
+		self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"option should be minutes, hours, days, weeks"}});
 	// }else if(productcatalog.delivery.availability==undefined){
 	// 	self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"Please enter availability details"}});
 	// }else if(productcatalog.delivery.availability.from == undefined || productcatalog.delivery.availability.from == ""){
@@ -124,7 +124,7 @@ var _isValidProviderID = function(self,branchid,providerid,categoryid,productcat
 	ProductProviderModel.aggregate([{$unwind:"$branch"},{$match:{status:{$ne:"deactive"},"branch.branchid":branchid,providerid:providerid}}]).exec(function(err,productProvider){
 		if(err){
 			logger.emit("error","Database Error : _isValidProviderID " + err);
-			self.emit("failedAddProductCatalog",{"error":{"code":"ED001","message":"Database Issue"}});
+			self.emit("failedAddProductCatalog",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(productProvider.length>0){
 			var loc = {address1:productProvider[0].branch.location.address1,address2:productProvider[0].branch.location.address2,address3:productProvider[0].branch.location.address3,area:productProvider[0].branch.location.area,geo:productProvider[0].branch.location.geo,city:productProvider[0].branch.location.city,district:productProvider[0].branch.location.district,state:productProvider[0].branch.location.state,country:productProvider[0].branch.location.country,zipcode:productProvider[0].branch.location.zipcode};
 			console.log("productProvider[0].branch @#@# "+JSON.stringify(productProvider[0].branch));
@@ -155,7 +155,7 @@ var _isValidProviderID = function(self,branchid,providerid,categoryid,productcat
 			
 			_isValidCategoryID(self,branchid,providerid,categoryid,productcatalog,productProvider[0],user,productlogo);
 		}else{
-	  		self.emit("failedAddProductCatalog",{"error":{"code":"AD001","message":"Wrong branchid or providerid"}});
+	  		self.emit("failedAddProductCatalog",{"error":{"code":"AD001","message":"Wrong branchid or seller id"}});
 	  	}
 	});
 }
@@ -165,14 +165,14 @@ var _isValidCategoryID = function(self,branchid,providerid,categoryid,productcat
 	CategoryModel.find({status:{$ne:"deactive"},$or:[{"ancestors.categoryid":productProvider.category.categoryid},{categoryid:productProvider.category.categoryid}]},{categoryid:1,_id:0}).exec(function(err,doc){
 		if(err){
 			logger.emit("error","Database Error : _isValidCategoryID " + err);
-			self.emit("failedAddProductCatalog",{"error":{"code":"ED001","message":"Database Issue"}});
+			self.emit("failedAddProductCatalog",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(doc.length>0){
 			var categoryids=[];
 			for(var i=0;i<doc.length;i++){
 				categoryids.push(doc[i].categoryid);
 			}
 			if(categoryids.indexOf(categoryid)<0){
-				self.emit("failedAddProductCatalog",{"error":{"code":"AD001","message":"Categoryid does not belongs with this providerid"}});	
+				self.emit("failedAddProductCatalog",{"error":{"code":"AD001","message":"Category does not exist for this seller"}});	
 			}else{
 				_getCategoryDataForProductCatalog(self,branchid,providerid,categoryid,productcatalog,user,productlogo);
 			}
@@ -187,7 +187,7 @@ var _getCategoryDataForProductCatalog = function(self,branchid,providerid,catego
 	CategoryModel.findOne({status:{$ne:"deactive"},categoryid:categoryid},{categoryid:1,categoryname:1,ancestors:1,_id:0}).exec(function(err,doc){
 		if(err){
 			logger.emit("error","Database Error : _getCategoryDataForProductCatalog " + err);
-			self.emit("failedAddProductCatalog",{"error":{"code":"ED001","message":"Database Issue"}});
+			self.emit("failedAddProductCatalog",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(doc){
 			productcatalog.category = {id:doc.categoryid,categoryname:doc.categoryname,ancestors:doc.ancestors};
 			
@@ -222,10 +222,10 @@ var _isProductNameIsSame=function(self,branchid,providerid,productcatalog,doc,us
 	ProductCatalogModel.findOne({"branch.branchid":branchid,$or:[{productname:productcatalog.productname},{productname:productcatalog.productname.toLowerCase()}]},function (err,product) {
 		if(err){
 			logger.emit("error","Database Error : _isProductNameIsSame " + err);
-			self.emit("failedAddProductCatalog",{"error":{"code":"ED001","message":"Database Issue"}});
+			self.emit("failedAddProductCatalog",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(product){
 			if(product.status=="deactive"){
-				self.emit("failedAddProductCatalog",{"error":{"message":"Product name with "+productcatalog.productname+" already exists,so please publish this product" }});
+				self.emit("failedAddProductCatalog",{"error":{"message":"Product name with "+productcatalog.productname+" already exists, please publish this product" }});
 			}else{
 				self.emit("failedAddProductCatalog",{"error":{"message":"Product name already exists" }});		
 			}			
@@ -244,7 +244,7 @@ var _addProductCatalog = function(self,branchid,providerid,productcatalog,doc,us
 	productcatalog.save(function(err,prod_catalog){
 		if(err){
 			logger.emit("error","Database Error:_addProductCatalog"+err,sessionuser.userid);
-			self.emit("failedAddProductCatalog",{"error":{"code":"ED001","message":"Database Issue"}});
+			self.emit("failedAddProductCatalog",{"error":{"code":"ED001","message":"Database Error"}});
 		}else{
 			if(productlogo!=undefined){
 	            ///////////////////////////////////////////////////////////////////
@@ -275,11 +275,11 @@ var _isBranchExistInLeadTimeModel=function(branchid,providerid,productcatalog,pr
 			// console.log("!!!!!!!!!!!!!!!1 : "+JSON.stringify(leadtime_obj));
 			ProductLeadTimeModel.update({branchid:branchid},{$push:{productleadtime:leadtime_obj}},function(err,updateStatus){
 				if(err){
-				  	logger.emit('error',"Database Issue fun:_updateProductCatalog");
+				  	logger.emit('error',"Database Error fun:_updateProductCatalog");
 			  	}else if(updateStatus==0){
 			  		logger.emit('error',"Server Error");		
 			  	}else{
-			  		logger.emit('info',"product lead time details save successfully");
+			  		logger.emit('info',"product lead time details saved successfully");
 			  	}
 			});	
 		}else{
@@ -298,9 +298,9 @@ var _addProductDetailsToLeadTimeModel = function(branchid,providerid,productcata
 	var productleadtime_object=new ProductLeadTimeModel(leadtimeobject);
 	productleadtime_object.save(function(err,productleadtime){
 		if(err){
-			logger.emit('error',"Database Issue  _addProductDetailsToLeadTimeModel");
+			logger.emit('error',"Database Error  _addProductDetailsToLeadTimeModel");
 		}else{
-			logger.emit('info',"product lead time details save successfully");
+			logger.emit('info',"product lead time details saved successfully");
 		}
 	})
 }
@@ -326,9 +326,9 @@ var _validateProductCatalogUpdateData = function(self,providerid,productid,produ
 	}else if(productcatalog.productname==undefined || productcatalog.productname==""){
 		self.emit("failedUpdateProductCatalog",{"error":{"code":"AV001","message":"Please enter productname"}});
 	}else if(productcatalog.price!=undefined){
-		self.emit("failedUpdateProductCatalog",{"error":{"code":"AV001","message":"You can not change the price by this way"}});
+		self.emit("failedUpdateProductCatalog",{"error":{"code":"AV001","message":"You cannot change the price in update product. Use manage price instead."}});
 	}else if(productcatalog.leadtime!=undefined){
-		self.emit("failedUpdateProductCatalog",{"error":{"code":"AV001","message":"You can not change the leadtime by this way"}});
+		self.emit("failedUpdateProductCatalog",{"error":{"code":"AV001","message":"You cannot change the leadtime in update product. Use manage lead time instead."}});
 	}else if(productcatalog.productdescription==undefined || productcatalog.productdescription==""){
 		self.emit("failedUpdateProductCatalog",{"error":{"code":"AV001","message":"Please enter productdescription"}});
 	// }else if(productcatalog.productconfiguration!=undefined){
@@ -356,8 +356,8 @@ var _isAuthorizedUserToUpdateProduct=function(self,providerid,productid,productc
 	console.log("user.userid : "+user.userid+" providerid : "+providerid);
 	UserModel.findOne({userid:user.userid,"provider.providerid":providerid,"provider.isOwner":true},function(err,usersp){
 		if(err){
-			logger.emit('error',"Database Issue  _isAuthorizedUserToUpdateProduct "+err,user.userid)
-			self.emit("failedUpdateProductCatalog",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit('error',"Database Error  _isAuthorizedUserToUpdateProduct "+err,user.userid)
+			self.emit("failedUpdateProductCatalog",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(!usersp){
 			self.emit("failedUpdateProductCatalog",{"error":{"message":"You are not authorized to update product details"}});
 		}else{
@@ -374,7 +374,7 @@ var _isAuthorizedUserToUpdateProduct=function(self,providerid,productid,productc
 		// 	ProductCatalogModel.findOne({productid:productid},{category:1,_id:0}).exec(function(err,product){
 		// 		if(err){
 		// 			logger.emit("error","Database Error : _isAuthorizedUserToUpdateProduct " + err);
-		// 			self.emit("failedUpdateProductCatalog",{"error":{"code":"ED001","message":"Database Issue"}});
+		// 			self.emit("failedUpdateProductCatalog",{"error":{"code":"ED001","message":"Database Error"}});
 		// 		}else if(product){
 		// 			if(product.category.id == productcatalog.categoryid){
 		// 				console.log("same category");
@@ -399,12 +399,12 @@ var _isValidProviderIDToUpdateProduct = function(self,providerid,productid,produ
 	ProductProviderModel.findOne({providerid:providerid},{category:1}).exec(function(err,productProvider){
 		if(err){
 			logger.emit("error","Database Error : _isValidProviderIDToUpdateProduct " + err);
-			self.emit("failedUpdateProductCatalog",{"error":{"code":"ED001","message":"Database Issue"}});
+			self.emit("failedUpdateProductCatalog",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(productProvider){			
 			console.log("ProductProvider "+JSON.stringify(productProvider));
 			_isValidCategoryIDToUpdateProduct(self,providerid,productid,productcatalog.categoryid,productcatalog,productProvider,user);
 		}else{
-	  		self.emit("failedUpdateProductCatalog",{"error":{"code":"AD001","message":"Wrong providerid"}});
+	  		self.emit("failedUpdateProductCatalog",{"error":{"code":"AD001","message":"Wrong seller id"}});
 	  	}
 	});
 }
@@ -413,14 +413,14 @@ var _isValidCategoryIDToUpdateProduct = function(self,providerid,productid,categ
 	CategoryModel.find({status:{$ne:"deactive"},$or:[{"ancestors.categoryid":productProvider.category.categoryid},{categoryid:productProvider.category.categoryid}]},{categoryid:1,_id:0}).exec(function(err,doc){
 		if(err){
 			logger.emit("error","Database Error : _isValidCategoryIDToUpdateProduct " + err);
-			self.emit("failedUpdateProductCatalog",{"error":{"code":"ED001","message":"Database Issue"}});
+			self.emit("failedUpdateProductCatalog",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(doc.length>0){
 			var categoryids=[];
 			for(var i=0;i<doc.length;i++){
 				categoryids.push(doc[i].categoryid);
 			}
 			if(categoryids.indexOf(categoryid)<0){
-				self.emit("failedUpdateProductCatalog",{"error":{"code":"AD001","message":"Categoryid does not belongs with this providerid"}});	
+				self.emit("failedUpdateProductCatalog",{"error":{"code":"AD001","message":"Category does not exist for this seller"}});	
 			}else{
 				_getCategoryDataToUpdateProductCatalog(self,providerid,productid,categoryid,productcatalog,user);
 			}
@@ -434,7 +434,7 @@ var _getCategoryDataToUpdateProductCatalog = function(self,providerid,productid,
 	CategoryModel.findOne({status:{$ne:"deactive"},categoryid:categoryid},{categoryid:1,categoryname:1,ancestors:1,_id:0}).exec(function(err,doc){
 		if(err){
 			logger.emit("error","Database Error : _getCategoryDataToUpdateProductCatalog " + err);
-			self.emit("failedUpdateProductCatalog",{"error":{"code":"ED001","message":"Database Issue"}});
+			self.emit("failedUpdateProductCatalog",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(doc){
 			productcatalog.category = {id:doc.categoryid,categoryname:doc.categoryname,ancestors:doc.ancestors};
 			var categorytags = [];
@@ -479,10 +479,10 @@ var _updateProductCatalog = function(self,providerid,productid,productcatalog,us
 
 	ProductCatalogModel.update({productid:productid,"provider.providerid":providerid},{$set:productcatalog},function(err,updateStatus){
 		if(err){
-		  	logger.emit('error',"Database Issue fun:_updateProductCatalog"+err,user.userid);
-		  	self.emit("failedUpdateProductCatalog",{"error":{"code":"ED001","message":"Database Issue"}});		
+		  	logger.emit('error',"Database Error fun:_updateProductCatalog"+err,user.userid);
+		  	self.emit("failedUpdateProductCatalog",{"error":{"code":"ED001","message":"Database Error"}});		
 	  	}else if(updateStatus==0){
-	  		self.emit("failedUpdateProductCatalog",{"error":{"message":"productid is wrong"}});		
+	  		self.emit("failedUpdateProductCatalog",{"error":{"message":"Incorrect productid"}});		
 	  	}else{
 	  		//////////////////////////////////////
         	_successfullUpdateProductCatalog(self);
@@ -505,10 +505,10 @@ var _isAlreadyDeletedProduct=function(self,providerid,productid,user){
 	ProductCatalogModel.findOne({productid:productid},function (err,product) {
 		if(err){
 			logger.emit("error","Database Error : _isProductNameIsSame " + err);
-			self.emit("failedDeleteProductCatalog",{"error":{"code":"ED001","message":"Database Issue"}});
+			self.emit("failedDeleteProductCatalog",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(product){
 			if(product.status=="deactive"){
-				self.emit("failedDeleteProductCatalog",{"error":{"message":"You are already deleted this product"}});
+				self.emit("failedDeleteProductCatalog",{"error":{"message":"You have already deleted this product"}});
 			}else{
 				/////////////////////////////////////////////////////////////////
 				_deleteProductFromProductCatalog(self,providerid,productid,user);
@@ -526,10 +526,10 @@ var _deleteProductFromProductCatalog = function(self,providerid,productid,user){
 	console.log("providerid"+providerid);
 	ProductCatalogModel.update({"provider.providerid":providerid,productid:productid},{$set:{status:"deactive"}},function(err,updateStatus){
 		if(err){
-		  	logger.emit('error',"Database Issue fun:_deleteProductFromProductCatalog"+err,user.userid);
-		  	self.emit("failedDeleteProductCatalog",{"error":{"code":"ED001","message":"Database Issue"}});		
+		  	logger.emit('error',"Database Error fun:_deleteProductFromProductCatalog"+err,user.userid);
+		  	self.emit("failedDeleteProductCatalog",{"error":{"code":"ED001","message":"Database Error"}});		
 	  	}else if(updateStatus==0){
-	  		self.emit("failedDeleteProductCatalog",{"error":{"message":"providerid or productid is wrong"}});		
+	  		self.emit("failedDeleteProductCatalog",{"error":{"message":"Incorrect seller id or product id"}});		
 	  	}else{
 	  		///////////////////////////////////////
         	_successfullDeleteProductCatalog(self);
@@ -566,10 +566,10 @@ var _isAuthorizedUserToAddProductLogo=function(self,providerid,productid,user,pr
 	console.log("user.userid : "+user.userid+" providerid : "+providerid);
 	UserModel.findOne({userid:user.userid,"provider.providerid":providerid,"provider.isOwner":true},function(err,usersp){
 		if(err){
-			logger.emit('error',"Database Issue  _isAuthorizedUserToAddProductLogo"+err,user.userid)
-			self.emit("failedAddProductLogo",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit('error',"Database Error  _isAuthorizedUserToAddProductLogo"+err,user.userid)
+			self.emit("failedAddProductLogo",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(!usersp){
-			self.emit("failedAddProductLogo",{"error":{"message":"You are not authorized to upload product logo Details"}});
+			self.emit("failedAddProductLogo",{"error":{"message":"Only authorized seller user can upload product logo details"}});
 		}else{	
 			/////////////////////////////////////////////////////////////////////////////
 	     	_addProductLogo(providerid,productid,user,productlogo,function(err,result){
@@ -586,7 +586,7 @@ var _isAuthorizedUserToAddProductLogo=function(self,providerid,productid,user,pr
 var _addProductLogo=function(providerid,productid,user,productlogo,callback){
 	fs.readFile(productlogo.path,function (err, data) {
   		if(err){
-  			callback({error:{code:"ED001",message:"Database Issue"}})
+  			callback({error:{code:"ED001",message:"Database Error"}})
   		}else{
   			var ext = path.extname(productlogo.originalname||'').split('.');
   			ext=ext[ext.length - 1];
@@ -641,9 +641,9 @@ var _addProductLogoToAmazonServer=function(awsparams,providerid,productid,user,p
                 logger.emit("log",awsdeleteparams);
                 s3bucket.deleteObject(awsdeleteparams, function(err, deleteuserlogostatus) {
                   if (err) {
-                    logger.emit("error","product logo not deleted from amzon s3 bucket "+err,user.userid);
+                    logger.emit("error","product logo not deleted from amazon s3 bucket "+err,user.userid);
                   }else if(deleteuserlogostatus){
-                    logger.emit("log","product logo delete from Amazon S3");
+                    logger.emit("log","product logo deleted from Amazon S3");
                   }
                 }) 
               }
@@ -653,7 +653,7 @@ var _addProductLogoToAmazonServer=function(awsparams,providerid,productid,user,p
                           
               callback(null,{"success":{"message":"Product Logo Updated Successfully","image":newprofileurl,"filename":productlogo.filename}});
             }else{
-              callback({"error":{"code":"AU003","message":"Provided providerid or productid is wrong "+providerid}});
+              callback({"error":{"code":"AU003","message":"Incorrect seller id or product id "+providerid}});
             }
           })
         }
@@ -673,7 +673,7 @@ var _getProductCatalog = function(self,branchid,productid){
 	ProductCatalogModel.findOne({productid:productid,"branch.branchid":branchid},{productid:1,productname:1,productcode:1,price:1,foodtype:1,status:1,productlogo:1,productdescription:1,category:1,provider:1,branch:1,max_weight:1,min_weight:1,productnotavailable:1,specialinstruction:1,usertags:1,productconfiguration:1,holding_price:1,leadtime:1,_id:0},function(err,product){
 		if(err){
 			logger.emit("log","_getProductCatalog "+err);
-			self.emit("failedGetProductCatalog",{"error":{"code":"ED001","message":"Database Issue"}});
+			self.emit("failedGetProductCatalog",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(!product){
 			self.emit("failedGetProductCatalog",{"error":{"message":"Wrong branchid or productid"}});
 		}else{
@@ -698,9 +698,9 @@ var _isValidUserToGetAllProductData = function(self,branchid,providerid,user){
 	UserModel.findOne({userid:user.userid,"provider.branchid":branchid,"provider.isOwner":true}).exec(function(err,userdata){
 		if(err){
 			logger.emit("log","_isValidUserToGetAllProductData "+err);
-			self.emit("failedGetAllProductCatalog",{"error":{"code":"ED001","message":"Database Issue"}});
+			self.emit("failedGetAllProductCatalog",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(!userdata){
-			self.emit("failedGetAllProductCatalog",{"error":{code:"BP001","message":"providerid or branchid is not match with sessionuserid"}});
+			self.emit("failedGetAllProductCatalog",{"error":{code:"BP001","message":" User in the session does not match seller id"}});
 		}else{
 			/////////////////////////////////////////////
 			_getAllProductCatalog(self,branchid,providerid);
@@ -712,9 +712,9 @@ var _getAllProductCatalog = function(self,branchid,providerid){
 	ProductCatalogModel.find({status:{$ne:"deactive"},"provider.providerid":providerid,"branch.branchid":branchid},{productid:1,productname:1,productdescription:1,foodtype:1,category:1,provider:1,branch:1,productlogo:1,productcode:1,price:1,status:1,max_weight:1,min_weight:1,productnotavailable:1,specialinstruction:1,usertags:1,productconfiguration:1,productnotavailable:1,holding_price:1,leadtime:1,_id:0}).sort({createdate:-1}).exec(function(err,product){
 		if(err){
 			logger.emit("log","_getAllProductCatalog "+err);
-			self.emit("failedGetAllProductCatalog",{"error":{"code":"ED001","message":"Database Issue"}});
+			self.emit("failedGetAllProductCatalog",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(product==0){
-			self.emit("failedGetAllProductCatalog",{"error":{code:"BP001","message":"No Product Exist"}});
+			self.emit("failedGetAllProductCatalog",{"error":{code:"BP001","message":"Product does not exists"}});
 		}else{
 			/////////////////////////////////////////////
 			_successfulGetAllProductCatalog(self,product);
@@ -734,7 +734,7 @@ ProductCatalog.prototype.changeProductPrice = function(branchid,productid,priced
 }
 var _validateProductPriceData=function(self,branchid,productid,pricedata,sessionuserid){
 	if(pricedata==undefined){
-		self.emit("failedChangeProductPrice",{error:{code:"AV001",message:"Please provide pricedata"}});
+		self.emit("failedChangeProductPrice",{error:{code:"AV001",message:"Please enter pricedata"}});
 	}else if(pricedata.newprice==undefined){
 		self.emit("failedChangeProductPrice",{error:{code:"AV001",message:"Please enter new price"}});
 	}else if(!isNumber(S(pricedata.newprice))){
@@ -748,10 +748,10 @@ var _validateProductPriceData=function(self,branchid,productid,pricedata,session
 var _isValidProductProviderToChangePrice=function(self,branchid,productid,pricedata,sessionuserid){
 	UserModel.findOne({userid:sessionuserid,"provider.branchid":branchid,"provider.isOwner":true},function(err,userpp){
 		if(err){
-			logger.emit('error',"Database Issue  _isValidProductProviderToChangePrice "+err,sessionuserid);
-			self.emit("failedChangeProductPrice",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit('error',"Database Error  _isValidProductProviderToChangePrice "+err,sessionuserid);
+			self.emit("failedChangeProductPrice",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(!userpp){
-			self.emit("failedChangeProductPrice",{"error":{"message":"You are not authorized to change product price details"}});
+			self.emit("failedChangeProductPrice",{"error":{"message":"Only authorized seller user can change product price details"}});
 		}else{
 			//////////////////////////////////////////////////////////////////////////////
 	     	_isValidProductToChangePrice(self,branchid,productid,pricedata,sessionuserid);
@@ -762,13 +762,13 @@ var _isValidProductProviderToChangePrice=function(self,branchid,productid,priced
 var _isValidProductToChangePrice=function(self,branchid,productid,pricedata,sessionuserid){
 	ProductCatalogModel.findOne({productid:productid},{price:1,productid:1,branch:1},function(err,product){
 		if(err){
-			logger.emit('error',"Database Issue  _changeProductPrice"+err,sessionuserid);
-			self.emit("failedChangeProductPrice",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit('error',"Database Error  _changeProductPrice"+err,sessionuserid);
+			self.emit("failedChangeProductPrice",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(!product){
 			self.emit("failedChangeProductPrice",{error:{message:"product id is wrong"}});
 		}else{
 			if(product.branch.branchid!=branchid){
-				self.emit("failedChangeProductPrice",{error:{message:"This product does not belong to your branch"}});
+				self.emit("failedChangeProductPrice",{error:{message:"This product does not exists at your branch"}});
 			}else{
 				////////////////////////////////////////////////////////////////////
 				_changeProductPrice(self,productid,pricedata,sessionuserid,product);
@@ -780,17 +780,17 @@ var _isValidProductToChangePrice=function(self,branchid,productid,pricedata,sess
 var _changeProductPrice=function(self,productid,pricedata,sessionuserid,product){
 	ProductCatalogModel.update({productid:productid},{$set:{"price.value":pricedata.newprice}},function(err,pricechangestatus){
 		if(err){
-			logger.emit('error',"Database Issue  _changeProductPrice"+err,sessionuserid);
-			self.emit("failedChangeProductPrice",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit('error',"Database Error  _changeProductPrice"+err,sessionuserid);
+			self.emit("failedChangeProductPrice",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(pricechangestatus==0){
-				self.emit("failedChangeProductPrice",{error:{message:"Server Issue"}});
+				self.emit("failedChangeProductPrice",{error:{message:"Server Error"}});
 		}else{
 			ProductCatalogModel.update({productid:productid},{$push:{price_history:{oldprice:product.price.value,newprice:pricedata.newprice,updatedby:sessionuserid}}},function(err,pricechangestatus){
 				if(err){
-					logger.emit('error',"Database Issue  _changeProductPrice"+err,sessionuserid)
-					self.emit("failedChangeProductPrice",{"error":{"code":"ED001","message":"Database Issue"}});
+					logger.emit('error',"Database Error  _changeProductPrice"+err,sessionuserid)
+					self.emit("failedChangeProductPrice",{"error":{"code":"ED001","message":"Database Error"}});
 				}else if(pricechangestatus==0){
-					self.emit("failedChangeProductPrice",{error:{message:"Server Issue"}});
+					self.emit("failedChangeProductPrice",{error:{message:"Server Error"}});
 				}else{
 					/////////////////////////////////////
 					_successfullProductPriceChange(self);
@@ -812,9 +812,9 @@ ProductCatalog.prototype.changeProductsPrice = function(branchid,productpricedat
 }
 var _validateProductsPriceData=function(self,branchid,productpricedata,sessionuserid){
 	if(productpricedata==undefined){
-		self.emit("failedChangeProductPrice",{error:{code:"AV001",message:"Please pass productpricedata"}});
+		self.emit("failedChangeProductPrice",{error:{code:"AV001",message:"Please enter productpricedata"}});
 	}else if(!isArray(productpricedata)){
-		self.emit("failedChangeProductPrice",{error:{code:"AV001",message:"productpricedata should be array"}});
+		self.emit("failedChangeProductPrice",{error:{code:"AV001",message:"productpricedata should be JSON array"}});
 	// }else if(!S(productpricedata.newprice).isNumeric()){
 	// 	self.emit("failedChangeProductPrice",{error:{code:"AV001",message:"New price should be numeric"}});
 	}else if(productpricedata.length==0){
@@ -837,8 +837,8 @@ var _isValidProductsProviderToChangePrice=function(self,branchid,productpricedat
 	console.log("sessionuserid : "+sessionuserid);
 	UserModel.findOne({userid:sessionuserid,"provider.branchid":branchid,"provider.isOwner":true},function(err,userpp){
 		if(err){
-			logger.emit('error',"Database Issue  _isValidProductsProviderToChangePrice "+err,sessionuserid);
-			self.emit("failedChangeProductPrice",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit('error',"Database Error  _isValidProductsProviderToChangePrice "+err,sessionuserid);
+			self.emit("failedChangeProductPrice",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(!userpp){
 			self.emit("failedChangeProductPrice",{"error":{"message":"You are not authorized to change product price details"}});
 		}else{
@@ -848,7 +848,7 @@ var _isValidProductsProviderToChangePrice=function(self,branchid,productpricedat
 	     		_isValidProductsToChangePrice(self,branchid,productpricedata,sessionuserid,initialvalue);
 		    	/////////////////////////////////////////////////////////////////////////////////////////
 	        }else{
-	            self.emit("failedChangeProductPrice",{error:{code:"AV001",message:"Please pass valid productid and price should be numeric"}});
+	            self.emit("failedChangeProductPrice",{error:{code:"AV001",message:"Please enter valid productid and price"}});
 	        }			
 		}
 	})
@@ -858,13 +858,13 @@ var _isValidProductsToChangePrice=function(self,branchid,productpricedata,sessio
 	if(productpricedata.length>initialvalue){
 		ProductCatalogModel.findOne({productid:productprice.productid},{price:1,productid:1,branch:1},function(err,product){
 			if(err){
-				logger.emit('error',"Database Issue  _isValidProductsToChangePrice"+err,sessionuserid);
+				logger.emit('error',"Database Error  _isValidProductsToChangePrice"+err,sessionuserid);
 			}else if(!product){
 				logger.emit('error',"product id is wrong");
 				_isValidProductsToChangePrice(self,branchid,productpricedata,sessionuserid,++initialvalue);
 			}else{
 				if(product.branch.branchid!=branchid){
-					logger.emit('error',"This product does not belong to your branch");
+					logger.emit('error',"This product does not exist in your branch");
 					_isValidProductsToChangePrice(self,branchid,productpricedata,sessionuserid,++initialvalue);
 				}else{
 					////////////////////////////////////////////////////////////////////////////////////////////
@@ -881,15 +881,15 @@ var _isValidProductsToChangePrice=function(self,branchid,productpricedata,sessio
 var _changeProductsPrice=function(self,branchid,productprice,initialvalue,sessionuserid,productpricedata,product){
 	ProductCatalogModel.update({productid:productprice.productid},{$set:{"price.value":productprice.newprice,"holding_price.status":"init"}},function(err,pricechangestatus){
 		if(err){
-			logger.emit('error',"Database Issue _changeProductsPrice "+err,sessionuserid);
+			logger.emit('error',"Database Error _changeProductsPrice "+err,sessionuserid);
 		}else if(pricechangestatus==0){
-			logger.emit('error',"Server Issue");
+			logger.emit('error',"Server Error");
 		}else{
 			ProductCatalogModel.update({productid:productprice.productid},{$push:{price_history:{oldprice:product.price.value,newprice:productprice.newprice,updatedby:sessionuserid,updatedon:new Date()}}},function(err,pricechangestatus){
 				if(err){
-					logger.emit('error',"Database Issue  _changeProductsPrice"+err,sessionuserid);
+					logger.emit('error',"Database Error  _changeProductsPrice"+err,sessionuserid);
 				}else if(pricechangestatus==0){
-					logger.emit('error',"Server Issue");
+					logger.emit('error',"Server Error");
 				}else{
 					///////////////////////////////////////////////////////////////////////////////////////////
 					_isValidProductsToChangePrice(self,branchid,productpricedata,sessionuserid,++initialvalue);
@@ -908,7 +908,7 @@ ProductCatalog.prototype.holdingProductPrice = function(branchid,productid,price
 }
 var _validateHoldingProductPriceData=function(self,branchid,productid,pricedata,sessionuserid){
 	if(pricedata==undefined){
-		self.emit("failedHoldProductPrice",{error:{code:"AV001",message:"Please provide pricedata"}});
+		self.emit("failedHoldProductPrice",{error:{code:"AV001",message:"Please enter pricedata"}});
 	}else if(pricedata.newprice==undefined || pricedata.newprice==""){
 		self.emit("failedHoldProductPrice",{error:{code:"AV001",message:"Please enter new price"}});
 	}else if(!isNumber(pricedata.newprice)){
@@ -941,10 +941,10 @@ var _validateHoldingProductPriceData=function(self,branchid,productid,pricedata,
 var _isValidProductProviderToHoldProductPrice=function(self,branchid,productid,pricedata,sessionuserid){
 	UserModel.findOne({userid:sessionuserid,"provider.branchid":branchid,"provider.isOwner":true},function(err,userpp){
 		if(err){
-			logger.emit('error',"Database Issue  _isValidProductProviderToHoldProductPrice"+err,sessionuserid);
-			self.emit("failedHoldProductPrice",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit('error',"Database Error  _isValidProductProviderToHoldProductPrice"+err,sessionuserid);
+			self.emit("failedHoldProductPrice",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(!userpp){
-			self.emit("failedHoldProductPrice",{"error":{"message":"You are not authorized to save product price details"}});
+			self.emit("failedHoldProductPrice",{"error":{"message":"Only authorized seller user can save product price details"}});
 		}else{
 			////////////////////////////////////////////////////////////////////////////
 	     	_isValidProductToHoldPrice(self,branchid,productid,pricedata,sessionuserid);
@@ -955,13 +955,13 @@ var _isValidProductProviderToHoldProductPrice=function(self,branchid,productid,p
 var _isValidProductToHoldPrice=function(self,branchid,productid,pricedata,sessionuserid){
 	ProductCatalogModel.findOne({productid:productid},{price:1,productid:1,branch:1},function(err,product){
 		if(err){
-			logger.emit('error',"Database Issue  _isValidProductToHoldPrice "+err,sessionuserid);
-			self.emit("failedHoldProductPrice",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit('error',"Database Error  _isValidProductToHoldPrice "+err,sessionuserid);
+			self.emit("failedHoldProductPrice",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(!product){
-			self.emit("failedHoldProductPrice",{error:{message:"product id is wrong"}});
+			self.emit("failedHoldProductPrice",{error:{message:"Incorrect product id"}});
 		}else{
 			if(product.branch.branchid!=branchid){
-				self.emit("failedHoldProductPrice",{error:{message:"This product does not belong to your branch"}});
+				self.emit("failedHoldProductPrice",{error:{message:"This product does not exist in your branch"}});
 			}else{
 				//////////////////////////////////////////////////////////////////
 				_holdProductPrice(self,productid,pricedata,sessionuserid,product);
@@ -974,10 +974,10 @@ var _holdProductPrice=function(self,productid,pricedata,sessionuserid,product){
 	console.log("pricedata "+JSON.stringify(pricedata));
 	ProductCatalogModel.update({productid:productid},{$set:{"holding_price.value":pricedata.newprice,"holding_price.currency":"₹","holding_price.uom":pricedata.uom,"holding_price.fromdate":new Date(pricedata.fromdate),"holding_price.todate":new Date(pricedata.todate),"holding_price.status":"init"}},function(err,pricechangestatus){
 		if(err){
-			logger.emit('error',"Database Issue  _holdProductPrice"+err,sessionuserid);
-			self.emit("failedHoldProductPrice",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit('error',"Database Error  _holdProductPrice"+err,sessionuserid);
+			self.emit("failedHoldProductPrice",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(pricechangestatus==0){
-			self.emit("failedHoldProductPrice",{error:{message:"Server Issue"}});
+			self.emit("failedHoldProductPrice",{error:{message:"Server Error"}});
 		}else{
 			//////////////////////////////////
 			_successfulHoldProductPrice(self);
@@ -986,7 +986,7 @@ var _holdProductPrice=function(self,productid,pricedata,sessionuserid,product){
 	})
 }
 var _successfulHoldProductPrice=function(self){
-	self.emit("successfulHoldProductPrice",{success:{message:"Price Save Successfully"}});
+	self.emit("successfulHoldProductPrice",{success:{message:"Price Saved Successfully"}});
 }
 
 ProductCatalog.prototype.activateProductPrice = function(branchid,productid,sessionuserid){
@@ -998,10 +998,10 @@ ProductCatalog.prototype.activateProductPrice = function(branchid,productid,sess
 var _isValidProductProviderToActivateProductPrice=function(self,branchid,productid,sessionuserid){
 	UserModel.findOne({userid:sessionuserid,"provider.branchid":branchid,"provider.isOwner":true},function(err,userpp){
 		if(err){
-			logger.emit('error',"Database Issue  _isValidProductProviderToActivateProductPrice"+err,sessionuserid);
-			self.emit("failedActivateProductPrice",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit('error',"Database Error  _isValidProductProviderToActivateProductPrice"+err,sessionuserid);
+			self.emit("failedActivateProductPrice",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(!userpp){
-			self.emit("failedActivateProductPrice",{"error":{"message":"You are not authorized to activate product price"}});
+			self.emit("failedActivateProductPrice",{"error":{"message":"Only authorized seller user can activate product price"}});
 		}else{
 			///////////////////////////////////////////////////////////////////
 	     	_isValidProductToActivatePrice(self,branchid,productid,sessionuserid);
@@ -1012,13 +1012,13 @@ var _isValidProductProviderToActivateProductPrice=function(self,branchid,product
 var _isValidProductToActivatePrice=function(self,branchid,productid,sessionuserid){
 	ProductCatalogModel.findOne({productid:productid},{price:1,productid:1,branch:1,holding_price:1},function(err,product){
 		if(err){
-			logger.emit('error',"Database Issue  _isValidProductToActivatePrice"+err,sessionuserid);
-			self.emit("failedActivateProductPrice",{"error":{"code":"ED001","message":"Database Issue "+err}});
+			logger.emit('error',"Database Error  _isValidProductToActivatePrice"+err,sessionuserid);
+			self.emit("failedActivateProductPrice",{"error":{"code":"ED001","message":"Database Error "+err}});
 		}else if(!product){
-			self.emit("failedActivateProductPrice",{error:{message:"product id is wrong"}});
+			self.emit("failedActivateProductPrice",{error:{message:"Incorrect product id"}});
 		}else{
 			if(product.branch.branchid!=branchid){
-				self.emit("failedActivateProductPrice",{error:{message:"This product does not belong to your branch"}});
+				self.emit("failedActivateProductPrice",{error:{message:"This product does not exist in your branch"}});
 			}else{
 				console.log("product.holding_price.st : "+product.holding_price.status);
 				if(product.holding_price.status == "active"){
@@ -1036,17 +1036,17 @@ var _activateProductPrice=function(self,productid,sessionuserid,product){
 	console.log("product : "+JSON.stringify(product));
 	ProductCatalogModel.update({productid:productid},{$set:{"price.value":product.holding_price.value,"price.currency":product.holding_price.currency,"price.uom":product.holding_price.uom,"holding_price.status":"active"}},function(err,priceactivatestatus){
 		if(err){
-			logger.emit('error',"Database Issue  _activateProductPrice "+err,sessionuserid);
-			self.emit("failedActivateProductPrice",{"error":{"code":"ED001","message":"Database Issue "+err}});
+			logger.emit('error',"Database Error  _activateProductPrice "+err,sessionuserid);
+			self.emit("failedActivateProductPrice",{"error":{"code":"ED001","message":"Database Error "+err}});
 		}else if(priceactivatestatus==0){
-			self.emit("failedActivateProductPrice",{error:{message:"Server Issue"}});
+			self.emit("failedActivateProductPrice",{error:{message:"Server Error"}});
 		}else{
 			ProductCatalogModel.update({productid:productid},{$push:{price_history:{oldprice:product.price.value,newprice:product.holding_price.value,updatedby:sessionuserid,updatedon:new Date()}}},function(err,pricehistorystatus){
 				if(err){
-					logger.emit('error',"Database Issue  _activateProductPrice "+err,sessionuserid)
-					self.emit("failedActivateProductPrice",{"error":{"code":"ED001","message":"Database Issue"}});
+					logger.emit('error',"Database Error  _activateProductPrice "+err,sessionuserid)
+					self.emit("failedActivateProductPrice",{"error":{"code":"ED001","message":"Database Error"}});
 				}else if(pricehistorystatus==0){
-					self.emit("failedActivateProductPrice",{error:{message:"Server Issue"}});
+					self.emit("failedActivateProductPrice",{error:{message:"Server Error"}});
 				}else{
 					//////////////////////////////////
 					_successfulActivateProductPrice(self);
@@ -1069,10 +1069,10 @@ ProductCatalog.prototype.deactivateProductPrice = function(branchid,productid,se
 var _isValidProductProviderToDeactivateProductPrice=function(self,branchid,productid,sessionuserid){
 	UserModel.findOne({userid:sessionuserid,"provider.branchid":branchid,"provider.isOwner":true},function(err,userpp){
 		if(err){
-			logger.emit('error',"Database Issue  _isValidProductProviderToDeactivateProductPrice"+err,sessionuserid);
-			self.emit("failedDeactivateProductPrice",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit('error',"Database Error  _isValidProductProviderToDeactivateProductPrice"+err,sessionuserid);
+			self.emit("failedDeactivateProductPrice",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(!userpp){
-			self.emit("failedDeactivateProductPrice",{"error":{"message":"You are not authorized to deactivate product price"}});
+			self.emit("failedDeactivateProductPrice",{"error":{"message":"Only authorized seller user can deactivate product price"}});
 		}else{
 			///////////////////////////////////////////////////////////////////
 	     	_isValidProductToDeactivatePrice(self,branchid,productid,sessionuserid);
@@ -1084,18 +1084,18 @@ var _isValidProductToDeactivatePrice=function(self,branchid,productid,sessionuse
 	// var query = {productid:productid},{price:1,productid:1,branch:1,holding_price:1}
 	ProductCatalogModel.aggregate({$match:{productid:productid}},{$unwind:"$price_history"},{$sort:{"price_history.updatedon":-1}},{$limit:1},{$project:{productid:1,price:1,branch:1,holding_price:1,price_history:1}},function(err,product){
 		if(err){
-			logger.emit('error',"Database Issue  _isValidProductToDeactivatePrice"+err,sessionuserid);
-			self.emit("failedDeactivateProductPrice",{"error":{"code":"ED001","message":"Database Issue "+err}});
+			logger.emit('error',"Database Error  _isValidProductToDeactivatePrice"+err,sessionuserid);
+			self.emit("failedDeactivateProductPrice",{"error":{"code":"ED001","message":"Database Error "+err}});
 		}else if(product.length>0){
 			console.log(JSON.stringify(product));
 			if(product[0].branch.branchid!=branchid){
-				self.emit("failedDeactivateProductPrice",{error:{message:"This product does not belong's to your branch"}});
+				self.emit("failedDeactivateProductPrice",{error:{message:"This product does not exist in your branch"}});
 			}else{
 				console.log("product.holding_price.st : "+product[0].holding_price.status);
 				if(product[0].holding_price.status == "deactive"){
 					self.emit("failedDeactivateProductPrice",{error:{message:"Holding price already deactivated"}});
 				}else if(product[0].holding_price.status == "init"){
-					self.emit("failedDeactivateProductPrice",{error:{message:"Can't deactivate, Beacause holding price not an activate"}});
+					self.emit("failedDeactivateProductPrice",{error:{message:"Only active holding price can be deactivated"}});
 				}else{
 					console.log("_deactivateProductPrice");
 					////////////////////////////////////////////////////////////
@@ -1104,7 +1104,7 @@ var _isValidProductToDeactivatePrice=function(self,branchid,productid,sessionuse
 				}
 			}
 		}else{
-			self.emit("failedDeactivateProductPrice",{error:{message:"product id is wrong"}});
+			self.emit("failedDeactivateProductPrice",{error:{message:"Incorrect product id"}});
 					
 		}
 	})
@@ -1113,17 +1113,17 @@ var _deactivateProductPrice=function(self,productid,sessionuserid,product){
 	console.log("product : "+JSON.stringify(product));
 	ProductCatalogModel.update({productid:productid},{$set:{"price.value":product.price_history.oldprice,"holding_price.status":"deactive"}},function(err,priceactivatestatus){
 		if(err){
-			logger.emit('error',"Database Issue  _deactivateProductPrice "+err,sessionuserid);
-			self.emit("failedDeactivateProductPrice",{"error":{"code":"ED001","message":"Database Issue "+err}});
+			logger.emit('error',"Database Error  _deactivateProductPrice "+err,sessionuserid);
+			self.emit("failedDeactivateProductPrice",{"error":{"code":"ED001","message":"Database Error "+err}});
 		}else if(priceactivatestatus==0){
-			self.emit("failedDeactivateProductPrice",{error:{message:"Server Issue"}});
+			self.emit("failedDeactivateProductPrice",{error:{message:"Server Error"}});
 		}else{
 			ProductCatalogModel.update({productid:productid},{$push:{price_history:{oldprice:product.price.value,newprice:product.price_history.oldprice,updatedby:sessionuserid,updatedon:new Date()}}},function(err,pricehistorystatus){
 				if(err){
-					logger.emit('error',"Database Issue  _deactivateProductPrice "+err,sessionuserid)
-					self.emit("failedDeactivateProductPrice",{"error":{"code":"ED001","message":"Database Issue"}});
+					logger.emit('error',"Database Error  _deactivateProductPrice "+err,sessionuserid)
+					self.emit("failedDeactivateProductPrice",{"error":{"code":"ED001","message":"Database Error"}});
 				}else if(pricehistorystatus==0){
-					self.emit("failedDeactivateProductPrice",{error:{message:"Server Issue"}});
+					self.emit("failedDeactivateProductPrice",{error:{message:"Server Error"}});
 				}else{
 					//////////////////////////////////
 					_successfulDeactivateProductPrice(self);
@@ -1145,7 +1145,7 @@ ProductCatalog.prototype.publishUnpublishProductCatalog = function(branchid,prod
 };
 var _validatePublishUnpublishProductCatalog=function(self,branchid,productids,user,action){
 	if(action==undefined){
-		self.emit("failedPublishUnpublishProduct",{"error":{code:"AV001",message:"Please pass which action should be perform"}});
+		self.emit("failedPublishUnpublishProduct",{"error":{code:"AV001",message:"Please enter the action to be perform"}});
 	}else if(["publish","unpublish"].indexOf(action)<0){
 		self.emit("failedPublishUnpublishProduct",{"error":{code:"AV001",message:"action should be publish or unpublish"}});
 	}else{
@@ -1157,20 +1157,20 @@ var _validatePublishUnpublishProductCatalog=function(self,branchid,productids,us
 var _isBranchPublishToPublishUnpublishProductCatalog=function(self,branchid,productids,user,action){
 	ProductProviderModel.aggregate({$unwind:"$branch"},{$match:{"branch.branchid":branchid}},function(err,branch){
 		if(err){
-			logger.emit('error',"Database Issue  _isBranchPublishToPublishUnpublishProductCatalog "+err,user.userid);
-			self.emit("failedPublishUnpublishProduct",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit('error',"Database Error  _isBranchPublishToPublishUnpublishProductCatalog "+err,user.userid);
+			self.emit("failedPublishUnpublishProduct",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(branch.length==0){
-			self.emit("failedPublishUnpublishProduct",{"error":{"message":"Branch not exist"}});
+			self.emit("failedPublishUnpublishProduct",{"error":{"message":"Branch does not exist"}});
 		}else{
 			var providerbranch=branch[0].branch;
 			if(providerbranch.status == "init"){
-				self.emit("failedPublishUnpublishProduct",{"error":{"message":"You are not able to "+action+" products until branch was publish"}});
+				self.emit("failedPublishUnpublishProduct",{"error":{"message":"Only published branch's can publish their products"}});
 			}else if(providerbranch.status == "publish"){
 				/////////////////////////////////////////////////////////////////////
 				_publishUnpublishProductCatalog(self,branchid,productids,user,action);
 				/////////////////////////////////////////////////////////////////////
 			}else{
-				self.emit("failedPublishUnpublishProduct",{"error":{"message":"Branch not exist"}});	
+				self.emit("failedPublishUnpublishProduct",{"error":{"message":"Branch does not exist"}});	
 			}
 		}
 	})
@@ -1178,10 +1178,10 @@ var _isBranchPublishToPublishUnpublishProductCatalog=function(self,branchid,prod
 var _publishUnpublishProductCatalog=function(self,branchid,productids,user,action){
   ProductCatalogModel.update({productid:{$in:productids},status:{$ne:"deactive"}},{$set:{"status":action}},{multi:true},function(err,productupdatestatus){
 		if(err){
-			logger.emit('error',"Database Issue fun:_publishUnpublishProductCatalog"+err,user.userid);
-		  self.emit("failedPublishUnpublishProduct",{"error":{"code":"ED001","message":"Database Issue "+err}});			
+			logger.emit('error',"Database Error fun:_publishUnpublishProductCatalog"+err,user.userid);
+		  self.emit("failedPublishUnpublishProduct",{"error":{"code":"ED001","message":"Database Error "+err}});			
 		}else if(productupdatestatus==0){
-			self.emit("failedPublishUnpublishProduct",{"error":{"message":"Product not exists"}});			
+			self.emit("failedPublishUnpublishProduct",{"error":{"message":"Product does not exists"}});			
 		}else{
 			/////////////////////////////////////////////////
 			_successfullPublishUnpublishCatalog(self,action);
@@ -1203,7 +1203,7 @@ ProductCatalog.prototype.manageProductAvailability = function(providerid,product
 };
 var _validateManageProductAvailability = function(self,providerid,productid,productnotavailable,user){
 	if(productnotavailable == undefined){
-		self.emit("failedManageProductAvailability",{"error":{"code":"AV001","message":"Please pass productnotavailable data"}});
+		self.emit("failedManageProductAvailability",{"error":{"code":"AV001","message":"Please enter product not available data"}});
 	}else if(productnotavailable.from == undefined && productnotavailable.to == undefined){
 		_isAuthorizedUserToManageProductAvailability(self,providerid,productid,productnotavailable,user);
 		// self.emit("failedManageProductAvailability",{"error":{"code":"AV001","message":"Please pass from date"}});
@@ -1229,10 +1229,10 @@ var _isAuthorizedUserToManageProductAvailability=function(self,providerid,produc
 	console.log("user.userid : "+user.userid+" providerid : "+providerid);
 	UserModel.findOne({userid:user.userid,"provider.providerid":providerid,"provider.isOwner":true},function(err,userpp){
 		if(err){
-			logger.emit('error',"Database Issue  _isAuthorizedUserToManageProductAvailability "+err,user.userid)
-			self.emit("failedManageProductAvailability",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit('error',"Database Error  _isAuthorizedUserToManageProductAvailability "+err,user.userid)
+			self.emit("failedManageProductAvailability",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(!userpp){
-			self.emit("failedManageProductAvailability",{"error":{"message":"You are not authorized to manage product availability"}});
+			self.emit("failedManageProductAvailability",{"error":{"message":"Only authorized seller user can manage product availability"}});
 		}else{	
 			/////////////////////////////////////////////////////////////////////////////
 	     	_manageProductAvailability(self,providerid,productid,productnotavailable,user);
@@ -1244,10 +1244,10 @@ var _manageProductAvailability = function(self,providerid,productid,productnotav
 	console.log("productnotavailable szcd: "+JSON.stringify(productnotavailable));
 	ProductCatalogModel.update({productid:productid,"provider.providerid":providerid},{$set:{productnotavailable:productnotavailable}},function(err,updateStatus){
 		if(err){
-		  	logger.emit('error',"Database Issue fun:_manageProductAvailability"+err,user.userid);
-		  	self.emit("failedManageProductAvailability",{"error":{"code":"ED001","message":"Database Issue"}});		
+		  	logger.emit('error',"Database Error fun:_manageProductAvailability"+err,user.userid);
+		  	self.emit("failedManageProductAvailability",{"error":{"code":"ED001","message":"Database Error"}});		
 	  	}else if(updateStatus==0){
-	  		self.emit("failedManageProductAvailability",{"error":{"message":"providerid or productid is wrong"}});		
+	  		self.emit("failedManageProductAvailability",{"error":{"message":"Incorrect seller id or product id"}});		
 	  	}else{
 	  		////////////////////////////////////////////
         	_successfullManageProductAvailability(self);
@@ -1256,7 +1256,7 @@ var _manageProductAvailability = function(self,providerid,productid,productnotav
 	});
 }
 var _successfullManageProductAvailability = function(self){
-  self.emit("successfullManageProductAvailability",{success:{message:"You have successfully change product availability"}});
+  self.emit("successfullManageProductAvailability",{success:{message:"You have successfully changed product availability"}});
 }
 
 ProductCatalog.prototype.getAllProductUserTags = function(){
@@ -1268,8 +1268,8 @@ ProductCatalog.prototype.getAllProductUserTags = function(){
 var _getAllProductUserTags=function(self){
 	ProductCatalogModel.find({status:"publish"},{usertags:1,_id:0},function(err,productusertags){
 		if(err){
-			logger.emit("error","Database Issue _getAllCategoryTags "+err)
-			self.emit("failedGetAllCategoryTags",{"error":{"message":"Database Issue"}})
+			logger.emit("error","Database Error _getAllCategoryTags "+err)
+			self.emit("failedGetAllCategoryTags",{"error":{"message":"Database Error"}})
 		}else{
 			var productusertagsarray=["eggless","egg"]
 			for(var i=0;i<productusertags.length;i++){
@@ -1296,9 +1296,9 @@ ProductCatalog.prototype.manageProductLeadTime = function(sessionuserid,productl
 var _validateProductLeadTime=function(self,sessionuserid,productleadtimedata,providerid,branchid){
 	console.log("branchid::::"+branchid)
 	if(productleadtimedata==undefined){
-		self.emit("failedManageProductLeadTime",{error:{message:"Please pass product lead time data"}})
+		self.emit("failedManageProductLeadTime",{error:{message:"Please enter product lead time data"}})
 	}else if(!isArray(productleadtimedata)){
-		self.emit("failedManageProductLeadTime",{error:{message:"Productleadtimedata should be array"}})
+		self.emit("failedManageProductLeadTime",{error:{message:"Productleadtimedata should be JSON array"}})
 	}else if(productleadtimedata.length==0){
 		self.emit("failedManageProductLeadTime",{error:{message:"Productleadtimedata should not be empty"}})
 	}else{
@@ -1317,7 +1317,7 @@ var _validateProductLeadTime=function(self,sessionuserid,productleadtimedata,pro
 			}
 		}
 		if(validproductleadtimedata.length==0){
-			self.emit("failedManageProductLeadTime",{error:{message:"Please pass valid productleadtime data"}})
+			self.emit("failedManageProductLeadTime",{error:{message:"Please enter valid productleadtime data"}})
 		}else{
 			/////////////////////////////////////////////////
 			_isValidProviderToManageProductLeadTime(self,sessionuserid,validproductleadtimedata,providerid,branchid)
@@ -1329,10 +1329,10 @@ var _validateProductLeadTime=function(self,sessionuserid,productleadtimedata,pro
 	var _isValidProviderToManageProductLeadTime=function(self,sessionuserid,validproductleadtimedata,providerid,branchid){
 		UserModel.findOne({userid:sessionuserid,"provider.providerid":providerid,"provider.branchid":branchid,"provider.isOwner":true},function(err,userpp){
 			if(err){
-				logger.emit('error',"Database Issue  _isValidProviderToManageProductLeadTime "+err,sessionuserid)
-				self.emit("failedManageProductLeadTime",{"error":{"code":"ED001","message":"Database Issue"}});
+				logger.emit('error',"Database Error  _isValidProviderToManageProductLeadTime "+err,sessionuserid)
+				self.emit("failedManageProductLeadTime",{"error":{"code":"ED001","message":"Database Error"}});
 			}else if(!userpp){
-				self.emit("failedManageProductLeadTime",{"error":{"message":"You are not authorized to manage products leadtime"}});
+				self.emit("failedManageProductLeadTime",{"error":{"message":"Only authorized seller user can manage products lead time"}});
 			}else{	
 				/////////////////////////////////////////////////////////////////////////////
 		     	_manageProductLeadTimeData(self,sessionuserid,validproductleadtimedata,providerid,branchid);
@@ -1344,10 +1344,10 @@ var _validateProductLeadTime=function(self,sessionuserid,productleadtimedata,pro
 		console.log("branchid"+branchid)
 		ProductCatalogModel.find({"branch.branchid":branchid},{productid:1},function(err,products){
 			if(err){
-					logger.emit('error',"Database Issue  _manageProductLeadTimeData "+err,sessionuserid)
-				self.emit("failedManageProductLeadTime",{"error":{"code":"ED001","message":"Database Issue"}});
+					logger.emit('error',"Database Error  _manageProductLeadTimeData "+err,sessionuserid)
+				self.emit("failedManageProductLeadTime",{"error":{"code":"ED001","message":"Database Error"}});
 			}else if(products.length==0){
-				self.emit("failedManageProductLeadTime",{"error":{"message":"No products associated with branch"}});
+				self.emit("failedManageProductLeadTime",{"error":{"message":"This product does not exist in the branch"}});
 			}else{
 				var branchproductids=[];
 				for(var i=0;i<products.length;i++){
@@ -1370,12 +1370,12 @@ var _validateProductLeadTime=function(self,sessionuserid,productleadtimedata,pro
 				}
 					console.log("validbranchproductleadtimedata"+JSON.stringify(validbranchproductleadtimedata))
 				if(validbranchproductleadtimedata.length==0){
-					self.emit("failedManageProductLeadTime",{error:{message:"Please pass your branch products leadtime"}})
+					self.emit("failedManageProductLeadTime",{error:{message:"Please enter your branch products leadtime"}})
 				}else{
 					ProductLeadTimeModel.update({branchid:branchid},{$pull:{productleadtime:{productid:{$in:validproductids}}}},function(err,pullleadtimestatus){
 						if(err){
-							logger.emit('error',"Database Issue  _manageProductLeadTimeData "+err,sessionuserid)
-					    self.emit("failedManageProductLeadTime",{"error":{"code":"ED001","message":"Database Issue"}});
+							logger.emit('error',"Database Error  _manageProductLeadTimeData "+err,sessionuserid)
+					    self.emit("failedManageProductLeadTime",{"error":{"code":"ED001","message":"Database Error"}});
 						}else if(pullleadtimestatus==0){
 							///////////////////////////////////////
 							_addNewLeadTimeData(self,sessionuserid,providerid,branchid,validbranchproductleadtimedata)
@@ -1383,10 +1383,10 @@ var _validateProductLeadTime=function(self,sessionuserid,productleadtimedata,pro
 						}else{
 							ProductLeadTimeModel.update({branchid:branchid},{$push:{productleadtime:{$each:validbranchproductleadtimedata}}},function(err,pushleadtimestatus){
 								if(err){
-									logger.emit('error',"Database Issue  _manageProductLeadTimeData "+err,sessionuserid)
-					      self.emit("failedManageProductLeadTime",{"error":{"code":"ED001","message":"Database Issue"}});
+									logger.emit('error',"Database Error  _manageProductLeadTimeData "+err,sessionuserid)
+					      self.emit("failedManageProductLeadTime",{"error":{"code":"ED001","message":"Database Error"}});
 								}else if(pushleadtimestatus==0){
-									self.emit("failedManageProductLeadTime",{"error":{"message":"branch is is wrong"}});
+									self.emit("failedManageProductLeadTime",{"error":{"message":"Incorrect branch id"}});
 								}else{
 									///////////////////////////////////
 									_successfulManageProductLeadTime(self)
@@ -1404,8 +1404,8 @@ var _validateProductLeadTime=function(self,sessionuserid,productleadtimedata,pro
 		var productleadtime_object=new ProductLeadTimeModel(leadtimeobject);
 		productleadtime_object.save(function(err,productleadtime){
 			if(err){
-					logger.emit('error',"Database Issue  _addNewLeadTimeData "+err,sessionuserid)
-					self.emit("failedManageProductLeadTime",{"error":{"code":"ED001","message":"Database Issue"}});
+					logger.emit('error',"Database Error  _addNewLeadTimeData "+err,sessionuserid)
+					self.emit("failedManageProductLeadTime",{"error":{"code":"ED001","message":"Database Error"}});
 			}else{
 				//////////////////////////////////
 				_successfulManageProductLeadTime(self)
@@ -1440,15 +1440,15 @@ var _getProductLeadTime=function(self,sessionuserid,providerid,branchid,category
 var _getProductLeadTimeByCategory=function(self,providerid,branchid){
 	ProductCatalogModel.aggregate({$match:{"branch.branchid":branchid}},{$group:{_id:{categoryid:"$category.id",categoryname:"$category.categoryname"},products:{$addToSet:{productid:"$productid",productname:"$productname"}}}},{$project:{category:"$_id",products:1,_id:0}},function(err,categorywiseproducts){
 		if(err){
-			logger.emit('error',"Database Issue  _getProductLeadTime "+err,sessionuserid)
-			self.emit("failedGetProductLeadTime",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit('error',"Database Error  _getProductLeadTime "+err,sessionuserid)
+			self.emit("failedGetProductLeadTime",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(categorywiseproducts.length==0){
 			self.emit("failedGetProductLeadTime",{error:{message:"Product"}});
 		}else{
 			ProductLeadTimeModel.findOne({branchid:branchid},function(err,productleadtime){
 				if(err){
-					logger.emit('error',"Database Issue  _getProductLeadTime "+err,sessionuserid)
-			    self.emit("failedGetProductLeadTime",{"error":{"code":"ED001","message":"Database Issue"}});
+					logger.emit('error',"Database Error  _getProductLeadTime "+err,sessionuserid)
+			    self.emit("failedGetProductLeadTime",{"error":{"code":"ED001","message":"Database Error"}});
 				}else{
 				     var leadtimeproductids=[];
 				     if(productleadtime){
@@ -1492,10 +1492,10 @@ var _getAllProductLeadTime=function(self,providerid,branchid){
 	query.push({$project:{productid:"$productleadtime.productid",productname:"$productleadtime.productname",leadtime:"$productleadtime.leadtime",_id:0}})
 	ProductLeadTimeModel.aggregate(query,function(err,productleadtime){
 		if(err){
-			logger.emit('error',"Database Issue  _getProductLeadTime "+err,sessionuserid)
-			 self.emit("failedGetProductLeadTime",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit('error',"Database Error  _getProductLeadTime "+err,sessionuserid)
+			 self.emit("failedGetProductLeadTime",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(productleadtime.length==0){
-			self.emit("failedGetProductLeadTime",{"error":{"message":"branchid is wrong"}});
+			self.emit("failedGetProductLeadTime",{"error":{"message":"Incorrect branch id"}});
 		}else{
 			////////////////////////////////////////////////////
 			_successfulGetProductLeadTime(self,productleadtime)
