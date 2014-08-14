@@ -441,7 +441,7 @@ exports.LongCodeResponse=function(req,res){
 	}else if(S(message.toLowerCase()).contains("y")){
 		orderapi.confirmOrder(mobileno,message.toLowerCase(),function(err,result){
 			if(err){
-				res.send("You have send  wrong token or there is problem in server,so please resend sms with proper token or regnerate the token for order from application ")
+				res.send("You have send  wrong token or there is problem in server,so please resend SMS with proper token or regnerate the token for order from application ")
 				responsetext=err;
 				logger.emit("error",err.error.message)
 			}else{
@@ -451,7 +451,7 @@ exports.LongCodeResponse=function(req,res){
 			}
 		});
 	}else{
-		res.send("You have send wrong keyword, so please send sms with proper keyword  ")
+		res.send("You have send wrong keyword, so please send SMS with proper keyword  ")
 	}
 	
 }
@@ -527,7 +527,7 @@ var __addToSMSHistory=function(mnumber,message){
 	var sms_history=new SMSHistoryModel({mobileno:mnumber,message:message});
 	sms_history.save(function(err,smshistory){
 		if(err){
-			logger.error("Database Issue sms History"+err);
+			logger.error("Database Error sms History"+err);
 		}else{
 			logger.info("recored added to sms History");
 		}
@@ -745,7 +745,7 @@ var _checkOzPolicyAlreadyExist = function(res,templatedata,userid){
 	ozPolicyModel.findOne({type:temp_type},function(err,templatestatus){
 		if(err){
 			logger.emit("error","Database Error:_checkOzPolicyAlreadyExist"+err,userid);
-			res.send({"error":{"code":"ED001","message":"Database Issue"}});
+			res.send({"error":{"code":"ED001","message":"Database Error"}});
 		}else if(templatestatus){
 			res.send({"error":{"code":"ED001","message":"policy already exist"}});
 		}else{
@@ -761,7 +761,7 @@ var _addOZPolicies = function(res,templatedata,userid){
 	ozpolicymodel.save(function(err,temp){
 		if(err){
 			logger.emit("error","Database Error:_addOZPolicies : "+err,userid);
-			res.send({"error":{"code":"ED001","message":"Database Issue"}});
+			res.send({"error":{"code":"ED001","message":"Database Error"}});
 		}else{
 			///////////////////////////////////
 			_successfullAddOZPolicies(res);
@@ -792,7 +792,7 @@ var _getOZPolicies = function(res,type,result) {
 	ozPolicyModel.findOne({type:temp_type},{type:1,template:1,_id:0},function(err,template){
 		if(err){
 			logger.emit("error","Database Error:_getOZPolicies"+err);
-			res.send({"error":{"code":"ED001","message":"Database Issue"}});
+			res.send({"error":{"code":"ED001","message":"Database Error"}});
 		}else if(!template){
 			if(result == "json"){
 				res.send({"error":{"code":"AD001","message":"Policy does not exist"}});
@@ -846,10 +846,10 @@ var _updateOZPolicies = function(res,type,templatedata,userid){
 	templatedata.updateddate = new Date();
 	ozPolicyModel.update({type:type.toLowerCase()},{$set:templatedata},function(err,templatestatus){
 		if(err){
-			logger.emit("error","Database Issue "+err);
-			res.send({"error":{"message":"Database Issue"}});
+			logger.emit("error","Database Error "+err);
+			res.send({"error":{"message":"Database Error"}});
 		}else if(templatestatus==0){
-			res.send({"error":{"message":"policy type is wrong"}});
+			res.send({"error":{"message":"Incorrect policy type"}});
 		}else{
 			res.send({"success":{"message":"OZ-Policy Updated Successfully"}});
 		}
@@ -893,8 +893,8 @@ exports.giveFeedback=function(req,res){
 		var feedback=new FeedbackModel(feddbackobject);
 		feedback.save(function(err,feedback){
 			if(err){
-				logger.emit("error","Database Issue: giveFeedback"+err)
-				res.send({error:{code:"ED001",message:"Database Issue"}});
+				logger.emit("error","Database Error: giveFeedback"+err)
+				res.send({error:{code:"ED001",message:"Database Error"}});
 			}else{
 				res.send({success:{message:"Successfully gave feedback"}})
 			}

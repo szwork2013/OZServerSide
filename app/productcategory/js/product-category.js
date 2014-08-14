@@ -34,7 +34,7 @@ var _checkCategoryNameAlreadyExistOrNot = function(self,productcategorydata){
 	CategoryModel.findOne({status:"active",categoryname:new RegExp('^'+productcategorydata.categoryname, "i")},function(err,c_name){
 		if(err){
 			logger.emit("error","Error in db to getCategory name");
-			self.emit("failedAddProductCategory",{"error":{"code":"ED001","message":"Database Issue"}});
+			self.emit("failedAddProductCategory",{"error":{"code":"ED001","message":"Database Error"}});
 		} else if(c_name){
 			self.emit("failedAddProductCategory",{"error":{"code":"AD001","message":"Category name already exists"}});
 		}else{
@@ -51,8 +51,8 @@ var _addNewProductCategory = function(self,productcategorydata){
 	var product_category = new CategoryModel(productcategorydata);
 	product_category.save(function(err,category){
 		if(err){
-	    	logger.emit("error","Database Issue "+err);
-	      	self.emit("failedAddProductCategory",{"error":{"code":"ED001","message":"Database Issue"}});
+	    	logger.emit("error","Database Error "+err);
+	      	self.emit("failedAddProductCategory",{"error":{"code":"ED001","message":"Database Error"}});
 	    }else if(category){
 			/////////////////////////////////////
 			_successfullAddProductCategory(self);
@@ -88,7 +88,7 @@ var _addSubCategory = function(self,subcategory,categoryid,session_userid){
 	CategoryModel.findOne({status:"active",categoryid:categoryid},function(err,category_data){
 		if(err){
 			logger.emit("error","Error in db to getCategory");
-			self.emit("failedAddSubCategory",{"error":{"code":"ED001","message":"Database Issue"}});
+			self.emit("failedAddSubCategory",{"error":{"code":"ED001","message":"Database Error"}});
 		} else if(category_data){
 			_checkSubCategoryNameAlreadyExistOrNot(self,subcategory,category_data);
 		}else{
@@ -102,7 +102,7 @@ var _checkSubCategoryNameAlreadyExistOrNot = function(self,subcategory,category_
 	CategoryModel.findOne({status:"active",categoryname:new RegExp(subcategory.categoryname, "i")},function(err,c_name){
 		if(err){
 			logger.emit("error","Error in db to getCategory name");
-			self.emit("failedAddSubCategory",{"error":{"code":"ED001","message":"Database Issue"}});
+			self.emit("failedAddSubCategory",{"error":{"code":"ED001","message":"Database Error"}});
 		} else if(c_name){
 			self.emit("failedAddSubCategory",{"error":{"code":"AD001","message":"Subcategory name already exists"}});
 		}else{
@@ -115,8 +115,8 @@ var _checkSubCategoryNameAlreadyExistOrNot = function(self,subcategory,category_
 			var service_category = new CategoryModel(subcategory);
 			service_category.save(function(err,category){
 				if(err){
-			    	logger.emit("error","Database Issue "+err);
-			      	self.emit("failedAddSubCategory",{"error":{"code":"ED001","message":"Database Issue"}});
+			    	logger.emit("error","Database Error "+err);
+			      	self.emit("failedAddSubCategory",{"error":{"code":"ED001","message":"Database Error"}});
 			    }else if(category){
 			    	_updateMainCategory(self,category_data);
 			    }
@@ -128,8 +128,8 @@ var _checkSubCategoryNameAlreadyExistOrNot = function(self,subcategory,category_
 var _updateMainCategory = function(self,category_data){
 	CategoryModel.update({categoryid:category_data.categoryid,categoryname:category_data.categoryname},{$set:{isleaf:false}},function(err,categorystatus){
 		if(err){
-			logger.emit("error","Database Issue can't update main category "+err);
-			self.emit("failedAddSubCategory",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit("error","Database Error can't update main category "+err);
+			self.emit("failedAddSubCategory",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(categorystatus==1){
 			_successfulladdSubCategory(self);
 		}else{
@@ -154,7 +154,7 @@ var _getProviderLevelOneCategory = function(self,providerid,session_userid){
 	ProductProvider.findOne({providerid:providerid},{providername:1,category:1,_id:0}).exec(function(err,doc){
 		if(err){
 			logger.emit("error","Database Error : " + err);
-			self.emit("failedGetAllProductCategory",{"error":{"code":"ED001","message":"Database Issue"}});
+			self.emit("failedGetAllProductCategory",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(doc){
 			console.log("doc "+JSON.stringify(doc));
 	  		_getAllProductCategory(self,doc,session_userid);			
@@ -169,7 +169,7 @@ var _getAllProductCategory = function(self,provider,session_userid){
 	CategoryModel.aggregate({"$unwind":"$ancestors"},{$match:{"ancestors.categoryid":provider.category.categoryid}},{$group:{_id:{level:"$level"},category:{$push:{categoryid:"$categoryid",categoryname:"$categoryname",parent:"$parent"}}}},{$project:{level:"$_id.level",category:"$category",_id:0}},{$sort:{level:1}}).exec(function(err,doc){
 		if(err){
 			logger.emit("error","Database Error : " + err);
-			self.emit("failedGetAllProductCategory",{"error":{"code":"ED001","message":"Database Issue"}});
+			self.emit("failedGetAllProductCategory",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(doc.length==0){
 			self.emit("failedGetAllProductCategory",{"error":{"code":"AD001","message":"Product category does not exist for "+provider.providername}});
 		}else{
@@ -193,7 +193,7 @@ var _getAllLevelsProductCategory = function(self,session_userid){
 	CategoryModel.aggregate({$group:{_id:{level:"$level"},category:{$push:{categoryid:"$categoryid",categoryname:"$categoryname",parent:"$parent"}}}},{$project:{level:"$_id.level",category:"$category",_id:0}}).exec(function(err,doc){
 		if(err){
 			logger.emit("error","Database Error : " + err);
-			self.emit("failedGetAllLevelsProductCategory",{"error":{"code":"ED001","message":"Database Issue"}});
+			self.emit("failedGetAllLevelsProductCategory",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(doc.length==0){
 			self.emit("failedGetAllLevelsProductCategory",{"error":{"code":"AD001","message":"Product category does not exist"}});
 		}else{
@@ -228,7 +228,7 @@ var _isValidCategory = function(self,categorydata,categoryid){
 	CategoryModel.findOne({categoryid:categoryid},{categoryname:1,_id:0}).exec(function(err,olddata){
 		if(err){
 			logger.emit("error","Database Error : " + err);
-			self.emit("failedUpdateProductCategory",{"error":{"code":"ED001","message":"Database Issue"}});
+			self.emit("failedUpdateProductCategory",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(olddata){
 			console.log("categorydata "+JSON.stringify(olddata));
 			_updateProductCategory(self,categorydata,categoryid,olddata.categoryname);
@@ -243,12 +243,12 @@ var _updateProductCategory = function(self,categorydata,categoryid,oldcategoryna
 	CategoryModel.update({categoryid:categoryid},{$set:categorydata},function(err,categorystatus){
 		if(err){
 			logger.emit("error","Database Error on updation product category : " + err);
-			self.emit("failedUpdateProductCategory",{"error":{"code":"ED001","message":"Database Issue"}});
+			self.emit("failedUpdateProductCategory",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(categorystatus==1){
 			CategoryModel.update({"ancestors.categoryid":categoryid},{$set:{"ancestors.$.categoryname":categorydata.categoryname,"ancestors.$.slug":categorydata.categoryname.toLowerCase()}},{multi:true},function(err,subcategorystatus){
 				if(err){
 					logger.emit("error","Database Error : " + err);
-					self.emit("failedUpdateProductCategory",{"error":{"code":"ED001","message":"Database Issue"}});
+					self.emit("failedUpdateProductCategory",{"error":{"code":"ED001","message":"Database Error"}});
 				}else{
 					_updateCategorynameInProductsModel(categoryid,categorydata.categoryname,oldcategoryname);
 					_successfulUpdateProductCategory(self);
@@ -327,7 +327,7 @@ var _getAllLevelOneCategory = function(self,session_userid){
 	CategoryModel.find({status:{$ne:"deactive"},level:1},{ancestors:0,status:0,_id:0,__v:0}).exec(function(err,doc){
 		if(err){
 			logger.emit("error","Database Error : " + err);
-			self.emit("failedGetAllLevelOneCategory",{"error":{"code":"ED001","message":"Database Issue"}});
+			self.emit("failedGetAllLevelOneCategory",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(doc.length==0){
 			self.emit("failedGetAllLevelOneCategory",{"error":{"code":"AD001","message":"There is no Level One Category"}});
 		}else{

@@ -36,7 +36,7 @@ var _checkOrderIdIsValidForConversation = function(self,orderid,session_userid){
 	OrderModel.findOne({orderid:orderid}).lean().exec(function(err,order){
 		if(err){
 			logger.emit("error","Database Error : " + err);
-			self.emit("failedServiceConAddMsg",{"error":{"code":"ED001","message":"Database Issue"}});
+			self.emit("failedServiceConAddMsg",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(order){
 			self.emit("failedServiceConAddMsg",{"error":{"code":"AU001","message":"Order Already Exists"}});
 			// _addConversation(self,conversation_data,orderid);
@@ -53,8 +53,8 @@ var _addConversation = function(self,conversation_data,orderid){
 	var service_conversation = new ServiceConversationModel(conversation_data);
 	service_conversation.save(function(err,conversation){
 		if(err){
-	    	logger.emit("error","Database Issue "+err);
-	      	self.emit("failedServiceConAddMsg",{"error":{"code":"ED001","message":"Database Issue"}});
+	    	logger.emit("error","Database Error "+err);
+	      	self.emit("failedServiceConAddMsg",{"error":{"code":"ED001","message":"Database Error"}});
 	    }else if(conversation){
 			/////////////////////////////////
 			_successfullAddConversation(self);

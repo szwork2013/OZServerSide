@@ -20,7 +20,7 @@ var isValidProviderToManageDiscount=function(branchid,userid,callback){
 	console.log("userid :dd"+userid+" branchid:"+branchid);
 	UserModel.findOne({userid:userid,'provider.branchid':branchid,'provider.isOwner':true},function(err,userprovider){
 		if(err){
-			callback({error:{code:"ED001",message:"Database Issue"}})
+			callback({error:{code:"ED001",message:"Database Error"}})
 		}else if(!userprovider){
 			// console.log("userprovider:"+userprovider)
 			callback({error:{code:'EA001',message:"You are not authorized"}})
@@ -33,7 +33,7 @@ var isValidProductsToManageDiscount=function(branchid,productsidsdata,callback){
 	ProductCatalogModel.find({"branch.branchid":branchid},{productid:1},function(err,products){
 		if(err){
 			logger.emit("error","Database Error:isValidProductsToManageDiscount"+err);
-			callback({"error":{code:"ED001",message:"Database Issue"}})
+			callback({"error":{code:"ED001",message:"Database Error"}})
 		}else if(products.length==0){
 			callback({error:{message:"No Products added to branch"}})
 		}else{
@@ -98,7 +98,7 @@ var _checkDiscountCodeAlreadyExistForBranchProvider = function(self,discountdata
 	DiscountModel.findOne({providerid:providerid,branchid:branchid,discountcode:discountdata.discountcode.toUpperCase()},function(err,discount){
 		if(err){
 			logger.emit("error","Database Error:_checkDiscountApplyToProduct "+err,userid);
-		  	self.emit("failedAddDiscount",{"error":{"message":"Database Issue"}})
+		  	self.emit("failedAddDiscount",{"error":{"message":"Database Error"}})
 		}else if(discount){
 			console.log("DISCOUNT : "+JSON.stringify(discount));
 			self.emit("failedAddDiscount",{"error":{"message":"Discount code with same percent already exists"}});
@@ -113,7 +113,7 @@ var _checkDiscountApplyToProduct=function(self,discountdata,userid,providerid,br
 	DiscountModel.aggregate({$match:{branchid:branchid}},{$unwind:"$products"},{$match:{products:{$in:discountdata.products},startdate:{$gte:new Date(discountdata.startdate)},expirydate:{$lte:new Date(discountdata.expirydate)}}},{$project:{products:1}},function(err,alreadydiscountappliedproducts){
 		if(err){
 			logger.emit("error","Database Error:_checkDiscountApplyToProduct "+err,userid);
-		  	self.emit("failedAddDiscount",{"error":{"message":"Database Issue"}})
+		  	self.emit("failedAddDiscount",{"error":{"message":"Database Error"}})
 		}else{
 			if(alreadydiscountappliedproducts.length==discountdata.products.length){
 				self.emit("failedAddDiscount",{"error":{"message":"Discountcode already applied to the products"}})
@@ -146,7 +146,7 @@ var _addDiscount=function(self,discountdata,userid,providerid,branchid){
   discount_object.save(function(err,discount){
   	if(err){
       logger.emit("error","Database Error:_addDiscount"+err,userid);
-		self.emit("failedAddDiscount",{"error":{"message":"Database Issue"}})
+		self.emit("failedAddDiscount",{"error":{"message":"Database Error"}})
   	}else{
   		//////////////////////////////
   		_successfullAddDiscount(self);
@@ -178,7 +178,7 @@ var _getDiscountCodes = function(self,userid,providerid,branchid){
 	DiscountModel.find({status:{$ne:"deactive"},providerid:providerid,branchid:branchid},{_id:0,discountid:1,discountcode:1,percent:1,description:1,startdate:1,expirydate:1}).sort({startdate:1}).exec(function(err,discount){
 	  	if(err){
 	      	logger.emit("error","Database Error:_getDiscountCodes"+err,sessionuser.userid);
-			self.emit("failedGetDiscountCodes",{"error":{"message":"Database Issue"}})
+			self.emit("failedGetDiscountCodes",{"error":{"message":"Database Error"}})
 	  	}else if(discount.length==0){
 	      	self.emit("failedGetDiscountCodes",{"error":{"message":"Discount code does not exists"}});
 	  	}else{
@@ -210,7 +210,7 @@ var _getAllProducts = function(self,userid,providerid,branchid){
 	ProductCatalogModel.find({status:"publish","provider.providerid":providerid,"branch.branchid":branchid},{_id:0,productname:1,productid:1},function(err,products){
 	  	if(err){
 	      	logger.emit("error","Database Error:_getAllProducts"+err,sessionuser.userid);
-			self.emit("failedGetAllProducts",{"error":{"message":"Database Issue"}})
+			self.emit("failedGetAllProducts",{"error":{"message":"Database Error"}})
 	  	}else if(products.length==0){
 	      	self.emit("failedGetAllProducts",{"error":{"message":"Products does not exist"}});
 	  	}else{
@@ -259,14 +259,14 @@ var _isValidProviderToUpdateDiscount=function(self,discountdata,sessionuser,disc
   DiscountModel.findOne({discountid:discountid},{discountid:1,providerid:1,branchid:1},function(err,discount){
   	if(err){
       logger.emit("error","Database Error:_isValidBranchIdForAddDiscount"+err,sessionuser.userid);
-		  self.emit("failedUpdateDiscount",{"error":{"message":"Database Issue"}})
+		  self.emit("failedUpdateDiscount",{"error":{"message":"Database Error"}})
   	}else if(!discount){
       self.emit("failedUpdateDiscount",{"error":{"message":"Discount does not exists"}})
   	}else{
   		UserModel.findOne({userid:sessionuser.userid,"provider.providerid":discount.providerid,"provider.isOwner":true},function(err,userprovideradmin){
   			if(err){
   				logger.emit("error","Database Error:_isValidProviderToUpdateDiscount"+err,sessionuser.userid);
-		      self.emit("failedUpdateDiscount",{"error":{"message":"Database Issue"}})
+		      self.emit("failedUpdateDiscount",{"error":{"message":"Database Error"}})
   			}else if(!userprovideradmin){
   				self.emit("failedUpdateDiscount",{"error":{"message":"Only users with admin role can update discount details"}})
   			}else{
@@ -289,7 +289,7 @@ var _updateDiscount=function(self,discountid,discountdata,user){
 	DiscountModel.update({discountid:discountid},{$set:discountdata},function(err,updatediscountstatus){
    	 if(err){
    	 	logger.emit("error","Database Error:_updateDiscount"+err,user.userid);
-		  self.emit("failedUpdateDiscount",{"error":{"message":"Database Issue"}})
+		  self.emit("failedUpdateDiscount",{"error":{"message":"Database Error"}})
    	 }else if(updatediscountstatus==0){
    	 	self.emit("failedUpdateDiscount",{"error":{"message":"Incorrect Discount id"}})
    	 }else{
@@ -352,14 +352,14 @@ var _checkDiscountApplyToProductAddToDiscount=function(self,discountid,sessionus
 	DiscountModel.findOne({discountid:discountid},function(err,discount){
 		if(err){
 			logger.emit("error","Database Error:_checkDiscountApplyToProduct"+err,userid);
-		  	self.emit("failedAddProductsToDiscountCode",{"error":{"message":"Database Issue"}})
+		  	self.emit("failedAddProductsToDiscountCode",{"error":{"message":"Database Error"}})
 		}else if(!discount){
-			self.emit("failedAddProductsToDiscountCode",{"error":{"message":"Discount id  wrong"}})
+			self.emit("failedAddProductsToDiscountCode",{"error":{"message":"Incorrect Discount id"}})
 		}else{
 			DiscountModel.aggregate({$match:{branchid:branchid,discountid:{$ne:discountid}}},{$unwind:"$products"},{$match:{products:{$in:products},$or:[{startdate:{$lte:new Date(discount.startdate)},expirydate:{$gte:new Date(discount.startdate)}},{startdate:{$lte:new Date(discount.expirydate)},expirydate:{$gte:new Date(discount.expirydate)}}]}},{$project:{products:1}},function(err,alreadydiscountappliedproducts){
 				if(err){
 					logger.emit("error","Database Error:_checkDiscountApplyToProduct"+err);
-				  self.emit("failedAddProductsToDiscountCode",{"error":{"message":"Database Issue"}})
+				  self.emit("failedAddProductsToDiscountCode",{"error":{"message":"Database Error"}})
 				}else{
 					console.log("alreadydiscountappliedproducts.length : "+alreadydiscountappliedproducts.length +" products.length : "+products.length);
 					if(alreadydiscountappliedproducts.length==products.length){
@@ -386,7 +386,7 @@ var _addProductsToDiscountCode=function(self,discountid,sessionuser,products,bra
 	DiscountModel.update({discountid:discountid},{$set:{products:products}},function(err,addproductsstatus){
 		if(err){
 			logger.emit("error","Database Error:_addProductsToDiscountCode"+err,userid);
-			self.emit("failedAddProductsToDiscountCode",{"error":{"message":"Database Issue"}});
+			self.emit("failedAddProductsToDiscountCode",{"error":{"message":"Database Error"}});
 		}else if(addproductsstatus==0){
 			self.emit("failedAddProductsToDiscountCode",{"error":{"message":"Incorrect Discount id"}});
 		}else{
@@ -442,8 +442,8 @@ var _isValidBranchIdForRemoveProductFromDiscount=function(self,sessionuser,disco
 var _removeProductFromDiscount=function(self,sessionuser,discountid,products,branchid){
   DiscountModel.update({discountid:discountid},{$pullAll:{products:products}},function(err,removproductstatus){
   	if(err){
-  		logger.emit("error","Database Issue _removeProductFromDiscount");
-  		self.emit("failedRemoveProductsFromDiscountCode",{error:{code:"ED001",message:"Database Issue"}})
+  		logger.emit("error","Database Error _removeProductFromDiscount");
+  		self.emit("failedRemoveProductsFromDiscountCode",{error:{code:"ED001",message:"Database Error"}})
   	}else if(removproductstatus==0){
   		self.emit("failedRemoveProductsFromDiscountCode",{error:{message:"Incorrect Discount id"}})
   	}else{
@@ -477,7 +477,7 @@ var _getDiscountedProductList = function(self,userid,branchid,discountid){
 	DiscountModel.findOne({status:{$ne:"deactive"},discountid:discountid},{_id:0,products:1},function(err,discountdata){
 	  	if(err){
 	      	logger.emit("error","Database Error:_getDiscountedProductList "+err,sessionuser.userid);
-			self.emit("failedGetDiscountedProducts",{"error":{"message":"Database Issue"}})
+			self.emit("failedGetDiscountedProducts",{"error":{"message":"Database Error"}})
 	  	}else if(!discountdata){
 	      	self.emit("failedGetDiscountedProducts",{"error":{"message":"Incorrect Discount id"}});
 	  	}else{
@@ -491,7 +491,7 @@ var _getDiscountedProductData = function(self,products){
 	ProductCatalogModel.find({productid:{$in:products}},{_id:0,productid:1,productname:1},function(err,products){
 	  	if(err){
 	      	logger.emit("error","Database Error:_getDiscountedProductData "+err,sessionuser.userid);
-			self.emit("failedGetDiscountedProducts",{"error":{"message":"Database Issue"}})
+			self.emit("failedGetDiscountedProducts",{"error":{"message":"Database Error"}})
 	  	}else if(products.length==0){
 	      	self.emit("failedGetDiscountedProducts",{"error":{"message":"Product does not exist"}});
 	  	}else{
@@ -523,8 +523,8 @@ var _isValidProviderToDeleteDiscount=function(self,userid,providerid,branchid,di
 var _deleteDiscount = function(self,userid,providerid,branchid,discountid){
 	DiscountModel.remove({discountid:discountid},function(err,rmvdiscountstatus){
 	  	if(err){
-	  		logger.emit("error","Database Issue _removeProductFromDiscount");
-	  		self.emit("failedDeleteDiscount",{error:{code:"ED001",message:"Database Issue"}});
+	  		logger.emit("error","Database Error _removeProductFromDiscount");
+	  		self.emit("failedDeleteDiscount",{error:{code:"ED001",message:"Database Error"}});
 	  	}else if(rmvdiscountstatus==0){
 	  		self.emit("failedDeleteDiscount",{error:{message:"Incorrect Discount id"}});
 	  	}else{

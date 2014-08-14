@@ -579,14 +579,14 @@ exports.addMembersToGroup=function(req,res){
   productprovider.on("sendinvitetospnewuser",function(newuser,template,branch,grpname){
     UserModel.findOne({mobileno:newuser.mobileno},function(err,user){
       if(err){
-        logger.emit("error","Database Issue"+err)
+        logger.emit("error","Database Error"+err)
       }else if(!user){
         logger.emit("log","User does not exists to send invitation sendinvitetospnewuser");
       }else{
         var otpmodel=new OtpModel({_userId:user.userid});
         otpmodel.save(function(err,otpdata){
           if(err){
-            logger.emit("error","Database Issue :_createOtp/errormessage:"+err);
+            logger.emit("error","Database Error :_createOtp/errormessage:"+err);
           }else if(otpdata){
             var tempname="otp";
             _sendOTPToMobileNumber(user.mobileno,otpdata.otp,tempname,user.preffered_lang,function(result){
@@ -617,7 +617,7 @@ exports.addMembersToGroup=function(req,res){
   productprovider.on("sendinvitetospuser",function(existinguser,template,branch,grpname){
     UserModel.findOne({mobileno:existinguser.mobileno},function(err,user){
       if(err){
-        logger.emit("error","Database Issue"+err)
+        logger.emit("error","Database Error"+err)
       }else if(!user){
         logger.emit("log","User does not exists to send invitation sendinvitetospuser");
       }else{
@@ -665,14 +665,14 @@ exports.addEmployee=function(req,res){
   productprovider.on("sendinvitetospnewuser",function(newuser,template,branch,grpname){
     UserModel.findOne({mobileno:newuser.mobileno},function(err,user){
       if(err){
-        logger.emit("error","Database Issue"+err)
+        logger.emit("error","Database Error"+err)
       }else if(!user){
         logger.emit("log","User does not exists to send invitation sendinvitetospnewuser");
       }else{
         var otpmodel=new OtpModel({_userId:user.userid});
         otpmodel.save(function(err,otpdata){
           if(err){
-            logger.emit("error","Database Issue :_createOtp/errormessage:"+err);
+            logger.emit("error","Database Error :_createOtp/errormessage:"+err);
           }else if(otpdata){
             var tempname="otp";
             _sendOTPToMobileNumber(user.mobileno,otpdata.otp,tempname,user.preffered_lang,function(result){
@@ -701,7 +701,7 @@ exports.addEmployee=function(req,res){
   productprovider.on("sendinvitetospuser",function(existinguser,template,branch,grpname){
     UserModel.findOne({mobileno:existinguser.mobileno},function(err,user){
       if(err){
-        logger.emit("error","Database Issue"+err)
+        logger.emit("error","Database Error"+err)
       }else if(!user){
         logger.emit("log","User does not exists to send invitation sendinvitetospuser");
       }else{

@@ -21,8 +21,8 @@ var isAuthorizedUserToManageGroup=function(userid,branchid,callback){
 	logger.emit("log","isAuthorizedUserToManageGroup")
 	UserModel.aggregate({$match:{userid:userid}},{"$unwind":"$provider"},{$match:{"provider.branchid":branchid}},function(err,userproductprovider){
 		if(err){
-			logger.emit("error","Database Issue: _isAuthorizedUserToManageGroup"+err);
-			callback({"error":{"message":"Database Issue"}});
+			logger.emit("error","Database Error: _isAuthorizedUserToManageGroup"+err);
+			callback({"error":{"message":"Database Error"}});
 		}else if(userproductprovider.length==0){
 			callback({"error":{"message":"User does not belongs to seller branch"}});
 		}else{
@@ -134,7 +134,7 @@ var _removeGroupFromBranch=function(self,branchid,groupid){
 			}else{
 				ProviderGroupModel.update({branchid:branchid},{$pull:{usergrp:{groupid:groupid}}},function(err,groupremovestatus){
 					if(err){
-						logger.emit("error","Database Issue: _removeGroupFromBranch"+err);
+						logger.emit("error","Database Error: _removeGroupFromBranch"+err);
 						self.emit("failedRemoveGroupFromBranch",{"error":{"code":"ED001","message":"Database Error"}});
 					}else if(groupremovestatus==0){
 						self.emit("failedRemoveGroupFromBranch",{"error":{"message":"Incorrect branchid"}});
@@ -289,7 +289,7 @@ var _sendSMSToInvitees = function(self,branch,grpname,existingusers,newusers,use
 		// self.emit("abc",{"message":"test"});
 		SMSTemplateModel.findOne({name:"productprovidermemberinvite"}).lean().exec(function(err,nespusertemplate){
 	  	if(err){
-	  		logger.emit("error","Database Issue :fun-_sendSMSToInvitees")
+	  		logger.emit("error","Database Error :fun-_sendSMSToInvitees")
 	    	self.emit("failedAddMembersToGroup",{"error":{"code":"ED001","message":"Database Error"}});
 	  	}else if(nespusertemplate){
 	  		SMSTemplateModel.findOne({name:"productprovidermemberonlyinvite"}).lean().exec(function(err,spusertemplate){
@@ -339,7 +339,7 @@ var _addProviderProviderBranchDetailsToTheUser=function(self,branch,existinguser
 	if(grpname.toLowerCase()=="admin"){
 		UserModel.update({mobileno:{$in:existingusers_mobileno},"provider.branchid":branch.branchid},{$set:{"provider.$.isOwner":true}},{multi:true},function(err,userprovideradminstatus){
 			if(err){
-				logger.emit("error","Database Issue :_addProviderProviderBranchDetailsToTheUser"+err)
+				logger.emit("error","Database Error :_addProviderProviderBranchDetailsToTheUser"+err)
 			}else if(userprovideradminstatus==0){
 				logger.emit("error","no members for admin group")
 			}else{
@@ -350,7 +350,7 @@ var _addProviderProviderBranchDetailsToTheUser=function(self,branch,existinguser
 	UserModel.update({mobileno:{$in:existingusers_mobileno},"provider.branchid":{$ne:branch.branchid}},{$addToSet:{provider:userprovidersetdata}},{multi:true},function(err,providerupdatestatus){
 	  if(err){
 	 		logger.emit("error","Database Error,fun:_addServiceProviderDetailsToTheUser"+err,user.userid);
-			// self.emit("failedAddMembersToGroup",{"error":{"code":"ED001","message":"Database Issue"}});
+			// self.emit("failedAddMembersToGroup",{"error":{"code":"ED001","message":"Database Error"}});
 	  }else if(providerupdatestatus==0){
 	  	
 	   	// self.emit("failedAddMembersToGroup",{"error":{"message":"Userid is wrong"}});
@@ -571,8 +571,8 @@ var _isAuthorizeUserToGetMemberDetails=function(self,sessionuser,providerid,bran
 
    			UserModel.update({userid:memberid},{$pull:{provider:{branchid:branchid}}},function(err,userproviderremovestatus){
 	   			if(err){
-	   				logger.emit("error","Database Issue: _removeProviderBranchDetailsFromMember"+err);
-				    self.emit("failedRemoveMemberFromGroup",{"error":{"message":"Database Issue"}});
+	   				logger.emit("error","Database Error: _removeProviderBranchDetailsFromMember"+err);
+				    self.emit("failedRemoveMemberFromGroup",{"error":{"message":"Database Error"}});
 	   			}else if(userproviderremovestatus==0){
 	   				self.emit("failedRemoveMemberFromGroup",{"error":{"message":"Group user does not exist"}});
 	   			}else{
@@ -588,10 +588,10 @@ var _isAuthorizeUserToGetMemberDetails=function(self,sessionuser,providerid,bran
    	var _removeMemberFromBranch=function(self,sessionuser,branchid,groupid,memberid,branch,groupdata){
    		ProviderGroupModel.update({branchid:branchid,"usergrp.groupid":groupid},{$pull:{"usergrp.$.grpmembers":memberid}},function(err,memberremovestatus){
    			if(err){
-   				logger.emit("error","Database Issue: _removeMemberFromBranch"+err);
-			    self.emit("failedRemoveMemberFromGroup",{"error":{"message":"Database Issue"}});
+   				logger.emit("error","Database Error: _removeMemberFromBranch"+err);
+			    self.emit("failedRemoveMemberFromGroup",{"error":{"message":"Database Error"}});
    			}else if(memberremovestatus==0){
-   				self.emit("failedRemoveMemberFromGroup",{"error":{"message":"groupid is wrong"}});
+   				self.emit("failedRemoveMemberFromGroup",{"error":{"message":"Incorrect groupid"}});
    			}else{
    				console.log("groupdata"+groupdata);
    				if(groupdata.grpname=="admin"){
@@ -609,23 +609,23 @@ var _isAuthorizeUserToGetMemberDetails=function(self,sessionuser,providerid,bran
    		})
    	}
    	var _successfullRemoveMemberFromGroup=function(self,groupdata){
-   		self.emit("successfulRemoveMemberFromGroup",{success:{message:"successfully remove member from group"+groupdata.grpname}})
+   		self.emit("successfulRemoveMemberFromGroup",{success:{message:"successfully remove user from group"+groupdata.grpname}})
    	}
    	var 	_removeAdminProviderRoleFromUser=function(branchid,memberid){
    		UserModel.update({userid:memberid,"provider.branchid":branchid},{$set:{"provider.$.isOwner":false}},function(err,userprovideramdinremovestatus){
    			if(err){
-   				logger.emit("error","Database Issue :_removeAdminProviderRoleFromUser"+err)
+   				logger.emit("error","Database Error :_removeAdminProviderRoleFromUser"+err)
    			}else if(userprovideramdinremovestatus==0){
-   				logger.emit("error","branchid or userid wrong for _removeAdminProviderRoleFromUser")
+   				logger.emit("error","Incorrect branchid or userid for _removeAdminProviderRoleFromUser")
    			}else{
-   				logger.emit("log","remove admin role from provider");
+   				logger.emit("log","remove admin role from seller");
    			}
    		})
    	}
    var _sendNotificatForRemovingMember=function(self,memberid,branch,groupdata){
    	UserModel.findOne({userid:memberid},{firstname:1,email:1,mobileno:1,preffered_lang:1},function(err,user){
    		if(err){
-   			logger.emit("error","Database Issue :_sendNotificatForRemovingMember"+err)
+   			logger.emit("error","Database Error :_sendNotificatForRemovingMember"+err)
    		}else if(!user){
    			logger.emit("error","Group user does not exist")
    		}else{
@@ -641,7 +641,7 @@ var _isAuthorizeUserToGetMemberDetails=function(self,sessionuser,providerid,bran
   var _sendSMSNotificationForRemovingMember=function(self,user,branch,groupdata){
 		SMSTemplateModel.findOne({name:"productprovidermemberremove",lang:user.preffered_lang},function(err,smstemplate){
 			if(err){
-					logger.emit("error","Database Issue :_sendNotificatForRemovingMember"+err)
+					logger.emit("error","Database Error :_sendNotificatForRemovingMember"+err)
 			}else if(!smstemplate){
 				logger.emit("error","SMS template not found for productprovidermemberremove in lang"+user.preffered_lang)
 			}else{

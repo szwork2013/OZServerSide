@@ -41,8 +41,8 @@ var _validateOrderProcessingStatus = function(self,process,user){
 var _isValidIndex = function(self,process,user){
 	OrderProcessConfigModel.findOne({index:process.index},function(err,index){
 		if(err){
-			logger.emit("error","Database Issue :_isValidIndex "+err);
-			self.emit("failedAddOrderProcessingStatus",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit("error","Database Error :_isValidIndex "+err);
+			self.emit("failedAddOrderProcessingStatus",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(!index){
 			_isValidOrderStatus(self,process,user);
 		}else{
@@ -58,8 +58,8 @@ var _isValidOrderStatus = function(self,process,user){
 	console.log("_isValidOrderStatus");
 	OrderProcessConfigModel.findOne({order_status:process.order_status},function(err,orderstatus){
 		if(err){
-			logger.emit("error","Database Issue :_isValidOrderStatus "+err);
-			self.emit("failedAddOrderProcessingStatus",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit("error","Database Error :_isValidOrderStatus "+err);
+			self.emit("failedAddOrderProcessingStatus",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(!orderstatus){
 			_addOrderProcessingStatus(self,process,user);
 		}else{
@@ -117,8 +117,8 @@ OrderProcessConfig.prototype.deleteOrderProcessingStatus = function(user,index) 
 var _deleteOrderProcessingStatus = function(self,user,index){
 	OrderProcessConfigModel.remove({index:index},function(err,deletestatus){
 		if(err){
-			logger.emit('error',"Database Issue ,function:_deleteOrderProcessingStatus"+err,user.userid);
-			self.emit("failedDeleteOrderProcessingStatus",{"error":{"code":"ED001","message":"Database Issue"}});
+			logger.emit('error',"Database Error ,function:_deleteOrderProcessingStatus"+err,user.userid);
+			self.emit("failedDeleteOrderProcessingStatus",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(deletestatus==0){
 		    self.emit("failedDeleteOrderProcessingStatus",{"error":{"message":"Incorrect index key"}});
 		}else{
