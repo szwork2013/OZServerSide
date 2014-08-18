@@ -2131,7 +2131,7 @@ var _updateOrderPaymentDatails=function(self,responseobject){
 					for(var i=0;i<order.suborder.length;i++){
 						// suborderids.push({order.suborder[i].suborderid});
 							//////////////////////////////////
-					_makeSubOrderPaymentDone(order.orderid,order.suborder[i].suborderid,responseobject)
+					_makeSubOrderPaymentDoneByOnline(order.orderid,order.suborder[i].suborderid,responseobject)
 					////////////////////////////////
 					}
 				}
@@ -2142,13 +2142,28 @@ var _updateOrderPaymentDatails=function(self,responseobject){
 		}
 	})
 }
-var _makeSubOrderPaymentDone=function(orderid,suborderid,responseobject){
+var _makeSubOrderPaymentDoneByOnline=function(orderid,suborderid,responseobject){
 	var suborderpaymentdata={};
 	if(responseobject.STATUS.toLowerCase()=="txn_success"){
 		suborderpaymentdata={"suborder.$.buyerpayment.status":"done","suborder.$.buyerpayment.paiddate":new Date()}
 	}else{
 		suborderpaymentdata={"suborder.$.buyerpayment.status":"fail"}	
 	}
+	OrderModel.update({orderid:orderid,"suborder.suborderid":suborderid},{$set:suborderpaymentdata},function(err,suborderpaymentstaus){
+		if(err){
+			logger.emit("error","Database Error :_makeSubOrderPaymentDone"+err)
+		}else if(suborderpaymentstaus==0){
+			logger.emit("error","Incorrect suborderid")
+		}else{
+			logger.emit("log","suborder payment is done "+suborderid)
+		}
+	})
+}
+var _makeSubOrderPaymentDone=function(orderid,suborderid){
+	var suborderpaymentdata={};
+	
+	suborderpaymentdata={"suborder.$.sellerpayment.status":"done","suborder.$.sellerpayment.paiddate":new Date(),"suborder.$.buyerpayment.status":"done","suborder.$.buyerpayment.paiddate":new Date()}
+	
 	OrderModel.update({orderid:orderid,"suborder.suborderid":suborderid},{$set:suborderpaymentdata},function(err,suborderpaymentstaus){
 		if(err){
 			logger.emit("error","Database Error :_makeSubOrderPaymentDone"+err)
