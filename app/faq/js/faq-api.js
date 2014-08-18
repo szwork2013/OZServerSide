@@ -55,8 +55,12 @@ exports.addFAQ=function(req,res){
     logger.emit("info", result.success.message,sessionuserid);
     res.send(result)
   });
-  
-   faq.addFAQ(sessionuserid);
+   if(req.user.isAdmin){
+    faq.addFAQ(sessionuserid);
+   }else{
+    faq.emit("failedAddFAQ",{error:{code:"EA001",message:"Only Admin Can add FAQ"}})
+   }
+   
 }
 exports.updateFAQ=function(req,res){
   var sessionuserid=req.user.userid;
@@ -76,8 +80,12 @@ exports.updateFAQ=function(req,res){
     logger.emit("info", result.success.message,sessionuserid);
     res.send(result)
   });
-  
-   faq.updateFAQ(sessionuserid,faqid);
+  if(req.user.isAdmin){
+    faq.updateFAQ(sessionuserid,faqid);
+  }else{
+    faq.emit("failedUpdateFAQ",{error:{code:"EA001",message:"Only Admin Can UPDATE FAQ"}})
+  }
+   
 }
 exports.getAllFAQ=function(req,res){
   
@@ -133,6 +141,10 @@ exports.deleteFAQ=function(req,res){
     logger.emit("info", result.success.message,sessionuserid);
     res.send(result)
   });
-  
-   faq.deleteFAQ(sessionuserid,faqid);
+  if(req.user.isAdmin){
+    faq.deleteFAQ(sessionuserid,faqid);
+  }else{
+    faq.emit("failedDeleteAQ",{error:{code:"EA001",message:"Only Admin Can DELETE FAQ"}})
+  }
+   
 }
