@@ -316,7 +316,7 @@ var _updateAncestorsCategorynameInProductsModel = function(categoryid,newcategor
 var _updateCategorynameInProductConfigModel = function(categoryid,categoryname){
 	ProductConfigModel.update({categoryid:categoryid},{$set:{categoryname:categoryname}},{multi:true},function(err,productupdatestatus){
 		if(err){
-			logger.emit("error","Database Error : " + err);
+			logger.emit("error","Database Error : _updateCategorynameInProductConfigModel " + err);
 		}else{			
 			logger.emit("info","categoryname updated successfully in products config model");			
 		}
@@ -340,7 +340,7 @@ var _getAllLevelOneCategory = function(self,session_userid){
 			logger.emit("error","Database Error : " + err);
 			self.emit("failedGetAllLevelOneCategory",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(doc.length==0){
-			self.emit("failedGetAllLevelOneCategory",{"error":{"code":"AD001","message":"There is no Level One Category"}});
+			self.emit("failedGetAllLevelOneCategory",{"error":{"code":"AD001","message":"There is no Level First Category"}});
 		}else{
 			///////////////////////////////////////////
 	  		_successfullGetAllProductCategory(self,doc);
@@ -351,5 +351,5 @@ var _getAllLevelOneCategory = function(self,session_userid){
 
 var _successfullGetAllProductCategory = function(self,doc){
 	logger.emit("log","_successfullGetAllProductCategory");
-	self.emit("successfulGetAllLevelOneCategory", {"success":{"message":"Getting One Level Category","category":doc}});
+	self.emit("successfulGetAllLevelOneCategory", {"success":{"message":"Getting First Level Category","category":doc}});
 }

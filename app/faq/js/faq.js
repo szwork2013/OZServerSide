@@ -7,6 +7,7 @@ var FAQ = function(faqdata) {
 
 FAQ.prototype = new events.EventEmitter;
 module.exports = FAQ;
+
 FAQ.prototype.addFAQ= function(sessionuserid) {
 	var self=this;
 	var faqdata=this.faqdata;
@@ -45,6 +46,7 @@ var _addFAQ=function(self,faqdata,sessionuserid){
 var _successfulAddFAQ=function(self){
 	self.emit("successfulAddFAQ",{success:{message:"Successfully Added FAQ"}})
 }
+
 FAQ.prototype.updateFAQ= function(sessionuserid,faqid) {
 	var self=this;
 	var faqdata=this.faqdata;
@@ -72,7 +74,7 @@ var _updateFAQData=function(self,faqdata,sessionuserid,faqid){
 			logger.emit("error","Database Error:_updateFAQData"+err,sessionuserid);
 			self.emit("failedUpdateFAQ",{error:{code:"ED001",message:"Database Error"}})
 		}else if(updatefaqstatus==0){
-			self.emit("failedUpdateFAQ",{error:{message:"Incorrect faqid"}})
+			self.emit("failedUpdateFAQ",{error:{message:"Incorrect faqid"}});
 		}else{
 			////////////////////////////////////////
 			_successfullUpdateFAQData(self);
@@ -81,8 +83,9 @@ var _updateFAQData=function(self,faqdata,sessionuserid,faqid){
 	})
 }
 var _successfullUpdateFAQData=function(self){
-	self.emit("successfulUpdateFAQ",{success:{message:"Successfully Update Frequently Asked Qustions"}})
+	self.emit("successfulUpdateFAQ",{success:{message:"Successfully Updated Frequently Asked Qustions"}});
 }
+
 FAQ.prototype.getAllFAQ= function(sessionuserid,responsetype) {
 	var self=this;
 	var faqdata=this.faqdata;
@@ -108,9 +111,9 @@ var _getAllFAQ=function(self,sessionuserid,responsetype){
 var _successfullGetAllFAQ=function(self,faqs){
 	self.emit("successfulGetAllFAQ",{success:{message:"Successfully get FAQS",faqs:faqs}})
 }
+
 FAQ.prototype.deleteFAQ= function(sessionuserid,faqid) {
 	var self=this;
-	
 	/////////////////////////////////////
 	_deleteFAQ(self,sessionuserid,faqid)
     ///////////////////////////////////
@@ -131,5 +134,5 @@ var _deleteFAQ=function(self,sessionuserid,faqid){
  })
 }
 var _successfullDeleteFAQ=function(self){
-	self.emit("successfulDeleteFAQ",{success:{message:"Successfully Delete FAQ"}})
+	self.emit("successfulDeleteFAQ",{success:{message:"FAQ Deleted Successfully"}});
 }

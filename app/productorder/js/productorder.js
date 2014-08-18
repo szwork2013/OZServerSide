@@ -2475,7 +2475,7 @@ var _cancelOrderByConsumer=function(self,suborderids,index){
 	if(suborderids.length>index){
 		OrderModel.update({"suborder.suborderid":suborderids[index]},{$set:{"suborder.$.status":"cancelledbyconsumer"}},function(err,suborderupdatestatus){
 			if(err){
-				logger.emit("error","Database Issue :_checkSuborderIsValidOrder"+err)
+				logger.emit("error","Database Issue :_cancelOrderByConsumer "+err)
 				self.emit("failedCancelOrderByConsumer",{error:{code:"ED001",message:"Database Error"}})
 			}else{
 				/////////////////////////////////////////////
