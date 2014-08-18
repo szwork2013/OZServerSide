@@ -2310,7 +2310,7 @@ var _checkAvailableTimeSlots = function(self,data,leadtimearr){
 			logger.emit("error","Database Error _checkMaxLeadTime"+err)
 			self.emit("failedGetDeliveryTimeSlots",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(branchdata.length==0){
-			self.emit("failedGetDeliveryTimeSlots",{"error":{"message":"Incorrect branchids"}});
+			self.emit("failedGetDeliveryTimeSlots",{"error":{"message":"delivery time slots not available"}});
 		}else{
 			_getDeliveryTimeSlots(self,data,leadtimearr,branchdata);
 		}
@@ -2345,11 +2345,11 @@ var _getDeliveryTimeSlots = function(self,data,leadtimearr,branchdata){
 }
 
 var _manageTimeSlots=function(timeslots,branchid,preferred_del_date,expected_date,callback){
-	// console.log("timeslots : "+JSON.stringify(timeslots));
+	console.log("preferred_del_date : "+preferred_del_date+" expected_date : "+expected_date);
 	var result_arr = [];
-	var preftestdate=preferred_del_date.getFullYear()+"/"+preferred_del_date.getMonth()+"/"+preferred_del_date.getDate();
+	var preftestdate=preferred_del_date.getFullYear()+"/"+(preferred_del_date.getMonth()+1)+"/"+preferred_del_date.getDate();
 	var preftest=Date.parse(preftestdate);
-	var exptestdate=expected_date.getFullYear()+"/"+expected_date.getMonth()+"/"+expected_date.getDate();
+	var exptestdate=expected_date.getFullYear()+"/"+(expected_date.getMonth()+1)+"/"+expected_date.getDate();
 	var exptest=Date.parse(exptestdate);
 	console.log("preftest"+preftest+"   exptest"+exptest);
 	if(timeslots == undefined){
@@ -2378,7 +2378,7 @@ var _manageTimeSlots=function(timeslots,branchid,preferred_del_date,expected_dat
 				console.log("To : "+timeslots.deliverytimingslots[i].to);
 			}
 			available = __.find(timeslots.deliverytimingslots, function(obj) { return obj.available == true });
-			console.log("available "+available);
+			console.log("available "+JSON.stringify(available));
 			if(available == undefined){
 				expected_date.setDate(expected_date.getDate() + 1);
 				var result = expected_date.getHours()+expected_date.getMinutes()/60;
@@ -2399,7 +2399,7 @@ var _manageTimeSlots=function(timeslots,branchid,preferred_del_date,expected_dat
 				}
 			}
 			available = __.find(timeslots.deliverytimingslots, function(obj) { return obj.available == true });
-			console.log("available "+available);
+			console.log("available "+JSON.stringify(available));
 			if(available == undefined){
 				expected_date.setDate(expected_date.getDate() + 1);
 				var result = expected_date.getHours()+expected_date.getMinutes()/60;
@@ -2416,9 +2416,9 @@ var _manageTimeSlots=function(timeslots,branchid,preferred_del_date,expected_dat
 var _successfulGetDeliveryTimeSlots=function(self,doc){
 	self.emit("successfulGetDeliveryTimeSlots",{success:{message:"Getting Delivery Time Slots Successfully","doc":doc}});
 }
+
 Order.prototype.cancelOrderByConsumer = function(orderid,suborderids){
-	var self = this;
-	
+	var self = this;	
 	///////////////////////////////////////////////////////
 	_validateCancelOrderDataByConsumer(self,orderid,suborderids);
 	///////////////////////////////////////////////////////
@@ -2429,7 +2429,7 @@ var _validateCancelOrderDataByConsumer=function(self,orderid,suborderids){
 	}else if(!isArray(suborderids)){
 		self.emit("failedCancelOrderByConsumer",{error:{code:"AV001",message:"suborderids should be JSON array"}})
 	}else if(suborderids.length==0){
-		self.emit("failedCancelOrderByConsumer",{error:{code:"AV001",message:"Please pass atleast one suborder"}})		
+		self.emit("failedCancelOrderByConsumer",{error:{code:"AV001",message:"Please enter atleast one suborder"}})		
 	}else{
 		/////////////////////////////////////
 		_checkSuborderIsValidOrder(self,orderid,suborderids)
@@ -2457,10 +2457,10 @@ var _checkSuborderIsValidOrder=function(self,orderid,suborderids){
 				}
 			}
 			if(validsuborderids.length==0){
-				self.emit("failedCancelOrderByConsumer",{error:{message:"Please pass valid suborderid"}})
+				self.emit("failedCancelOrderByConsumer",{error:{message:"Please enter valid suborderid"}})
 			}else{
 				if(valistatussuborderids.length==0){
-					self.emit("failedCancelOrderByConsumer",{error:{message:"You can not Cancel the order"}})
+					self.emit("failedCancelOrderByConsumer",{error:{message:"You can not cancel the order"}})
 				}else{
 					///////////////////////////////////////////
 					_cancelOrderByConsumer(self,valistatussuborderids,0);
@@ -2476,8 +2476,8 @@ var _cancelOrderByConsumer=function(self,suborderids,index){
 		OrderModel.update({"suborder.suborderid":suborderids[index]},{$set:{"suborder.$.status":"cancelledbyconsumer"}},function(err,suborderupdatestatus){
 			if(err){
 				logger.emit("error","Database Issue :_checkSuborderIsValidOrder"+err)
-			self.emit("failedCancelOrderByConsumer",{error:{code:"ED001",message:"Database Error"}})
-			}else {
+				self.emit("failedCancelOrderByConsumer",{error:{code:"ED001",message:"Database Error"}})
+			}else{
 				/////////////////////////////////////////////
 				_cancelOrderByConsumer(self,suborderids,++index)
 				////////////////////////////////////////
@@ -2490,5 +2490,5 @@ var _cancelOrderByConsumer=function(self,suborderids,index){
 	}
 }
 var _successfulCancelOrderByConsumer=function(self){
-	self.emit("successfulCancelOrderByConsumer",{success:{message:"Successfully Order cancelled"}})
+	self.emit("successfulCancelOrderByConsumer",{success:{message:"Order Cancelled Successfully"}})
 }
