@@ -233,11 +233,14 @@ var _createPDFInvocie=function(self,inoviceobject,branch){
      var locationkeys=Object.keys(sellerlocation)
      console.log("locationkeys"+locationkeys)
      for(var i=0;i<locationkeys.length;i++){
-      if(i==(locationkeys.length-1)){
-        selleraddress+=sellerlocation[locationkeys[i]]+".";  
-      }else{
-        selleraddress+=sellerlocation[locationkeys[i]]+",";  
-      }  
+      if(sellerlocation[locationkeys[i]]!=undefined){
+        if(i==(locationkeys.length-1)){
+          selleraddress+=sellerlocation[locationkeys[i]]+".";  
+        }else{
+          selleraddress+=sellerlocation[locationkeys[i]]+",";  
+        }   
+      }
+     
     }
      
 
@@ -285,7 +288,12 @@ var _createPDFInvocie=function(self,inoviceobject,branch){
             var configname="";
             var configvalue="";
             for(var j=0;j<productconfiguration.length;j++){
-             configname+=productconfiguration[j].prod_configname+"</br>";
+              if(productconfiguration[j].prod_configtype.toLowerCase()=="ftp"){
+                configname+=productconfiguration[j].prod_configname+"("+productconfiguration[j].data.ftp+")</br>";  
+              }else{
+                configname+=productconfiguration[j].prod_configname+"</br>";  
+              }
+             
              configvalue+=productconfiguration[j].prod_configprice.value+"</br>"
             }
             productshtml+="<td>"+configname+"</td>";
