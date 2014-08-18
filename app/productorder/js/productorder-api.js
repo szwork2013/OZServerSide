@@ -446,7 +446,7 @@ exports.cancelOrderByConsumer = function(req,res){
   var orderid=req.params.orderid;
   var order = new Order();
   // logger.emit("log","req body"+JSON.stringify(req.body));
-  order.removeAllListeners("failedCancelOrderByConsumer");
+   order.removeAllListeners("failedCancelOrderByConsumer");
     order.on("failedCancelOrderByConsumer",function(err){
       logger.emit("error", err.error.message);
       //order.removeAllListeners();

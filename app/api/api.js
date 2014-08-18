@@ -32,7 +32,7 @@ var invoiceapi=require("../invoice/js/invoice-api");
 var productconfigapi = require("../productcatalog/js/product-config-api");
 var locationapi = require("../location/js/location-api");
 var orderprocessconfig = require("../productprovider/js/order-process-config-api");
-
+var faqapi=require("../faq/js/faq-api")
 //exporting all api to main hhapp
 // exports.smsproviderapi = smsproviderapi;
 exports.orderapi = orderapi;
@@ -55,3 +55,4 @@ exports.invoiceapi=invoiceapi;
 exports.productconfigapi=productconfigapi;
 exports.locationapi = locationapi;
 exports.orderprocessconfig = orderprocessconfig;
+exports.faqapi=faqapi;
