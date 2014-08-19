@@ -15,19 +15,19 @@ var getHtmlFAQResponse=function(result){
     var faqs=result.success.faqs;
     console.log("faqs"+JSON.stringify(faqs));
     for(var i=0;i<faqs.length;i++){
-      htmldata+="<div style='padding:20px;'><h2 style='font-size: 18px;font-weight: bold;line-height: 1.2em;letter-spacing: 0.21em;text-transform:uppercase;color: #0a4d6d;'>"+faqs[i].heading+"</h2></div>";
+      htmldata+="<div style='padding:10px;'><h2 style='font-size: 18px;font-weight: bold;line-height: 1em;letter-spacing: 1px;text-transform:uppercase;color: #0a4d6d;'>"+faqs[i].heading+"</h2></div>";
       htmldata+"<div class='panel-group' id='accordion'>"
       for(var j=0;j<faqs[i].faqs.length;j++){
         htmldata+="<div style='margin:5px;padding:5px;box-shadow: 0 0px 0px rgba(0,0,0,0.05);' class='panel'>";
         htmldata+="<div class='question'><p class='panel-title'>";
-        htmldata+="<h4 style='cursor:pointer;color:#b3b3b3;line-height: 1.2em;letter-spacing: 0.21em;' data-toggle='collapse' data-parent='#accordion' href='#collapse"+i+j+"'>"
+        htmldata+="<h4 style='cursor:pointer;color:rgb(100, 98, 98);line-height: 1.2em;letter-spacing: 1px;' data-toggle='collapse' data-parent='#accordion' href='#collapse"+i+j+"'>"
         htmldata+=faqs[i].faqs[j].question;
         htmldata+="</h4></p></div></div>"
         ///for answer
         htmldata+="<div id='collapse"+i+j+"' class='panel-collapse collapse'>"
-        htmldata+="<div class=''>";
+        htmldata+="<div style='margin:5px;padding:5px;' class='answer'><p style='text-align:justify;color:rgb(158, 87, 9);line-height: 1.2em;letter-spacing: 1px;'>";
         htmldata+=faqs[i].faqs[j].answer
-        htmldata+="</div></div>"
+        htmldata+="</p></div></div>"
       }
       htmldata+="</div>"
     }

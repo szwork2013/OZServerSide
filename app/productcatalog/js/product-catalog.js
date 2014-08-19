@@ -9,6 +9,7 @@ var path=require("path");
 var AWS = require('aws-sdk');
 var CONFIG=require("config").OrderZapp;
 var amazonbucket=CONFIG.amazonbucket;
+var isNumeric = require("isnumeric");
 var exec = require('child_process').exec;
 AWS.config.update({accessKeyId:'AKIAJOGXRBMWHVXPSC7Q', secretAccessKey:'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'});
 AWS.config.update({region:'ap-southeast-1'});
@@ -823,7 +824,7 @@ var _validateProductsPriceData=function(self,branchid,productpricedata,sessionus
 		var productpricedataarr = [];
 		console.log("productpricedata : "+JSON.stringify(productpricedata));
 		for(var i=0;i<productpricedata.length;i++){
-			if(productpricedata[i].productid != "" && productpricedata[i].newprice != undefined && S(productpricedata[i].newprice).isNumeric()){
+			if(productpricedata[i].productid != "" && productpricedata[i].newprice != undefined && isNumeric(productpricedata[i].newprice)){
 				productpricedataarr.push(productpricedata[i]);
 			}
 		}

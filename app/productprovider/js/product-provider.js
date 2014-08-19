@@ -771,6 +771,46 @@ var _getProductProvider=function(self,providerid){
 		}else if(!productprovider){
 			self.emit("failedGetProductProvider",{"error":{"message":"Incorrect seller id"}});	
 		}else{
+
+			var actionstatus={accepted:"accept",cancelled:"cancel",rejected:"reject",inproduction:"production",factorytostore:"shiptostore",packing:"pack",indelivery:"deliver",storepickup:"pickfromstore",ordercomplete:"done"};
+			var orderprocess_configuration=productprovider.orderprocess_configuration;
+					var givenindexes=[];
+					var sequenceorderprocess_configuration=[];
+					var negetive_order_process_configuration=[];
+          for(var j=0;j<orderprocess_configuration.length;j++){
+          	if(orderprocess_configuration[j].index>0){
+          		givenindexes.push(orderprocess_configuration[j].index);
+          		sequenceorderprocess_configuration.push(orderprocess_configuration[j])
+          	}else{
+          		negetive_order_process_configuration.push(orderprocess_configuration[j])
+          	}
+          }
+          var positiveindex_orderprocess=[];
+          var sortedindex=__.sortBy(givenindexes);
+					for(var k=0;k<sortedindex.length;k++){
+						if(givenindexes.indexOf(sortedindex[k])>=0){
+							positiveindex_orderprocess.push(sequenceorderprocess_configuration[givenindexes.indexOf(sortedindex[k])])
+						}
+					}
+					var final_order_processconfiguration=[]
+					for(var k=0;k<positiveindex_orderprocess.length;k++){
+		  			var indexvalue=k+1;
+						var order_configprocess={index:indexvalue,order_status:positiveindex_orderprocess[k].order_status};
+						if(k==(positiveindex_orderprocess.length-1)){
+							order_configprocess.action=null;
+						}else{
+							order_configprocess.action=actionstatus[positiveindex_orderprocess[indexvalue].order_status]
+						}
+						final_order_processconfiguration.push(order_configprocess)
+					}
+					for(var l=0;l<negetive_order_process_configuration.length;l++){
+						final_order_processconfiguration.push({index:negetive_order_process_configuration[l].index,order_status:negetive_order_process_configuration[l].order_status,action:null})
+					}
+			
+				productprovider=JSON.stringify(productprovider);
+				productprovider=JSON.parse(productprovider)
+				console.log("valid_order_process_configuration"+JSON.stringify(final_order_processconfiguration))
+				productprovider.orderprocess_configuration=final_order_processconfiguration;	
 			/////////////////////////////////////////////////////
 			_successfullGetProductProvider(self,productprovider);
 			/////////////////////////////////////////////////////
