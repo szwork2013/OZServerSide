@@ -878,7 +878,7 @@ var _isValidProductsToChangePrice=function(self,branchid,productpricedata,sessio
        _successfullProductPriceChange(self);
 	}
 }
-var _changeProductsPrice=function(self,branchid,productprice,initialvalue,sessionuserid,productpricedata,product){
+var _changeProductsPrice = function(self,branchid,productprice,initialvalue,sessionuserid,productpricedata,product){
 	ProductCatalogModel.update({productid:productprice.productid},{$set:{"price.value":productprice.newprice,"holding_price.status":"init"}},function(err,pricechangestatus){
 		if(err){
 			logger.emit('error',"Database Error _changeProductsPrice "+err,sessionuserid);
