@@ -300,7 +300,7 @@ exports.getProviderInfo=function(req,res){
   productprovider.on("successfulGetProviderInfo",function(result){
     res.send(result);
   });
-  productprovider.getProviderInfo(providerid);
+  // productprovider.getProviderInfo(providerid);
 }
 
 exports.getAllProductProviders=function(req,res){
