@@ -289,7 +289,7 @@ var _createPDFInvocie=function(self,inoviceobject,branch){
             var configvalue="";
             for(var j=0;j<productconfiguration.length;j++){
               if(productconfiguration[j].prod_configtype.toLowerCase()=="ftp"){
-                configname+=productconfiguration[j].prod_configname+"("+productconfiguration[j].data.ftp+")</br>";  
+                configname+=productconfiguration[j].prod_configname+" ("+productconfiguration[j].data.ftp+")</br>";  
               }else{
                 configname+=productconfiguration[j].prod_configname+"</br>";  
               }
