@@ -20,7 +20,7 @@ var getHtmlFAQResponse=function(result){
       for(var j=0;j<faqs[i].faqs.length;j++){
         htmldata+="<div style='margin:5px;padding:5px;box-shadow: 0 0px 0px rgba(0,0,0,0.05);' class='panel'>";
         htmldata+="<div class='question'><p class='panel-title'>";
-        htmldata+="<h4 style='cursor:pointer;color:#b3b3b3;line-height: 1.2em;letter-spacing: 0.21em;' data-toggle='collapse' data-parent='#accordion' href='#collapse"+i+j+"'>"
+        htmldata+="<h4 style='cursor:pointer;color:blue;line-height: 1.2em;letter-spacing: 0.21em;' data-toggle='collapse' data-parent='#accordion' href='#collapse"+i+j+"'>"
         htmldata+=faqs[i].faqs[j].question;
         htmldata+="</h4></p></div></div>"
         ///for answer

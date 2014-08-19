@@ -1851,7 +1851,7 @@ var _getCurrentAndPastOrders=function(self,query,criteriastatus){
 			logger.emit("error","Database Error _getCurrentAndPastOrders"+err);
 			self.emit("failedGetCurrentAndPastOrders",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(orders.length==0){
-			self.emit("failedGetCurrentAndPastOrders",{"error":{"message":"You do not have any "+criteriastatus+" orders"}});
+			self.emit("failedGetCurrentAndPastOrders",{"error":{code:"SODR001","message":"You do not have any "+criteriastatus+" orders"}});
 		}else{
 			////////////////////////////////////////
 			_successfullGetAllMyOrder(self,orders)
