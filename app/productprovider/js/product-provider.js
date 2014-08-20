@@ -2049,21 +2049,29 @@ var _checkValueInPercentOrAmount=function(self,userid,branchid,deliverychargedat
 var _checkDeliveryChargeData=function(self,userid,branchid,deliverychargedata,isdeliverychargeinpercent){
 	var validated_data=[];
 	var coveragearray=[];
+	var deletedzipcodearray=[];
+	var deletareaarray=[];
 	for(var i=0;i<deliverychargedata.length;i++){
 		if(deliverychargedata[i].value!=undefined && S(deliverychargedata[i].value).isNumeric() && deliverychargedata[i].coverage.area!=undefined && deliverychargedata[i].coverage.city!=undefined  && deliverychargedata[i].coverage.zipcode!=undefined){
-				validated_data.push({value:deliverychargedata[i].value,coverage:{area:deliverychargedata[i].coverage.area.toLowerCase(),city:deliverychargedata[i].coverage.city.toLowerCase(),zipcode:deliverychargedata[i].coverage.zipcode}})
-				coveragearray.push({area:deliverychargedata[i].coverage.area.toLowerCase(),city:deliverychargedata[i].coverage.city.toLowerCase(),zipcode:deliverychargedata[i].coverage.zipcode})
+				if(deliverychargedata[i].available){//add or update deilvery area and charge//delete
+					validated_data.push({value:deliverychargedata[i].value,coverage:{area:deliverychargedata[i].coverage.area.toLowerCase(),city:deliverychargedata[i].coverage.city.toLowerCase(),zipcode:deliverychargedata[i].coverage.zipcode}})
+				  coveragearray.push({area:deliverychargedata[i].coverage.area.toLowerCase(),city:deliverychargedata[i].coverage.city.toLowerCase(),zipcode:deliverychargedata[i].coverage.zipcode})	
+				}else{//delete
+					deletedzipcodearray.push(deliverychargedata[i].coverage.zipcode);
+					deletareaarray.push(deliverychargedata[i].coverage.area);
+						
+				}
 		}
 	}
 	if(validated_data.length==0){
 		self.emit("failedManageDeliveryCharges",{"error":{"message":"Please enter valid deliverychargedata"}});
 	}else{
 		/////////////////////////////////
-		_checkDeliveryChargesAlreadyApplied(self,userid,branchid,validated_data,coveragearray)
+		_checkDeliveryChargesAlreadyApplied(self,userid,branchid,validated_data,coveragearray,deletedzipcodearray,deletareaarray)
 		////////////////////////////////
 	}
 }
-var _checkDeliveryChargesAlreadyApplied=function(self,userid,branchid,validated_data,coveragearray){
+var _checkDeliveryChargesAlreadyApplied=function(self,userid,branchid,validated_data,coveragearray,deletedzipcodearray,deletareaarray){
 	ProductProviderModel.aggregate({$match:{"branch.branchid":branchid}},{$unwind:"$branch"},{$match:{"branch.branchid":branchid}},{$unwind:"$branch.deliverycharge"},{$match:{"branch.deliverycharge.coverage":{$in:coveragearray}}},{$project:{value:"$branch.deliverycharge.value",coverage:"$branch.deliverycharge.coverage",_id:0}},function(err,deliverycharges){
 		if(err){
 			logger.emit("error","Database Error :_checkDeliveryChargesAlreadyApplied"+err);
@@ -2087,6 +2095,9 @@ var _checkDeliveryChargesAlreadyApplied=function(self,userid,branchid,validated_
 					validappliedareas.push(validated_data[i])
 				}
 			}
+			///////////////////////////////////////
+			_removeBranchDeliveryCharges(branchid,deletedzipcodearray,deletareaarray);
+			////////////////////////////////////
 			console.log("validappliedareas"+JSON.stringify(validappliedareas))
 			// console.log("alreadyappliedareas"+JSON.stringify(alreadyappliedareas))
 			if(validappliedareas.length==0){
@@ -2104,6 +2115,19 @@ var _checkDeliveryChargesAlreadyApplied=function(self,userid,branchid,validated_
 		}
 	})
 }
+var _removeBranchDeliveryCharges=function(branchid,deletedzipcodearray,deletareaarray){
+	ProductProviderModel.update({"branch.branchid":branchid},{$pull:{"branch.$.deliverycharge":{"coverage.zipcode":{$in:deletedzipcodearray},"coverage.area":{$in:deletareaarray}}}},function(err,deletedeliveryareastatus){
+ 		if(err){
+			logger.emit("error","Database Error :deletareaarray"+err)
+			// self.emit("failedManageDeliveryCharges",{error:{code:"ED001",message:"Database Error"}})		
+ 		}else if(deletedeliveryareastatus==0){
+ 			logger.emit("error","Branch id is wrong for _removeBranchDeliveryCharges")
+ 		}else{
+ 			logger.emit("info","deliverycharge area removed from branch"+branchid)
+ 		}
+ 	})
+}
+
 var _addDeliveryCharges=function(self,validappliedareas,alreadyappliedareas,userid,branchid){
 	ProductProviderModel.update({"branch.branchid":branchid},{$addToSet:{"branch.$.deliverycharge":{$each:validappliedareas}}},function(err,deliverychargestatus){
 		if(err){
