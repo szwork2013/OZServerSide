@@ -2096,7 +2096,7 @@ var _validateCheckSumPayTm=function(self,paytmresponsedata,responseobject){
 	})
 }
 
-var _updateOrderPaymentDatails=function(self,responseobject){
+var _updateOrderPaymentDatails = function(self,responseobject){
 	var paymentsetdata={};
 	for(i in responseobject){
 		if(responseobject[i]!=undefined){
@@ -2405,7 +2405,7 @@ var _manageTimeSlots=function(timeslots,branchid,preferred_del_date,expected_dat
 			// callback({"success":{"doc":result_arr[0]}});
 		}else{//if pref delivery date < exp del date
 			var result = expected_date.getHours()+expected_date.getMinutes()/60;
-			console.log("no condition : "+result);			
+			console.log("no condition : "+result);
 			for(var i=0;i<timeslots.deliverytimingslots.length;i++){
 				if(result < timeslots.deliverytimingslots[i].to){
 					timeslots.deliverytimingslots[i].available = true;
@@ -2430,6 +2430,129 @@ var _manageTimeSlots=function(timeslots,branchid,preferred_del_date,expected_dat
 }
 var _successfulGetDeliveryTimeSlots=function(self,doc){
 	self.emit("successfulGetDeliveryTimeSlots",{success:{message:"Getting Delivery Time Slots Successfully","doc":doc}});
+}
+
+Order.prototype.getTimeSlotsForSelectedDate = function(userid){
+	var self = this;
+	var data = this.order;
+	console.log("Data : "+JSON.stringify(data));
+	///////////////////////////////////////////////////////
+	_validateGetTimeSlotsForSelectedDate(self,data,userid);
+	///////////////////////////////////////////////////////
+}
+var _validateGetTimeSlotsForSelectedDate = function(self,data,userid){
+	if(data == undefined){
+		self.emit("failedGetTimeSlotsForSelectedDate",{"error":{"code":"DT001","message":"Please enter data"}});
+	}else if(data.new_delivery_date==undefined || data.new_delivery_date==""){
+		self.emit("failedGetTimeSlotsForSelectedDate",{"error":{"code":"DT001","message":"Please enter new delivery date"}});
+	}else if(data.suborderid == undefined || data.suborderid == ""){
+		self.emit("failedGetTimeSlotsForSelectedDate",{"error":{"code":"DT001","message":"Please enter suborderid"}});
+	}else{
+		_getSuborderToGetTimeSlotsForSelectedDate(self,data,userid);
+	}
+}
+var _getSuborderToGetTimeSlotsForSelectedDate=function(self,data,userid){
+	 OrderModel.aggregate({$unwind:"$suborder"},{$match:{"suborder.suborderid":data.suborderid}},{$project:{suborder:1,_id:0}},function(err,suborderdata){
+	 	if(err){
+	 		logger.emit("error","Database Error _getSuborderToGetTimeSlotsForSelectedDate"+err);
+			self.emit("failedGetTimeSlotsForSelectedDate",{"error":{"code":"ED001","message":"Database Error"}});
+	 	}else if(suborderdata.length>0){	 		
+	 		_isAuthorizeUserToGetTimeSlotsForSelectedDate(self,data,suborderdata[0].suborder,userid);
+	 	}else{
+	 		self.emit("failedGetTimeSlotsForSelectedDate",{error:{message:"Incorrect suborderid"}});
+	 	}
+	 })
+}
+var _isAuthorizeUserToGetTimeSlotsForSelectedDate=function(self,data,suborder,userid){
+	UserModel.findOne({userid:userid,"provider.providerid":suborder.productprovider.providerid},function(err,userprovider){
+		if(err){
+			logger.emit("error","Database Error:/_isAuthorizeUserToGetTimeSlotsForSelectedDate "+err);
+			self.emit("failedGetTimeSlotsForSelectedDate",{error:{message:"Database Error"}})
+		}else if(!userprovider){
+			self.emit("failedGetTimeSlotsForSelectedDate",{error:{message:"You have not authorized to get time slots for selected date"}});
+		}else{
+			//////////////////////////////////////////////////////////////////////////
+			_checkMaxLeadTimeToGetTimeSlotsForSelectedDate(self,data,suborder,userid);
+			//////////////////////////////////////////////////////////////////////////
+		}
+	})
+}
+
+var _checkMaxLeadTimeToGetTimeSlotsForSelectedDate = function(self,data,suborder,userid){
+	var productids = [];
+	for(var i=0;i<suborder.products.length;i++){
+		productids.push(suborder.products[i].productid);
+	}	
+	ProductLeadTimeModel.aggregate({$unwind:"$productleadtime"},{$match:{"productleadtime.productid":{$in:productids}}},{$group:{_id:"$branchid",maxLeadTime:{$max:"$productleadtime.leadtimeinminutes"}}},{$project:{branchid:"$_id",maxleadtime:"$maxLeadTime",_id:0}},function(err,doc){
+		if(err){
+			logger.emit("error","Database Error _checkMaxLeadTimeToGetTimeSlotsForSelectedDate"+err);
+			self.emit("failedGetTimeSlotsForSelectedDate",{"error":{"code":"ED001","message":"Database Error"}});
+		}else if(doc.length==0){
+			self.emit("failedGetTimeSlotsForSelectedDate",{"error":{"message":"lead time not available for products"}});
+		}else{
+			console.log(doc[0]);
+			ProductProviderModel.aggregate({$unwind:"$branch"},{$match:{"branch.branchid":doc[0].branchid}},{$project:{branchid:"$branch.branchid",deliverytimingslots:"$branch.deliverytimingslots",_id:0}},function(err,branchdata){
+				if(err){
+					logger.emit("error","Database Error _checkMaxLeadTimeToGetTimeSlotsForSelectedDate"+err);
+					self.emit("failedGetTimeSlotsForSelectedDate",{"error":{"code":"ED001","message":"Database Error"}});
+				}else if(branchdata.length==0){
+					self.emit("failedGetTimeSlotsForSelectedDate",{"error":{"message":"delivery time slots not available"}});
+				}else{
+					console.log("branchdata : "+JSON.stringify(branchdata));
+					_getTimeSlotsForSelectedDate(self,data,doc[0].maxleadtime,branchdata[0]);
+				}
+			})
+		}
+	})
+}
+var _getTimeSlotsForSelectedDate = function(self,data,maxleadtime,branchdata){
+	var new_delivery_date = new Date(data.new_delivery_date);
+	var current_date = new Date();
+	var expected_date = new Date();
+	expected_date.setMinutes(current_date.getMinutes()+maxleadtime);
+	console.log("currentdate : "+current_date);
+	console.log("expected_date : "+expected_date);
+	var exptestdate=expected_date.getFullYear()+"/"+(expected_date.getMonth()+1)+"/"+expected_date.getDate();
+	var exptest=Date.parse(exptestdate);
+	console.log("data.new_delivery_date : "+data.new_delivery_date)
+	var newtestdate=new_delivery_date.getFullYear()+"/"+(new_delivery_date.getMonth()+1)+"/"+new_delivery_date.getDate();
+	var newtest=Date.parse(newtestdate);
+	console.log("exptest "+exptest+" newtest "+newtest);
+	if(newtest > exptest){		
+		var result = expected_date.getHours()+expected_date.getMinutes()/60;
+		console.log("newtest > exptest : "+result);
+		for(var i=0;i<branchdata.deliverytimingslots.length;i++){
+			branchdata.deliverytimingslots[i].available = true;
+		}
+	}else if(newtest == exptest){
+		var result = expected_date.getHours()+expected_date.getMinutes()/60;
+		console.log("same date : "+result);
+		for(var i=0;i<branchdata.deliverytimingslots.length;i++){
+			if(result < branchdata.deliverytimingslots[i].to){
+				branchdata.deliverytimingslots[i].available = true;
+			}else{
+				branchdata.deliverytimingslots[i].available = false;
+			}
+			console.log("To : "+branchdata.deliverytimingslots[i].to);
+		}
+	}else{//if newtest date < exp date		
+		var result = expected_date.getHours()+expected_date.getMinutes()/60;
+		console.log("no condition : "+result);
+		for(var i=0;i<branchdata.deliverytimingslots.length;i++){
+			if(result < branchdata.deliverytimingslots[i].to){
+				branchdata.deliverytimingslots[i].available = false;
+			}else{
+				branchdata.deliverytimingslots[i].available = false;
+			}
+		}
+	}
+	branchdata.new_delivery_date = new_delivery_date;			
+	////////////////////////////////////////////////////////
+	_successfulGetTimeSlotsForSelectedDate(self,branchdata);
+	////////////////////////////////////////////////////////
+}
+var _successfulGetTimeSlotsForSelectedDate=function(self,doc){
+	self.emit("successfulGetTimeSlotsForSelectedDate",{success:{message:"Getting Time Slots Successfully","doc":doc}});
 }
 
 Order.prototype.cancelOrderByConsumer = function(orderid,suborderids){

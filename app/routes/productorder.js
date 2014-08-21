@@ -8,7 +8,8 @@ exports.init = function (app) {
 	app.get('/api/myorder',auth,api.orderapi.getAllMyOrder);
     app.post('/api/deliverycharge',api.orderapi.getDeliveryCharges);
     app.post('/api/latestproductprice',api.orderapi.getLatestProductPrices);
-    app.post('/api/deliverytimeslots',api.orderapi.getDeliveryTimeSlots);
+    app.post('/api/deliverytimeslots',api.orderapi.getDeliveryTimeSlots);//only for bayers on apk
+    app.post('/api/timeslots',auth,api.orderapi.getTimeSlotsForSelectedDate);//only for sellars
 	/////////////////provider////////////////////
 	app.get('/api/suborder/:providerid/:branchid',auth,api.orderapi.getMySubOrders);
 	app.get("/api/oz",api.commonapi.LongCodeResponse);
