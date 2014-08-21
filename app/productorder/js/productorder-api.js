@@ -481,7 +481,7 @@ exports.cancelOrderByConsumer = function(req,res){
 }
 exports.OrderPrintToPdf = function(req,res){
   // var session_userid = req.user.userid;
-  var orderhtmldata=req.body.orderhtmldata;
+  var orderhtmldata=req.query.orderhtmldata;
   
   var order = new Order();
   // logger.emit("log","req body"+JSON.stringify(req.body));
@@ -494,6 +494,7 @@ exports.OrderPrintToPdf = function(req,res){
     order.removeAllListeners("successfulOrderPrintToPdf");
     order.on("successfulOrderPrintToPdf",function(result){
       // order.removeAllListeners();
+      console.log("result:Pdf"+result.success.orderpdf)
       res.sendfile(result.success.orderpdf)
     });
     ////////////////////////////////
