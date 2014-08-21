@@ -28,7 +28,8 @@ exports.init = function (app) {
 	app.get('/api/invoice/:branchid/:suborderid',auth,api.invoiceapi.createInvoice)
 	app.post('/api/confirmorder',auth,api.orderapi.confirmOrderByWeb)
 	app.get('/api/paytmconfiguration',auth,api.commonapi.getPayTMConfiguration)
-	app.post('/api/cancelorder/:orderid',auth,api.orderapi.cancelOrderByConsumer)
+	app.post('/api/cancelorder/:orderid',auth,api.orderapi.cancelOrderByConsumer);
+	app.post('/api/orderprint',api.orderapi.OrderPrintToPdf)
 
 	
 

@@ -459,6 +459,27 @@ exports.cancelOrderByConsumer = function(req,res){
     });
     order.cancelOrderByConsumer(orderid,suborderids);
 }
+exports.OrderPrintToPdf = function(req,res){
+  // var session_userid = req.user.userid;
+  var orderhtmldata=req.body.orderhtmldata;
+  
+  var order = new Order();
+  // logger.emit("log","req body"+JSON.stringify(req.body));
+   order.removeAllListeners("failedOrderPrintToPdf");
+    order.on("failedOrderPrintToPdf",function(err){
+      logger.emit("error", err.error.message);
+      //order.removeAllListeners();
+      res.send(err);
+    });
+    order.removeAllListeners("successfulOrderPrintToPdf");
+    order.on("successfulOrderPrintToPdf",function(result){
+      // order.removeAllListeners();
+      res.sendfile(result.success.orderpdf)
+    });
+    ////////////////////////////////
+    order.OrderPrintToPdf(orderhtmldata);
+    ///////////////////////////////
+}
 
 // exports.getServiceOrderRequest = function(req,res){
 //   var requestid = req.params.requestid;
