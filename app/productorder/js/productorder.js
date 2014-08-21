@@ -1388,7 +1388,7 @@ var _manageOrder=function(self,action,user,suborder,status,order){
 					// 	///////////////////////////
 					// }
 					console.log("orderid"+order.orderid)
-					if(action.toLowerCase()=="done")
+					if(action.toLowerCase()=="done" && suborder.buyerpayment.mode.toLowerCase()!="paytm")
 					{
 						//////////////////////////////
 						 _makeSubOrderPaymentDone(order.orderid,suborder.suborderid);
@@ -1975,6 +1975,7 @@ var _generateChecksum=function(self,checksumdata,generatechecksumresponse){
   var THEME=checksumdata.THEME
 	java.callStaticMethod("PayTm", "generateCheckSum",merchantKey,MID,ORDER_ID,CUST_ID,TXN_AMOUNT,CHANNEL_ID,INDUSTRY_TYPE_ID,WEBSITE,MOBILE_NO,EMAIL,THEME,function(err, results) {
   	if(err) {
+  		console.log("_generateChecksum:From Java:"+err)
   		self.emit("failedgeneratePayTmCheckSum",{error:{message:err,generatechecksumresponse:generatechecksumresponse}})
   	}else{
   		generatechecksumresponse.payt_STATUS=1;
@@ -2076,12 +2077,11 @@ var _validateCheckSumPayTm=function(self,paytmresponsedata,responseobject){
  	
 	java.callStaticMethod("PayTm", "validateCheckSum",paytmChecksum,merchantKey,MID,TXNID,ORDER_ID,BANKTXNID,STATUS,RESPCODE,TXNAMOUNT, function(err, results) {
   	if(err) {
-  		console.log("error"+err)
-  		
+  		console.log("_validateCheckSumPayTm:Payment Error From Payment SDK"+err)
   		self.emit("failedPaytmCallbackUrl",{error:{message:"CHECKSUMHASH IS NOT VALID",responseobject:responseobject}})
   	}else{
   		if(responseobject.STATUS.toLowerCase()=="txn_success"){
-  			logger.emit("log","Payment Successfull");
+  			logger.emit("log","Payment Successfull for Order:"+responseobject.ORDERID);
   			responseobject.IS_CHECKSUM_VALID="Y";
   			/////////////////////////////////////
 			 _successfullPaytmCallbackUrl(self,responseobject)
@@ -2150,6 +2150,7 @@ var _updateOrderPaymentDatails=function(self,responseobject){
 		}
 	})
 }
+//this fucntion call when payment done by card
 var _makeSubOrderPaymentDoneByOnline=function(orderid,suborderid,responseobject){
 	var suborderpaymentdata={};
 	if(responseobject.STATUS.toLowerCase()=="txn_success"){
