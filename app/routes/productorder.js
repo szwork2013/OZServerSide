@@ -30,7 +30,7 @@ exports.init = function (app) {
 	app.post('/api/confirmorder',auth,api.orderapi.confirmOrderByWeb)
 	app.get('/api/paytmconfiguration',auth,api.commonapi.getPayTMConfiguration)
 	app.post('/api/cancelorder/:orderid',auth,api.orderapi.cancelOrderByConsumer);
-	app.get('/api/orderprint',api.orderapi.OrderPrintToPdf)
+	app.post('/api/orderprint',api.orderapi.OrderPrintToPdf)
 
 	
 
