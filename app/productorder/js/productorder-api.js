@@ -3,6 +3,8 @@ var logger = require("../../common/js/logger");
 var Order = require("./productorder");
 var urlencode = require('urlencode');
 var S=require("string");
+var fs=require("fs");
+var exec = require('child_process').exec;
 ////////////CONSUMER////////////////////////////
 exports.createOrder = function(req,res){//Add New Order
   var session_userid = req.user.userid;
@@ -482,7 +484,7 @@ exports.cancelOrderByConsumer = function(req,res){
 exports.OrderPrintToPdf = function(req,res){
   // var session_userid = req.user.userid;
   var orderhtmldata=req.body.orderhtmldata;
-  
+  var suborderid=req.params.suborderid;
   var order = new Order();
   // logger.emit("log","req body"+JSON.stringify(req.body));
    order.removeAllListeners("failedOrderPrintToPdf");
@@ -494,12 +496,25 @@ exports.OrderPrintToPdf = function(req,res){
     order.removeAllListeners("successfulOrderPrintToPdf");
     order.on("successfulOrderPrintToPdf",function(result){
       // order.removeAllListeners();
-      console.log("result:Pdf"+result.success.orderpdf);
-       // res.end(result.success.orderpdf, 'binary')
-      res.sendfile(result.success.orderpdf)
+      var text = fs.readFileSync(result.success.orderpdf,'binary')
+     
+       
+       res.writeHead(200, {'Content-Type': 'application/pdf'});
+       res.end(text,'binary');
+       exec("rm -rf "+result.success.orderpdf);
+        // var stat = fs.statSync(result.success.orderpdf);
+          // res.setHeader('Content-disposition', 'attachment; filename=test.pdf' );
+        // res.writeHead(200, {
+        //   'Content-Type': 'application/pdf',
+        //  'Content-Length': stat.size
+        // });
+
+    // var readStream = fs.createReadStream(result.success.orderpdf);
+    // // We replaced all the event handlers with a simple call to readStream.pipe()
+    // readStream.pipe(res);
     });
     ////////////////////////////////
-    order.OrderPrintToPdf(orderhtmldata);
+    order.OrderPrintToPdf(orderhtmldata,suborderid);
     ///////////////////////////////
 }
 

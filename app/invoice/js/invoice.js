@@ -326,7 +326,7 @@ var _createPDFInvocie=function(self,inoviceobject,branch){
             productshtml+="<td></td>";
             productshtml+="<td></td>";
             productshtml+="<td></td>";
-            productshtml+="<td>+delivery charges</td>";
+            productshtml+="<td>+ Delivery Charges</td>";
             productshtml+="<td><span style='float:right'>"+inoviceobject.deliverycharge+"</span></td>";
             productshtml+="</tr>";
        }
