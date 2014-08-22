@@ -402,7 +402,7 @@ exports.loadSMSTemplates=function (req,res) {
 {	
 	"lang" : "EN",
 	"name" : "finaldeliveryhomecod",
-	"template" : "Your OrderZapp shipment SubOrder No: <suborderid> is ready to be delivered to <delivery_address>. please keep change of Rs.<suborder_price> with you"
+	"template" : "Your OrderZapp shipment SubOrder No: <suborderid> is ready and wil be deliver to <delivery_address>. please keep change of Rs.<suborder_price> with you"
 },
 {	
 	"lang" : "EN",
@@ -919,4 +919,6 @@ exports.getAllFeedback=function(req,res){
 		})
 	}
 }
+
+
 

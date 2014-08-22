@@ -283,7 +283,7 @@ exports.generatePayTmCheckSum = function(req,res){//Add New Order
   logger.emit("log","req body"+JSON.stringify(req.body));
   order.removeAllListeners("failedgeneratePayTmCheckSum");
     order.on("failedgeneratePayTmCheckSum",function(err){
-      logger.emit("error", err.error.message);
+      logger.emit("error", err.error.message,checksumdata.CUST_ID);
       console.log("checksum error"+JSON.stringify(err.error))
       //order.removeAllListeners();
       res.send(JSON.stringify(err.error.generatechecksumresponse));
@@ -332,7 +332,7 @@ exports.paytmCallbackUrl = function(req,res){//Add New Order
       paytmsuccessresponse+="<div style='font-size:18px; letter-spacing: 2px; font-weight: bold; padding: 2px;>"
       paytmsuccessresponse+="<p class='text-danger'><em>Payment Failed</em></p></div><div style='font-size:14px; letter-spacing: 2px; font-weight: bold; padding: 2px; '>";
       paytmsuccessresponse+="<p class='text-muted'>Please try after some time.</p></div></center</div></div></div>";
-      logger.emit("error", err.error.message);
+      logger.emit("error", err.error.message,"OrderId:"+paytmresponsedata.ORDER_ID);
       console.log("paytmCallbackUrl"+JSON.stringify(err.error));
       
       htmlresponse=S(htmlresponse);
@@ -502,6 +502,7 @@ exports.OrderPrintToPdf = function(req,res){
     order.OrderPrintToPdf(orderhtmldata);
     ///////////////////////////////
 }
+
 
 // exports.getServiceOrderRequest = function(req,res){
 //   var requestid = req.params.requestid;

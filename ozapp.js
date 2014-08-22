@@ -54,7 +54,8 @@ app.use(multer({ dest: './tmp/uploads/' }));
 // app.use(express.methodOverride());
 app.use(methodOverride('X-HTTP-Method-Override'))
 app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
-app.use(session({secret:"qwerty1234",store: redisstore,key:"hhsid", cookie: { maxAge: 2*60*60*1000}}));
+
+app.use(session({secret:"qwerty1234",store: redisstore,key:"hhsid", cookie: {maxAge: 2*60*60*1000}}));
 
 // Initialize Passport!  Also use passport.session() middleware, to support
 // persistent login sessions (recommended).

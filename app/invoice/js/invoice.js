@@ -139,7 +139,9 @@ var _createJSONForInvoice=function(self,suborderid){
               inoviceobject.totalprice=suborder.suborder_price;
               inoviceobject.payment=suborder.payment;
               inoviceobject.deliverycharge=suborder.deliverycharge;
-              inoviceobject.pickup_address=suborder.pickup_address
+              inoviceobject.pickup_address=suborder.pickup_address;
+              inoviceobject.deliverydate=suborder.deliverydate;
+              inoviceobject.deliverytimeslot=suborder.deliverytimeslot;
               // inoviceobject.delivery
               logger.emit("log","invoice:\n"+JSON.stringify(inoviceobject))
               // var invoice_data=new InvoiceModel(inoviceobject);
@@ -179,6 +181,20 @@ var _createPDFInvocie=function(self,inoviceobject,branch){
         seller_contact_supports.push(inoviceobject.productprovider.contact_supports[i]);
       }
      }
+     //delivery date and deliverytime slot
+     var deliverydate=new Date(inoviceobject.deliverydate)
+      htmldata=htmldata.replaceAll("{{deliverydate}}",deliverydate.getDate()+"-"+monthNames[deliverydate.getMonth()]+"-"+deliverydate.getFullYear());
+      var a=parseInt(inoviceobject.deliverytimeslot.from);
+      var b=inoviceobject.deliverytimeslot.from-a;
+      var fromminutes=Math.round(b*60);
+      var fromdeliverytimeslot=a+":"+fromminutes;
+      a=parseInt(inoviceobject.deliverytimeslot.to);
+       b=inoviceobject.deliverytimeslot.to-a;
+      var tominutes=Math.round(b*60);
+      var todeliverytimeslot=a+":"+tominutes;
+
+      htmldata=htmldata.replaceAll("{{deliverytimeslot}}",fromdeliverytimeslot+" to "+todeliverytimeslot)
+
      htmldata=htmldata.replaceAll("{{sellercontact}}",seller_contact_supports+"");
      htmldata=htmldata.replaceAll("{{selleremail}}",inoviceobject.productprovider.email);
      htmldata=htmldata.replaceAll("{{sellername}}",inoviceobject.productprovider.providername);
