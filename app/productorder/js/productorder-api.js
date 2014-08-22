@@ -494,7 +494,8 @@ exports.OrderPrintToPdf = function(req,res){
     order.removeAllListeners("successfulOrderPrintToPdf");
     order.on("successfulOrderPrintToPdf",function(result){
       // order.removeAllListeners();
-      console.log("result:Pdf"+result.success.orderpdf)
+      console.log("result:Pdf"+result.success.orderpdf);
+       // res.end(result.success.orderpdf, 'binary')
       res.sendfile(result.success.orderpdf)
     });
     ////////////////////////////////
