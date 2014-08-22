@@ -40,21 +40,63 @@
 			</div>
 			<hr size=5 style="height:2px; color:gray;margin-top:0px; margin-bottom:0px;" noshade>
 			<div style="margin:0px; margin-top:10px;margin-bottom:10px;" class="row">
-				<div class="col-md-4">
-					<p><strong>Order ID:</strong>&nbsp;{{orderid}}</p>
-					<p><strong>Order Date:</strong>&nbsp;{{orderdate}}</p>
-					<p><strong>Invoice Date:</strong>&nbsp;{{invoicedate}}</p>
-					<p><strong>VAT/TIN:</strong>&nbsp;{{tino}}</p>
-					
+				<div style="padding:0px;" class="col-md-5">
+					<div style="margin:0px;" class="row">
+						<div style="padding:2px;" class="col-md-4">
+							<b>Order ID:</b>
+						</div>
+						<div style="padding:2px;" class="col-md-8">
+							{{orderid}}
+						</div>
+					</div>
+					<div style="margin:0px;" class="row">
+						<div style="padding:2px;" class="col-md-4">
+							<b>Order Date:</b>
+						</div>
+						<div style="padding:2px;" class="col-md-8">
+							{{orderdate}}
+						</div>
+					</div>
+					<div style="margin:0px;" class="row">
+						<div style="padding:2px;" class="col-md-4">
+							<b>Invoice Date:</b>
+						</div>
+						<div style="padding:2px;" class="col-md-8">
+							{{invoicedate}}
+						</div>
+					</div>
+					<div style="margin:0px;" class="row">
+						<div style="padding:2px;" class="col-md-4">
+							<b>Delivery Date:</b>
+						</div>
+						<div style="padding:2px;" class="col-md-8">
+							{{deliverydate}}
+						</div>
+					</div>
+					<div style="margin:0px;" class="row">
+						<div style="padding:2px;" class="col-md-4">
+						</div>
+						<div style="padding:2px;" class="col-md-8">
+							({{deliverytimeslot}})
+						</div>
+					</div>
+					<div style="margin:0px;" class="row">
+						<div style="padding:2px;" class="col-md-4">
+							<b>VAT/TIN:</b>
+						</div>
+						<div style="padding:2px;" class="col-md-8">
+							{{tino}}
+						</div>
+					</div>					
 				</div>
-				<div class="col-md-4">
+				<div style="padding:0px;" class="col-md-4">
 					<p><strong>Billing Address</strong></p>
 
 					<p><i><b>{{buyername}}</b></i></p>
 
 					<p>{{billingaddress}}</p>
 				</div>
-				<div class="col-md-4">
+				<div style="padding:0px;" class="col-md-3">
 					<p><strong>{{addresskeyname}}</strong></p>
 
 					

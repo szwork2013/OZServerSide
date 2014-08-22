@@ -270,19 +270,54 @@ var _validateCartProducts=function(self,orderdata,user){
 				}
 			}
 			orderdata.cart=newcart;
-			/////////////////////////////////////////////////////////////////////////
-			_ProviderBranchSpecificCartsProducts(self,orderdata,validproductids,user)
+			//////////////////////////////////////////
+			_getAllSellerBranchDetails(self,orderdata,validproductids,user)
+			///////////////////////////////////////
+			
+		}
+	})
+}
+var _getAllSellerBranchDetails=function(self,orderdata,validproductids,user){
+	var sellerdelivery=orderdata.sellerdelivery;
+	var sellerbranchids=[];
+	for(var i=0;i<sellerdelivery.length;i++){
+		sellerbranchids.push(sellerdelivery[i].branchid);
+	}
+	ProductProviderModel.aggregate({$match:{"branch.branchid":{$in:sellerbranchids}}},{$unwind:"$branch"},{$match:{"branch.branchid":{$in:sellerbranchids}}},{$project:{providerid:1,branchid:"$branch.branchid",providerbrandname:1,providername:1,provideremail:1,location:"$branch.location",providercode:1,providerlogo:1,branchname:"$branch.branchname",contact_supports:"$branch.contact_supports"}},function(err,branches){
+		if(err){
+			logger.emit("error","Database Error _getAllSellerBranchDetails"+err)
+			self.emit("failedCreateOrder",{"error":{"code":"ED001","message":"Database Error"}});
+		}else if(branches.length==0){
+			self.emit("failedCreateOrder",{error:{message:"Sellerdelivery information does'nt exists"}})
+		}else{
+				/////////////////////////////////////////////////////////////////////////
+			_ProviderBranchSpecificCartsProducts(self,orderdata,validproductids,user,branches,sellerbranchids)
 			/////////////////////////////////////////////////////////////////////////
 		}
 	})
 }
-var _ProviderBranchSpecificCartsProducts=function(self,orderdata,validproductids,user){
+var _ProviderBranchSpecificCartsProducts=function(self,orderdata,validproductids,user,branches,sellerbranchids){
 	var productidsarray=[];
 	for(var i=0;i<orderdata.cart.length;i++){
 		productidsarray.push(orderdata.cart[i].productid);
 	}
-
-	ProductaCtalogModel.aggregate({$match:{productid:{$in:validproductids}}},{$group:{_id:{branchid:"$branch.branchid",location:"$branch.location",provideremail:"$provider.provideremail",providerbrandname:"$provider.providerbrandname",providername:"$provider.providername",providerid:"$provider.providerid",providercode:"$provider.providercode",providerlogo:"$provider.providerlogo",branchname:"$branch.branchname",contact_supports:"$branch.contact_supports"},productcatalog:{$addToSet:{tax:"$tax",productid:"$productid",price:"$price",productname:"$productname",productlogo:"$productlogo",productcode:"$productcode",price:"$price"}}}},function(err,branchproducts){
+	var branchids=[];
+	branches=JSON.stringify(branches);
+	branches=JSON.parse(branches);
+	
+	for(var j=0;j<branches.length;j++){
+		if(sellerbranchids.indexOf(branches[j].branchid)>=0){
+		
+			var index=sellerbranchids.indexOf(branches[j].branchid);
+			for(i in orderdata.sellerdelivery[index]){
+				branches[j][i]=orderdata.sellerdelivery[index][i];
+			}
+		}
+		branchids.push(branches[j].branchid);
+	
+	}
+	console.log("branches"+JSON.stringify(branches));
+	ProductaCtalogModel.aggregate({$match:{productid:{$in:validproductids}}},{$group:{_id:"$branch.branchid",productcatalog:{$addToSet:{tax:"$tax",productid:"$productid",price:"$price",productname:"$productname",productlogo:"$productlogo",productcode:"$productcode",price:"$price"}}}},function(err,branchproducts){
 		if(err){
 			logger.emit("error","Database Error _ProviderBranchSpecificCartsProducts"+err)
 			self.emit("failedCreateOrder",{"error":{"code":"ED001","message":"Database Error"}});
@@ -292,120 +327,93 @@ var _ProviderBranchSpecificCartsProducts=function(self,orderdata,validproductids
 			var suborders=[];
 			var totalorderprice=0;
 			for(var i=0;i<branchproducts.length;i++){
-				console.log('branchproducts['+i+"]:"+JSON.stringify(branchproducts[i]))
-				var product_provider=branchproducts[i]._id;
-				// product_provider.providerlogo=branchproducts[i].provider.providerlogo;
+				console.log('branchproducts['+i+"]:"+JSON.stringify(branchproducts[i]));
+				var branchid=branchproducts[i]._id
 				
-				var suborder={status:"orderreceived",suborderid:"SODR-"+branchproducts[i]._id.providercode.toUpperCase()+"-"+Math.floor(Math.random()*100000000),productprovider:product_provider};
-				var suborderproducts=[];
-				var suborderprice=0;
-				console.log("branchid::::::::"+product_provider.branchid)
-				for(var j=0;j<branchproducts[i].productcatalog.length;j++){
-					for(var x=0;x<orderdata.cart.length;x++){
-						if(branchproducts[i].productcatalog[j].productid==orderdata.cart[x].productid){
-							var indexofproduct=x;
-					    var productlogo;
-							if(branchproducts[i].productcatalog[j].productlogo!=undefined){
-								productlogo=branchproducts[i].productcatalog[j].productlogo.image
+				if(branchids.indexOf(branchid)>=0){
+					var branchindex=branchids.indexOf(branchid)
+					var product_provider=branches[branchindex];
+					//sellerdelivery info example:
+					//selleranddeliveryinfo={ "branchid":"branchid", "deliverytype":"home/pickup", "prefdeldtime":"Preffered delivery date and time", "deliverycharge":{"charge":"charge in percent or amount","delivery":"true/false is delivery available in area","isdeliverychargeinpercent":"true/fals"}, "orderinstructions":"orderinstructions", "pickup_address":{"address1":"Tirumal Niwas","address2":"Hingne Home Colony","area":"karvenagar","city":"pune","zipcode":"411052"}, "delivery_address":{"deliveryaddressid":"","address1":"Tirumal Niwas","address2":"Hingne Home Colony","area":"karvenagar","city":"pune","zipcode":"411052"} }
+					//also include  providerid,branchid,providerbrandname,providername,provideremail,location,providercode,providerlogo,branchname,contact_supports
+					var selleranddeliveryinfo=orderdata.sellerdelivery[branchindex]
+					product_provider.providerlogo=product_provider.providerlogo.image;
+					var suborder={status:"orderreceived",suborderid:"SODR-"+product_provider.providercode.toUpperCase()+"-"+Math.floor(Math.random()*100000000),productprovider:product_provider};
+					var suborderproducts=[];
+				  var suborderprice=0;
+				  for(var j=0;j<branchproducts[i].productcatalog.length;j++){
+						for(var x=0;x<orderdata.cart.length;x++){//use for if same product add in cart
+							if(branchproducts[i].productcatalog[j].productid==orderdata.cart[x].productid){
+								var indexofproduct=x;
+						    var productlogo;
+								if(branchproducts[i].productcatalog[j].productlogo!=undefined){
+									productlogo=branchproducts[i].productcatalog[j].productlogo.image
+								}
+								suborderproducts.push({baseprice:branchproducts[i].productcatalog[j].price.value,productconfiguration:orderdata.cart[indexofproduct].productconfiguration,messageonproduct:orderdata.cart[indexofproduct].messageonproduct,tax:branchproducts[i].productcatalog[j].tax.percent,currency:branchproducts[i].productcatalog[j].price.currency,productid:branchproducts[i].productcatalog[j].productid,productname:branchproducts[i].productcatalog[j].productname,productcode:branchproducts[i].productcatalog[j].productcode,productlogo:productlogo,qty:parseFloat(orderdata.cart[indexofproduct].qty),uom:branchproducts[i].productcatalog[j].price.uom,orderprice:parseFloat(orderdata.cart[indexofproduct].orderprice)})
+								suborderprice+=parseFloat(orderdata.cart[indexofproduct].orderprice);
+								suborderprice=Math.round(suborderprice*100)/100;
+							  // console.log("messageonproduct"+orderdata.cart[indexofproduct].messageonproduct)
 							}
-							suborderproducts.push({baseprice:branchproducts[i].productcatalog[j].price.value,productconfiguration:orderdata.cart[indexofproduct].productconfiguration,messageonproduct:orderdata.cart[indexofproduct].messageonproduct,tax:branchproducts[i].productcatalog[j].tax.percent,currency:branchproducts[i].productcatalog[j].price.currency,productid:branchproducts[i].productcatalog[j].productid,productname:branchproducts[i].productcatalog[j].productname,productcode:branchproducts[i].productcatalog[j].productcode,productlogo:productlogo,qty:parseFloat(orderdata.cart[indexofproduct].qty),uom:branchproducts[i].productcatalog[j].price.uom,orderprice:parseFloat(orderdata.cart[indexofproduct].orderprice)})
-							suborderprice+=parseFloat(orderdata.cart[indexofproduct].orderprice);
-							suborderprice=Math.round(suborderprice*100)/100;
-						  // console.log("messageonproduct"+orderdata.cart[indexofproduct].messageonproduct)
-						}
+						}//end to check same product added
 					}
-					
-				}
-				var delivery_charge=0;
-				var dilivery_type="pickup";
-        var prefdeldtime;
-        var prefdeltimeslot;
-				console.log("deliverycharges"+JSON.stringify(orderdata.deliverycharges))
-			
-				// var deliverytypebranchids=[]
-				
-				for(var k=0;k<orderdata.sellerdelivery.length;k++){
-					if(orderdata.sellerdelivery[k].branchid==product_provider.branchid){
-						//this condition for check branchid exist in deliverytypes array provided by cart
-						//for setting deliverytype
-						  if(orderdata.sellerdelivery[k].deliverytype!=undefined){
-						  		dilivery_type=orderdata.sellerdelivery[k].deliverytype;	
+					var delivery_charge=0;
+				  var dilivery_type="pickup";
+          var prefdeldtime;
+          var prefdeltimeslot;
+          if(selleranddeliveryinfo.deliverytype!=undefined){
+					 	dilivery_type=selleranddeliveryinfo.deliverytype;	
+			  	}
+			  	if(selleranddeliveryinfo.deliverycharge!=undefined){
+						if(selleranddeliveryinfo.deliverytype.toLowerCase()=="home"){
+								if(selleranddeliveryinfo.deliverycharge.isdeliverychargeinpercent==false){
+					  	delivery_charge=	parseFloat(selleranddeliveryinfo.deliverycharge.charge)	
+						  }else{
+						  	delivery_charge=suborderprice*(parseFloat(selleranddeliveryinfo.deliverycharge.charge)/100)
 						  }
-						  //for calculating deliverycharge
-							if(orderdata.sellerdelivery[k].deliverycharge!=undefined){
-								if(orderdata.sellerdelivery[k].deliverytype.toLowerCase()=="home"){
-										if(orderdata.sellerdelivery[k].deliverycharge.isdeliverychargeinpercent==false){
-							  	delivery_charge=	parseFloat(orderdata.sellerdelivery[k].deliverycharge.charge)	
-								  }else{
-								  	delivery_charge=suborderprice*(parseFloat(orderdata.sellerdelivery[k].deliverycharge.charge)/100)
-								  }
-								}
-							  
-							}
-							//for setting preffered delivery date 
-							if(orderdata.sellerdelivery[k].prefdeldtime!=undefined){
-							 	prefdeldtime=orderdata.sellerdelivery[k].prefdeldtime;
-							}
-							//for setting preffered delivery time slot 
-							if(orderdata.sellerdelivery[k].prefdeltimeslot!=undefined){
-								// var slotarray=orderdata.sellerdelivery[k].prefdeltimeslot.split("-");
-
-							 	prefdeltimeslot=orderdata.sellerdelivery[k].prefdeltimeslot;
-							}
-							//delivery type is pickup then set pickup address
-							if(orderdata.sellerdelivery[k].deliverytype.toLowerCase()=="pickup"){
-								if(orderdata.sellerdelivery[k].pickup_address!=undefined){
-									suborder.pickup_address=orderdata.sellerdelivery[k].pickup_address
-								}
-							}
-							//for setting order instruction for seller
-							if(orderdata.sellerdelivery[k].orderinstructions){
-								suborder.orderinstructions=orderdata.sellerdelivery[k].orderinstructions;
-							}
-							if(orderdata.sellerdelivery[k].deliverytype.toLowerCase()=="home"){
-								if(orderdata.sellerdelivery[k].delivery_address!=undefined){
-									suborder.delivery_address=orderdata.sellerdelivery[k].delivery_address
-								}
-							}
-
 						}
 					}
-				
-					
-				delivery_charge=Math.round(delivery_charge*100)/100;
-				suborderprice+=delivery_charge;
-				suborder.deliverycharge=delivery_charge;
-				console.log("delivery_charge"+delivery_charge);
-				totalorderprice+=suborderprice;
-				suborder.products=suborderproducts;
-				suborder.sellerpayment={status:"pending",mode:orderdata.paymentmode};
-				suborder.buyerpayment={status:"pending",mode:orderdata.paymentmode};
-				
-				suborder.billing_address=orderdata.billing_address;
-				// if(dilivery_type=="pickup"){
-    //     	suborder.delivery_address=null;
-    //     }else{
-    //     	suborder.delivery_address=orderdata.delivery_address;	
-    //     }
-				suborder.suborder_price=suborderprice;
-				suborder.prefdeldtime=prefdeldtime;
-				suborder.prefdeltimeslot=prefdeltimeslot;
-		        suborder.deliverytype=dilivery_type;
-		  //   var orderinstructionbranchids=[]
-				// for(j=0;j<orderdata.orderinstructions.length;j++){
-				// 	orderinstructionbranchids.push(orderdata.orderinstructions[j].branchid)
-				// }
-				// console.log("branchid"+branchproducts[i]._id.branchid)
-				// if(orderinstructionbranchids.indexOf(branchproducts[i]._id.branchid)>=0){
-				// 	suborder.orderinstructions=orderinstructionbranchids[orderinstructionbranchids.indexOf(branchproducts[i]._id.branchid)].message;
-				// }else{
-				// 	suborder.orderinstructions=null;
-				// }
-				
-				// console.log("suborder orderinstructions"+suborder.orderinstructions)
-				suborders.push(suborder);
-				// suborders.status="init";
-			}
+					//for setting preffered delivery date 
+					if(selleranddeliveryinfo.prefdeldtime!=undefined){
+						prefdeldtime=selleranddeliveryinfo.prefdeldtime;
+					}
+					//for setting preffered delivery time slot 
+					if(selleranddeliveryinfo.prefdeltimeslot!=undefined){
+						// var slotarray=orderdata.sellerdelivery[k].prefdeltimeslot.split("-");
+						prefdeltimeslot=selleranddeliveryinfo.prefdeltimeslot;
+					}
+					//delivery type is pickup then set pickup address
+					if(selleranddeliveryinfo.deliverytype.toLowerCase()=="pickup"){
+						if(selleranddeliveryinfo.pickup_address!=undefined){
+							suborder.pickup_address=selleranddeliveryinfo.pickup_address
+						}
+					}
+					//for setting order instruction for seller
+					if(selleranddeliveryinfo.orderinstructions){
+						suborder.orderinstructions=selleranddeliveryinfo.orderinstructions;
+					}
+					//setting deliveraddress
+					if(selleranddeliveryinfo.deliverytype.toLowerCase()=="home"){
+						if(selleranddeliveryinfo.delivery_address!=undefined){
+							suborder.delivery_address=selleranddeliveryinfo.delivery_address
+						}
+					}
+					delivery_charge=Math.round(delivery_charge*100)/100;
+					suborderprice+=delivery_charge;
+					suborder.deliverycharge=delivery_charge;
+					console.log("delivery_charge"+delivery_charge);
+					totalorderprice+=suborderprice;
+					suborder.products=suborderproducts;
+					suborder.sellerpayment={status:"pending",mode:orderdata.paymentmode};
+					suborder.buyerpayment={status:"pending",mode:orderdata.paymentmode};
+					suborder.billing_address=orderdata.billing_address;
+					suborder.suborder_price=suborderprice;
+				  suborder.prefdeldtime=prefdeldtime;
+				  suborder.prefdeltimeslot=prefdeltimeslot;
+		      suborder.deliverytype=dilivery_type;
+		  	
+		  	  suborders.push(suborder);
+		  	}
+		  }
 			var consumername=" ";
 			if(user.firstname!=undefined){
 				consumername=user.firstname
@@ -1380,7 +1388,7 @@ var _manageOrder=function(self,action,user,suborder,status,order){
 					// 	///////////////////////////
 					// }
 					console.log("orderid"+order.orderid)
-					if(action.toLowerCase()=="done")
+					if(action.toLowerCase()=="done" && suborder.buyerpayment.mode.toLowerCase()!="paytm")
 					{
 						//////////////////////////////
 						 _makeSubOrderPaymentDone(order.orderid,suborder.suborderid);
@@ -1967,6 +1975,7 @@ var _generateChecksum=function(self,checksumdata,generatechecksumresponse){
   var THEME=checksumdata.THEME
 	java.callStaticMethod("PayTm", "generateCheckSum",merchantKey,MID,ORDER_ID,CUST_ID,TXN_AMOUNT,CHANNEL_ID,INDUSTRY_TYPE_ID,WEBSITE,MOBILE_NO,EMAIL,THEME,function(err, results) {
   	if(err) {
+  		console.log("_generateChecksum:From Java:"+err)
   		self.emit("failedgeneratePayTmCheckSum",{error:{message:err,generatechecksumresponse:generatechecksumresponse}})
   	}else{
   		generatechecksumresponse.payt_STATUS=1;
@@ -2068,12 +2077,11 @@ var _validateCheckSumPayTm=function(self,paytmresponsedata,responseobject){
  	
 	java.callStaticMethod("PayTm", "validateCheckSum",paytmChecksum,merchantKey,MID,TXNID,ORDER_ID,BANKTXNID,STATUS,RESPCODE,TXNAMOUNT, function(err, results) {
   	if(err) {
-  		console.log("error"+err)
-  		
+  		console.log("_validateCheckSumPayTm:Payment Error From Payment SDK"+err)
   		self.emit("failedPaytmCallbackUrl",{error:{message:"CHECKSUMHASH IS NOT VALID",responseobject:responseobject}})
   	}else{
   		if(responseobject.STATUS.toLowerCase()=="txn_success"){
-  			logger.emit("log","Payment Successfull");
+  			logger.emit("log","Payment Successfull for Order:"+responseobject.ORDERID);
   			responseobject.IS_CHECKSUM_VALID="Y";
   			/////////////////////////////////////
 			 _successfullPaytmCallbackUrl(self,responseobject)
@@ -2142,6 +2150,7 @@ var _updateOrderPaymentDatails = function(self,responseobject){
 		}
 	})
 }
+//this fucntion call when payment done by card
 var _makeSubOrderPaymentDoneByOnline=function(orderid,suborderid,responseobject){
 	var suborderpaymentdata={};
 	if(responseobject.STATUS.toLowerCase()=="txn_success"){
@@ -2629,4 +2638,55 @@ var _cancelOrderByConsumer=function(self,suborderids,index){
 }
 var _successfulCancelOrderByConsumer=function(self){
 	self.emit("successfulCancelOrderByConsumer",{success:{message:"Order Cancelled Successfully"}})
+}
+Order.prototype.OrderPrintToPdf = function(orderhtmldata){
+	var self = this;	
+	///////////////////////////////////////////////////////
+	_validateOrderPrintToPdf(self,orderhtmldata);
+	///////////////////////////////////////////////////////
+}
+var _validateOrderPrintToPdf=function(self,orderhtmldata){
+
+	if(orderhtmldata==undefined){
+		self.emit("failedOrderPrintToPdf",{error:{code:"AV001",message:"Please pass orderprintdata"}})
+	}else{
+		orderhtmldata=S(orderhtmldata).replaceAll("₹","&#x20B9;");
+		orderhtmldata=S(orderhtmldata).replaceAll("removengihide ng-hide","removengihide");
+		var htmldata="<html><head>";
+		htmldata+="<link rel='stylesheet' href='https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css'>"; 
+	  htmldata+="<link href='https://netdna.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.css' rel='stylesheet'>"
+    htmldata+="<link href='oz.css' rel='stylesheet'>;";
+    htmldata+="<script src='https://ajax.googleapis.com/ajax/libs/angularjs/1.2.0/angular.min.js'></script>";
+	  htmldata+="<script src='https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js'></script>"; 
+	  htmldata+="</head><body>{{orderhtmldata}}</body></html>";
+	  htmldata=S(htmldata).replaceAll("{{orderhtmldata}}",orderhtmldata.s);
+	  ///////////////////////////////////////
+	  _createAndWriteHtmlForOrderPrint(self,htmldata.s)
+	  ///////////////////////////
+
+	}
+}
+var _createAndWriteHtmlForOrderPrint=function(self,htmldata){
+	var filename="orderprint.html";
+	console.log("htmldata:::"+htmldata)
+  var stream = fs.createWriteStream(filename);
+  var pdfinvoice="orderprint.pdf";
+  exec("rm -rf "+pdfinvoice);
+  stream.once('open', function(fd) {
+    stream.write(htmldata);
+    exec("phantomjs/bin/phantomjs phantomjs/bin/rasterize.js "+filename+" "+pdfinvoice+" A4",function(err,out,code){
+      if(err){
+        self.emit("failedOrderPrintToPdf",{error:{message:"Order Print Error"}})
+        logger.emit("error","OrderPrint html Error:_createAndWriteHtmlForOrderPrint "+err);
+      }else{
+        exec("rm -rf "+filename);
+        /////////////////////////////////////////
+        _successfullOrderPrintToPdf(self,pdfinvoice)
+        ////////////////////////////////////////
+      }
+    });
+  });
+}
+var _successfullOrderPrintToPdf=function(self,pdfinvoice){
+	self.emit('successfulOrderPrintToPdf',{success:{message:"Order Print Created Successfully",orderpdf:pdfinvoice}})
 }
