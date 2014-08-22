@@ -2064,7 +2064,13 @@ var _checkDeliveryChargeData=function(self,userid,branchid,deliverychargedata,is
 		}
 	}
 	if(validated_data.length==0){
-		self.emit("failedManageDeliveryCharges",{"error":{"message":"Please enter valid deliverychargedata"}});
+		///////////////////////////////////////
+			_removeBranchDeliveryCharges(branchid,deletedzipcodearray,deletareaarray);
+			////////////////////////////////////
+			//////////////////////////////////////////
+	 		_successfullManageDeliveryCharges(self,alreadyappliedareas)
+			////////////////////////////////////////	
+		// self.emit("failedManageDeliveryCharges",{"error":{"message":"Please enter valid deliverychargedata"}});
 	}else{
 		/////////////////////////////////
 		_checkDeliveryChargesAlreadyApplied(self,userid,branchid,validated_data,coveragearray,deletedzipcodearray,deletareaarray)

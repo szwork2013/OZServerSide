@@ -496,14 +496,19 @@ exports.OrderPrintToPdf = function(req,res){
     order.removeAllListeners("successfulOrderPrintToPdf");
     order.on("successfulOrderPrintToPdf",function(result){
       // order.removeAllListeners();
-      var text = fs.readFileSync(result.success.orderpdf,'binary')
+      // var text = fs.readFileSync(result.success.orderpdf,'binary')
      
-       
-       res.writeHead(200, {'Content-Type': 'application/pdf'});
-       res.end(text,'binary');
-       exec("rm -rf "+result.success.orderpdf);
+       fs.readFile(result.success.orderpdf, function (err, data) {
+          if (err) throw err;
+            // res.writeHead(200, {'Content-Type': 'application/pdf'});
+          res.end(data,"binary")
+          });
+     
+      // res.setHeader('Content-disposition', 'attachment; filename=test.pdf' );
+      // res.sendfile(result.success.orderpdf);
+      //  exec("rm -rf "+result.success.orderpdf);
         // var stat = fs.statSync(result.success.orderpdf);
-          // res.setHeader('Content-disposition', 'attachment; filename=test.pdf' );
+          
         // res.writeHead(200, {
         //   'Content-Type': 'application/pdf',
         //  'Content-Length': stat.size
