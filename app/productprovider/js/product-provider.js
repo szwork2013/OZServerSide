@@ -2068,7 +2068,7 @@ var _checkDeliveryChargeData=function(self,userid,branchid,deliverychargedata,is
 			_removeBranchDeliveryCharges(branchid,deletedzipcodearray,deletareaarray);
 			////////////////////////////////////
 			//////////////////////////////////////////
-	 		_successfullManageDeliveryCharges(self,alreadyappliedareas)
+	 		_successfullManageDeliveryCharges(self)
 			////////////////////////////////////////	
 		// self.emit("failedManageDeliveryCharges",{"error":{"message":"Please enter valid deliverychargedata"}});
 	}else{
