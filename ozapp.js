@@ -157,7 +157,7 @@ files.forEach(function (file) {
 });
 
 app.get("/api",function(req,res){
-  res.send("Welcome to Order Zapp ");
+  res.send("Welcome to Order Zapp "+JSON.stringify(req.headers));
 })
 // var log = new Log();
 

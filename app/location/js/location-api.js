@@ -103,32 +103,29 @@ exports.getLocationDetails=function(req,res){
       res.send(result);
     });
   // location.getLocationDetails(req.user,key,value); 
-    	location.getLocationDetails("test",key,value); 	
+    location.getLocationDetails("test",key,value); 	
     
 }
 
 exports.getAllAreasByCity=function(req,res){
 	var city = req.query.city;
+  var result = req.query.result;
 	var location = new LocationRefference();
    	location.removeAllListeners("failedGetAllAreasByCity");
     location.on("failedGetAllAreasByCity",function(err){
     	if(err.error.code!="ED001"){
     		logger.emit("error", err.error.message); 
       	}      
-      // user.removeAllListeners();
+      // location.removeAllListeners();
       	res.send(err);
     });
     location.removeAllListeners("successfulGetAllAreasByCity");
     location.on("successfulGetAllAreasByCity",function(result){
       // if(err.error.code!="ED001"){
       //  logger.emit("error", err.error.message); 
-      // }
-      
-     //user.removeAllListeners();
+      // }      
+     //location.removeAllListeners();
       res.send(result);
-    });
-  
-    
-    	location.getAllAreasByCity(city); 	
-      
+    });    
+  location.getAllAreasByCity(city,result);     
 }

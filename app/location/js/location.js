@@ -271,25 +271,41 @@ var _successfulUpdateLocationDetails = function(self){
 	self.emit("successfulUpdateLocationDetails",{"success":{"message":"Location Updated Successfully"}});
 }
 
-LocationRefference.prototype.getAllAreasByCity = function(city) {
+LocationRefference.prototype.getAllAreasByCity = function(city,result) {
 	var self = this;
 	if(city == undefined){
 		self.emit("failedGetAllAreasByCity",{"error":{"message":"Please enter city"}});
 	}else{
 		//////////////////////////////
-		_getAllAreasByCity(self,city);
+		_getAllAreasByCity(self,city,result);
 		//////////////////////////////
 	}
 };
-var _getAllAreasByCity = function(self,city){
-	LocationModel.aggregate({$unwind:"$area"},{$match:{city:city}},{$group:{_id:"$city",area:{$addToSet:"$area"}}}).exec(function(err,doc){
+var _getAllAreasByCity = function(self,city,result){
+	console.log(result);
+	var query;	
+	if(result == "jsonarray"){
+		query = [{$unwind:"$area"},{$match:{city:city}},{$group:{_id:"",area:{$addToSet:{area:"$area",zipcode:"$zipcode",city:"$city"}}}}];
+	}else{
+		query = [{$unwind:"$area"},{$match:{city:city}},{$group:{_id:"$city",area:{$addToSet:"$area"}}}];
+	}	
+	LocationModel.aggregate(query).exec(function(err,doc){
 		if(err){
 			logger.emit("error","Database Error : _getAllAreasByCity " + err);
 			self.emit("failedGetAllAreasByCity",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(doc.length>0){
-			self.emit("successfulGetAllAreasByCity",{"success":{"message":"Getting All Areas For "+city+" Successfully","area":doc[0].area}});
+			// console.log(JSON.stringify(doc));
+			_successfulGetAllAreasByCity(self,city,doc[0].area,result);
+			// self.emit("successfulGetAllAreasByCity",{"success":{"message":"Getting All Areas For "+city+" Successfully","area":doc[0].area}});
 		}else{
 	  		self.emit("failedGetAllAreasByCity",{"error":{"code":"AD001","message":"Please enter valid city"}});
 	  	}
 	});
+}
+var _successfulGetAllAreasByCity = function(self,city,doc,result){
+	if(result == "jsonarray"){
+		self.emit("successfulGetAllAreasByCity",{"success":{"message":"Getting All Area and Zipcode For "+city+" Successfully","location":doc}});
+	}else{
+		self.emit("successfulGetAllAreasByCity",{"success":{"message":"Getting All Areas For "+city+" Successfully","area":doc}});
+	}	
 }
