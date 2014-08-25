@@ -2654,7 +2654,9 @@ var _validateOrderPrintToPdf=function(self,orderhtmldata,suborderid){
 		orderhtmldata=S(orderhtmldata).replaceAll("₹","&#x20B9;");
 		orderhtmldata=S(orderhtmldata).replaceAll("removenghide ng-hide","removenghide");
 		orderhtmldata=S(orderhtmldata).replaceAll("removenghide  ng-hide","removenghide");
-		orderhtmldata=S(orderhtmldata).replaceAll("orderbox","orderbox orderPrintZoom");
+		orderhtmldata=S(orderhtmldata).replaceAll("ng-hide removenghide","removenghide");
+		orderhtmldata=S(orderhtmldata).replaceAll("ng-hide  removenghide","removenghide");
+	    orderhtmldata=S(orderhtmldata).replaceAll("orderbox1","orderbox1 orderPrintZoom");
 		
 		
 		var htmldata="<html><head>";
