@@ -1044,4 +1044,50 @@ exports.getProviderProductCategoryLeadTime=function(req,res){
   ///////////////////////////////////////////////////////////////////////////////
 }
 
+exports.updateGlsPaymentPercent=function(req,res){
+  var providerid = req.params.providerid;
+  var data = req.body;
+  console.log("providerid"+providerid);
+  console.log("req body : "+JSON.stringify(data))
+  var productprovider = new ProductProvider(data);
+  productprovider.removeAllListeners("failedUpdateGlsPaymentPercent");
+  productprovider.on("failedUpdateGlsPaymentPercent",function(err){
+    if(err.error.code!="ED001"){
+     logger.emit("error", err.error.message); 
+    }    
+    // //user.removeAllListeners();
+    res.send(err);
+  });
+  productprovider.removeAllListeners("successfulUpdateGlsPaymentPercent");
+  productprovider.on("successfulUpdateGlsPaymentPercent",function(result){
+   
+    res.send(result);
+  });
+  if(req.user.isAdmin == false){
+    productprovider.emit("failedUpdateGlsPaymentPercent",{error:{message:"Only OrderZapp admin user can change seller gls payment percentage details"}});
+  }else{
+    productprovider.updateGlsPaymentPercent(providerid,req.user);
+  }   
+}
 
+exports.getGlsPaymentPercent=function(req,res){
+  var productprovider = new ProductProvider();
+  productprovider.removeAllListeners("failedGetGlsPaymentPercent");
+  productprovider.on("failedGetGlsPaymentPercent",function(err){
+    if(err.error.code!="ED001"){
+     logger.emit("error", err.error.message); 
+    }    
+    // //user.removeAllListeners();
+    res.send(err);
+  });
+  productprovider.removeAllListeners("successfulGetGlsPaymentPercent");
+  productprovider.on("successfulGetGlsPaymentPercent",function(result){
+   
+    res.send(result);
+  });
+  if(req.user.isAdmin == false){
+    productprovider.emit("failedGetGlsPaymentPercent",{error:{message:"Only OrderZapp admin user can get seller gls payment percentage details"}});
+  }else{
+    productprovider.getGlsPaymentPercent(req.user);
+  }   
+}

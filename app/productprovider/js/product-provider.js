@@ -1,5 +1,6 @@
 var ProductCategoryModel=require("../../productcategory/js/product-category-model");
 var ProductProviderModel=require("./productprovider-model");
+var GlsPaymentPercentModel = require("./gls-payment-percent-model");
 var SellersAgreementModel = require("./sellersagreement-model");
 var BranchPolicyModel = require("./branch-policy-model");
 var ProductCatalogModel = require("../../productcatalog/js/product-catalog-model");
@@ -1406,7 +1407,7 @@ var _getBranch=function(self,providerid,branchid){
 	})
 }
 var _successfullGetBranch=function(self,branch){
-self.emit("successfulGetBranch",{success:{message:"Getting branch details successfully",branch:branch}})
+	self.emit("successfulGetBranch",{success:{message:"Getting branch details successfully",branch:branch}})
 }
 ProductProvider.prototype.deleteBranch = function(user,providerid,branchid) {
 	var self = this;
@@ -2713,7 +2714,7 @@ var _getPickupAddresses = function(self,user,providerid){
 		    		_successfulGetPickupAddress(self,doc.pickupaddresses.addresses);
 					////////////////////////////////////////////////////////////////
 				}else{
-					self.emit("failedGetPickupAddress",{"error":{"message":"pickup address does not exists"}});	
+					self.emit("failedGetPickupAddress",{"error":{"message":"Pickup addresses does not exists"}});	
 				}
 			}
 		}else{
@@ -2899,4 +2900,104 @@ var _getProviderCategoryLeadTime=function(self,providerid){
 
 		}
 	})
+}
+
+ProductProvider.prototype.updateGlsPaymentPercent = function(providerid,user) {
+	var self = this;
+	var data = this.productprovider;
+	console.log("Data : "+JSON.stringify(data));
+	//////////////////////////////////////////////////////////
+	_validateGlsPaymentPercentData(self,data,providerid,user);
+	//////////////////////////////////////////////////////////
+}
+var _validateGlsPaymentPercentData = function(self,data,providerid,user){
+	if(data == undefined){
+		self.emit("failedUpdateGlsPaymentPercent",{"error":{"code":"AV001","message":"Please enter data"}});	
+	}else if(data.percent == undefined || !isNumeric(data.percent)){
+		self.emit("failedUpdateGlsPaymentPercent",{"error":{"code":"AV001","message":"Please enter valid percentage"}});
+	}else if(data.providerid != undefined){
+		self.emit("failedUpdateGlsPaymentPercent",{"error":{"code":"AV001","message":"Can't update providerid"}});
+	}else{
+		// _isValidProviderToUpdateGlsPaymentPercent(self,data,providerid,user);
+		_updateGlsPaymentPercent(self,data,providerid,user);
+	}
+}
+// var _isValidProviderToUpdateGlsPaymentPercent = function(self,data,providerid,user){
+// 	GlsPaymentPercentModel.findOne({providerid:providerid},function(err,provider){
+// 		if(err){
+// 			logger.emit('error',"Database Error  _isValidProviderToUpdateGlsPaymentPercent"+err);
+// 			self.emit("failedUpdateGlsPaymentPercent",{"error":{"code":"ED001","message":"Database Error"}});
+// 		}else if(provider){
+// 			_updateGlsPaymentPercent(self,data,providerid,user);
+// 		}else{
+// 			self.emit("failedUpdateGlsPaymentPercent",{"error":{"message":"Incorrect seller id"}});
+// 		}
+// 	})
+// }
+var _updateGlsPaymentPercent=function(self,data,providerid,user){
+	GlsPaymentPercentModel.update({providerid:providerid},{$set:{percent:data.percent}},{upsert:true},function(err,percentageupdatestatus){
+		if(err){
+			logger.emit('error',"Database Error  _updateGlsPaymentPercent"+err,user.userid);
+			self.emit("failedUpdateGlsPaymentPercent",{"error":{"code":"ED001","message":"Database Error"}});
+		}else if(percentageupdatestatus==0){
+			self.emit("failedUpdateGlsPaymentPercent",{"error":{"message":"Incorrect seller id"}});
+		}else{
+			/////////////////////////////////////////
+			_successfulUpdateGlsPaymentPercent(self);
+			/////////////////////////////////////////	
+		}
+	})
+}
+var _successfulUpdateGlsPaymentPercent=function(self){
+	self.emit("successfulUpdateGlsPaymentPercent",{"success":{"message":"Gls Payable Payment Percent Updated Successfully"}});
+}
+
+ProductProvider.prototype.getGlsPaymentPercent = function(user) {
+	var self = this;
+	////////////////////////////////////////////////////
+	_getAllProvidersFromProductProviderModel(self,user);
+	////////////////////////////////////////////////////
+}
+var _getAllProvidersFromProductProviderModel = function(self,user){
+	ProductProviderModel.find({},{providerid:1,providername:1,_id:0},function(err,productproviders){
+		if(err){
+			logger.emit('error',"Database Error  _getAllProvidersFromProductProviderModel"+err);
+			self.emit("failedGetGlsPaymentPercent",{"error":{"code":"ED001","message":"Database Error"}});
+		}else if(productproviders.length>0){
+			_getAllProvidersFromGlsPaymentPercentModel(self,productproviders,user);			
+		}else{
+			self.emit("failedGetGlsPaymentPercent",{"error":{"message":"Provider gls payment percent does not exists"}});	
+		}
+	})
+}
+var _getAllProvidersFromGlsPaymentPercentModel = function(self,productproviders,user){
+	GlsPaymentPercentModel.find({},{providerid:1,percent:1,_id:0},function(err,providerpercentage){
+		if(err){
+			logger.emit('error',"Database Error  _getAllProvidersFromProductProviderModel"+err);
+			self.emit("failedGetGlsPaymentPercent",{"error":{"code":"ED001","message":"Database Error"}});
+		}else if(providerpercentage.length>0){
+			productproviders=JSON.stringify(productproviders);
+			productproviders=JSON.parse(productproviders);
+			for(var i=0;i<productproviders.length;i++){
+				var percentage = __.find(providerpercentage, function(obj) { return obj.providerid == productproviders[i].providerid });
+				console.log("percentage : "+percentage);
+				if(percentage == undefined){
+					productproviders[i].percent = 0;
+				}else{
+					productproviders[i].percent = percentage.percent;
+				}
+			}
+		}else{
+			productproviders=JSON.stringify(productproviders);
+			productproviders=JSON.parse(productproviders);
+			for(var i=0;i<productproviders.length;i++){
+				productproviders[i].percent = 0;
+			}
+			// self.emit("failedGetGlsPaymentPercent",{"error":{"message":"Provider gls payment percent does not exists"}});	
+		}
+		_successfulGetGlsPaymentPercent(self,productproviders);
+	})
+}
+var _successfulGetGlsPaymentPercent=function(self,doc){
+	self.emit("successfulGetGlsPaymentPercent",{"success":{"message":"Gls Payable Payment Percent Getting Successfully","doc":doc}});
 }
