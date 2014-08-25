@@ -2913,8 +2913,8 @@ ProductProvider.prototype.updateGlsPaymentPercent = function(providerid,user) {
 var _validateGlsPaymentPercentData = function(self,data,providerid,user){
 	if(data == undefined){
 		self.emit("failedUpdateGlsPaymentPercent",{"error":{"code":"AV001","message":"Please enter data"}});	
-	}else if(data.percent == undefined || data.percent == ""){
-		self.emit("failedUpdateGlsPaymentPercent",{"error":{"code":"AV001","message":"Please enter percent"}});
+	}else if(data.percent == undefined || !isNumeric(data.percent)){
+		self.emit("failedUpdateGlsPaymentPercent",{"error":{"code":"AV001","message":"Please enter valid percentage"}});
 	}else if(data.providerid != undefined){
 		self.emit("failedUpdateGlsPaymentPercent",{"error":{"code":"AV001","message":"Can't update providerid"}});
 	}else{
