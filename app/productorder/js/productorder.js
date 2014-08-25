@@ -2666,7 +2666,7 @@ var _validateOrderPrintToPdf=function(self,orderhtmldata,suborderid){
         htmldata+="<script src='https://ajax.googleapis.com/ajax/libs/angularjs/1.2.0/angular.min.js'></script>";
 	    htmldata+="<script src='https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js'></script>"; 
 	    htmldata+="</head><body>{{orderhtmldata}}</body></html>";
-	    htmldata=S(htmldata).replaceAll("{{orderhtmldata}}",orderhtmldata.s);
+	    htmldata=S(htmldata).replaceAll("{{orderhtmldata}}",orderhtmldata);
 	    htmldata=htmldata.replaceAll("()","");
 	  ///////////////////////////////////////
 	  _createAndWriteHtmlForOrderPrint(self,htmldata.s,suborderid)
