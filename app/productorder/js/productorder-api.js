@@ -490,6 +490,7 @@ exports.cancelOrderByConsumer = function(req,res){
 exports.OrderPrintToPdf = function(req,res){
   // var session_userid = req.user.userid;
   var orderhtmldata=req.body.orderhtmldata;
+  logger.emit("log","OrderPrintToPdf:\n"+orderhtmldata)
   var suborderid=req.params.suborderid;
   var order = new Order();
   // logger.emit("log","req body"+JSON.stringify(req.body));
