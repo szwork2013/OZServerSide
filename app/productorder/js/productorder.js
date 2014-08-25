@@ -2654,7 +2654,8 @@ var _validateOrderPrintToPdf=function(self,orderhtmldata,suborderid){
 		orderhtmldata=S(orderhtmldata).replaceAll("₹","&#x20B9;");
 		orderhtmldata=S(orderhtmldata).replaceAll("removenghide ng-hide","removenghide");
 		orderhtmldata=S(orderhtmldata).replaceAll("removenghide  ng-hide","removenghide");
-		orderhtmldata=S(orderhtmldata).replaceAll("()","");
+		orderhtmldata=S(orderhtmldata).replaceAll("orderbox","orderbox orderPrintZoom");
+		
 		
 		var htmldata="<html><head>";
 		htmldata+="<link rel='stylesheet' href='https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css'>"; 
@@ -2664,6 +2665,7 @@ var _validateOrderPrintToPdf=function(self,orderhtmldata,suborderid){
 	    htmldata+="<script src='https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js'></script>"; 
 	    htmldata+="</head><body>{{orderhtmldata}}</body></html>";
 	    htmldata=S(htmldata).replaceAll("{{orderhtmldata}}",orderhtmldata.s);
+	    htmldata=htmldata.replaceAll("()","");
 	  ///////////////////////////////////////
 	  _createAndWriteHtmlForOrderPrint(self,htmldata.s,suborderid)
 	  ///////////////////////////
