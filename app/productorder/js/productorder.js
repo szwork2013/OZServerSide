@@ -2650,13 +2650,13 @@ var _validateOrderPrintToPdf=function(self,orderhtmldata,suborderid){
 	if(orderhtmldata==undefined){
 		self.emit("failedOrderPrintToPdf",{error:{code:"AV001",message:"Please pass orderprintdata"}})
 	}else{
-		orderhtmldata=S(orderhtmldata).replaceAll(";","");
-		orderhtmldata=S(orderhtmldata).replaceAll("₹","&#x20B9;");
-		orderhtmldata=S(orderhtmldata).replaceAll("removenghide ng-hide","removenghide");
-		orderhtmldata=S(orderhtmldata).replaceAll("removenghide  ng-hide","removenghide");
-		orderhtmldata=S(orderhtmldata).replaceAll("ng-hide removenghide","removenghide");
-		orderhtmldata=S(orderhtmldata).replaceAll("ng-hide  removenghide","removenghide");
-	    orderhtmldata=S(orderhtmldata).replaceAll("orderbox1","orderbox1 orderPrintZoom");
+		// orderhtmldata=S(orderhtmldata).replaceAll(";","");
+		// orderhtmldata=S(orderhtmldata).replaceAll("₹","&#x20B9;");
+		// orderhtmldata=S(orderhtmldata).replaceAll("removenghide ng-hide","removenghide");
+		// orderhtmldata=S(orderhtmldata).replaceAll("removenghide  ng-hide","removenghide");
+		// orderhtmldata=S(orderhtmldata).replaceAll("ng-hide removenghide","removenghide");
+		// orderhtmldata=S(orderhtmldata).replaceAll("ng-hide  removenghide","removenghide");
+	 //    orderhtmldata=S(orderhtmldata).replaceAll("orderbox1","orderbox1 orderPrintZoom");
 		
 		
 		var htmldata="<html><head>";
