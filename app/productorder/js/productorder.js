@@ -2639,38 +2639,44 @@ var _cancelOrderByConsumer=function(self,suborderids,index){
 var _successfulCancelOrderByConsumer=function(self){
 	self.emit("successfulCancelOrderByConsumer",{success:{message:"Order Cancelled Successfully"}})
 }
-Order.prototype.OrderPrintToPdf = function(orderhtmldata){
+Order.prototype.OrderPrintToPdf = function(orderhtmldata,suborderid){
 	var self = this;	
 	///////////////////////////////////////////////////////
-	_validateOrderPrintToPdf(self,orderhtmldata);
+	_validateOrderPrintToPdf(self,orderhtmldata,suborderid);
 	///////////////////////////////////////////////////////
 }
-var _validateOrderPrintToPdf=function(self,orderhtmldata){
+var _validateOrderPrintToPdf=function(self,orderhtmldata,suborderid){
 
 	if(orderhtmldata==undefined){
 		self.emit("failedOrderPrintToPdf",{error:{code:"AV001",message:"Please pass orderprintdata"}})
 	}else{
+		orderhtmldata=S(orderhtmldata).replaceAll(";","");
 		orderhtmldata=S(orderhtmldata).replaceAll("₹","&#x20B9;");
-		orderhtmldata=S(orderhtmldata).replaceAll("removengihide ng-hide","removengihide");
+		orderhtmldata=S(orderhtmldata).replaceAll("removenghide ng-hide","removenghide");
+		orderhtmldata=S(orderhtmldata).replaceAll("removenghide  ng-hide","removenghide");
+		orderhtmldata=S(orderhtmldata).replaceAll("orderbox","orderbox orderPrintZoom");
+		
+		
 		var htmldata="<html><head>";
 		htmldata+="<link rel='stylesheet' href='https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css'>"; 
-	  htmldata+="<link href='https://netdna.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.css' rel='stylesheet'>"
-    htmldata+="<link href='oz.css' rel='stylesheet'>;";
-    htmldata+="<script src='https://ajax.googleapis.com/ajax/libs/angularjs/1.2.0/angular.min.js'></script>";
-	  htmldata+="<script src='https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js'></script>"; 
-	  htmldata+="</head><body>{{orderhtmldata}}</body></html>";
-	  htmldata=S(htmldata).replaceAll("{{orderhtmldata}}",orderhtmldata.s);
+	    htmldata+="<link href='https://netdna.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.css' rel='stylesheet'>"
+        htmldata+="<link href='oz.css' rel='stylesheet'>";
+        htmldata+="<script src='https://ajax.googleapis.com/ajax/libs/angularjs/1.2.0/angular.min.js'></script>";
+	    htmldata+="<script src='https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js'></script>"; 
+	    htmldata+="</head><body>{{orderhtmldata}}</body></html>";
+	    htmldata=S(htmldata).replaceAll("{{orderhtmldata}}",orderhtmldata.s);
+	    htmldata=htmldata.replaceAll("()","");
 	  ///////////////////////////////////////
-	  _createAndWriteHtmlForOrderPrint(self,htmldata.s)
+	  _createAndWriteHtmlForOrderPrint(self,htmldata.s,suborderid)
 	  ///////////////////////////
 
 	}
 }
-var _createAndWriteHtmlForOrderPrint=function(self,htmldata){
-	var filename="orderprint.html";
+var _createAndWriteHtmlForOrderPrint=function(self,htmldata,suborderid){
+	var filename="orderprint_"+suborderid+".html";
 	console.log("htmldata:::"+htmldata)
   var stream = fs.createWriteStream(filename);
-  var pdfinvoice="orderprint.pdf";
+  var pdfinvoice="orderprint-"+suborderid+".pdf";
   exec("rm -rf "+pdfinvoice);
   stream.once('open', function(fd) {
     stream.write(htmldata);

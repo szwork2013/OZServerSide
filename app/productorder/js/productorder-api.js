@@ -1,8 +1,16 @@
 var events = require("events");
 var logger = require("../../common/js/logger");
 var Order = require("./productorder");
-var urlencode = require('urlencode');
+// var urlencode = require('urlencode');
 var S=require("string");
+var fs=require("fs");
+var exec = require('child_process').exec;
+function base64_encode(file) {
+    // read binary data
+    var bitmap = fs.readFileSync(file);
+    // convert binary data to base64 encoded string
+    return new Buffer(bitmap).toString('base64');
+}
 ////////////CONSUMER////////////////////////////
 exports.createOrder = function(req,res){//Add New Order
   var session_userid = req.user.userid;
@@ -482,7 +490,8 @@ exports.cancelOrderByConsumer = function(req,res){
 exports.OrderPrintToPdf = function(req,res){
   // var session_userid = req.user.userid;
   var orderhtmldata=req.body.orderhtmldata;
-  
+  logger.emit("log","OrderPrintToPdf:\n"+orderhtmldata)
+  var suborderid=req.params.suborderid;
   var order = new Order();
   // logger.emit("log","req body"+JSON.stringify(req.body));
    order.removeAllListeners("failedOrderPrintToPdf");
@@ -494,12 +503,38 @@ exports.OrderPrintToPdf = function(req,res){
     order.removeAllListeners("successfulOrderPrintToPdf");
     order.on("successfulOrderPrintToPdf",function(result){
       // order.removeAllListeners();
-      console.log("result:Pdf"+result.success.orderpdf);
-       // res.end(result.success.orderpdf, 'binary')
-      res.sendfile(result.success.orderpdf)
+      // var text = fs.readFileSync(result.success.orderpdf,'binary')
+        res.send({success:{message:"Successfully get Order print data",data:base64_encode(result.success.orderpdf)}})   
+     // res.send()
+      exec("rm -rf "+result.success.orderpdf);
+
+       // fs.readFile(result.success.orderpdf,"binary", function (err, data) {
+       //    if (err) {
+       //      res.send({error:{message:"Pdf Creation error"}})
+       //    }else{
+       //      res.send({success:{message:"Successfully get Order print data",data:data}})   
+       //    }
+       //    exec("rm -rf "+result.success.orderpdf);
+          
+       //  });
+   
     });
+      // res.setHeader('Content-disposition', 'attachment; filename=test.pdf' );
+      // res.sendfile(result.success.orderpdf);
+      //  exec("rm -rf "+result.success.orderpdf);
+        // var stat = fs.statSync(result.success.orderpdf);
+          
+        // res.writeHead(200, {
+        //   'Content-Type': 'application/pdf',
+        //  'Content-Length': stat.size
+        // });
+
+    // var readStream = fs.createReadStream(result.success.orderpdf);
+    // // We replaced all the event handlers with a simple call to readStream.pipe()
+    // readStream.pipe(res);
+    
     ////////////////////////////////
-    order.OrderPrintToPdf(orderhtmldata);
+    order.OrderPrintToPdf(orderhtmldata,suborderid);
     ///////////////////////////////
 }
 
