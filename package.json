@@ -43,7 +43,8 @@
     "socket.io":"0.9.*",
     "shortid":"2.*",
     "mobile-detect":"0.3.*",
-    "isnumeric":"0.1.2"
+    "isnumeric":"0.1.2",
+    "java":"0.4.2"
 
     }
 }

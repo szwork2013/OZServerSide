@@ -2651,7 +2651,7 @@ var _validateOrderPrintToPdf=function(self,orderhtmldata,suborderid){
 		self.emit("failedOrderPrintToPdf",{error:{code:"AV001",message:"Please pass orderprintdata"}})
 	}else{
 		orderhtmldata=S(orderhtmldata).replaceAll(";","");
-		// orderhtmldata=S(orderhtmldata).replaceAll("₹","&#x20B9;");
+		orderhtmldata=S(orderhtmldata).replaceAll("₹","&#x20B9;");
 		orderhtmldata=S(orderhtmldata).replaceAll("removenghide ng-hide","removenghide");
 		orderhtmldata=S(orderhtmldata).replaceAll("removenghide  ng-hide","removenghide");
 		orderhtmldata=S(orderhtmldata).replaceAll("()","");
