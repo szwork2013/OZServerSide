@@ -2918,24 +2918,24 @@ var _validateGlsPaymentPercentData = function(self,data,providerid,user){
 	}else if(data.providerid != undefined){
 		self.emit("failedUpdateGlsPaymentPercent",{"error":{"code":"AV001","message":"Can't update providerid"}});
 	}else{
-		_isValidProviderToUpdateGlsPaymentPercent(self,data,providerid,user);
-		
+		// _isValidProviderToUpdateGlsPaymentPercent(self,data,providerid,user);
+		_updateGlsPaymentPercent(self,data,providerid,user);
 	}
 }
-var _isValidProviderToUpdateGlsPaymentPercent = function(self,data,providerid,user){
-	GlsPaymentPercentModel.findOne({providerid:providerid},function(err,provider){
-		if(err){
-			logger.emit('error',"Database Error  _isValidProviderToUpdateGlsPaymentPercent"+err);
-			self.emit("failedUpdateGlsPaymentPercent",{"error":{"code":"ED001","message":"Database Error"}});
-		}else if(provider){
-			_updateGlsPaymentPercent(self,data,providerid,user);
-		}else{
-			self.emit("failedUpdateGlsPaymentPercent",{"error":{"message":"Incorrect seller id"}});	
-		}
-	})
-}
-var _updateGlsPaymentPercent=function(self,sessionuserid,providerid,productcategoryleadtimedata){
-	GlsPaymentPercentModel.update({providerid:providerid},{$set:{percent:data.percent}},function(err,percentageupdatestatus){
+// var _isValidProviderToUpdateGlsPaymentPercent = function(self,data,providerid,user){
+// 	GlsPaymentPercentModel.findOne({providerid:providerid},function(err,provider){
+// 		if(err){
+// 			logger.emit('error',"Database Error  _isValidProviderToUpdateGlsPaymentPercent"+err);
+// 			self.emit("failedUpdateGlsPaymentPercent",{"error":{"code":"ED001","message":"Database Error"}});
+// 		}else if(provider){
+// 			_updateGlsPaymentPercent(self,data,providerid,user);
+// 		}else{
+// 			self.emit("failedUpdateGlsPaymentPercent",{"error":{"message":"Incorrect seller id"}});
+// 		}
+// 	})
+// }
+var _updateGlsPaymentPercent=function(self,data,providerid,user){
+	GlsPaymentPercentModel.update({providerid:providerid},{$set:{percent:data.percent}},{upsert:true},function(err,percentageupdatestatus){
 		if(err){
 			logger.emit('error',"Database Error  _updateGlsPaymentPercent"+err,user.userid);
 			self.emit("failedUpdateGlsPaymentPercent",{"error":{"code":"ED001","message":"Database Error"}});
