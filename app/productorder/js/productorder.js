@@ -2650,11 +2650,13 @@ var _validateOrderPrintToPdf=function(self,orderhtmldata,suborderid){
 	if(orderhtmldata==undefined){
 		self.emit("failedOrderPrintToPdf",{error:{code:"AV001",message:"Please pass orderprintdata"}})
 	}else{
-		orderhtmldata=S(orderhtmldata).replaceAll(";","");
-		orderhtmldata=S(orderhtmldata).replaceAll("₹","&#x20B9;");
-		orderhtmldata=S(orderhtmldata).replaceAll("removenghide ng-hide","removenghide");
-		orderhtmldata=S(orderhtmldata).replaceAll("removenghide  ng-hide","removenghide");
-		orderhtmldata=S(orderhtmldata).replaceAll("orderbox","orderbox orderPrintZoom");
+		// orderhtmldata=S(orderhtmldata).replaceAll(";","");
+		// orderhtmldata=S(orderhtmldata).replaceAll("₹","&#x20B9;");
+		// orderhtmldata=S(orderhtmldata).replaceAll("removenghide ng-hide","removenghide");
+		// orderhtmldata=S(orderhtmldata).replaceAll("removenghide  ng-hide","removenghide");
+		// orderhtmldata=S(orderhtmldata).replaceAll("ng-hide removenghide","removenghide");
+		// orderhtmldata=S(orderhtmldata).replaceAll("ng-hide  removenghide","removenghide");
+	 //    orderhtmldata=S(orderhtmldata).replaceAll("orderbox1","orderbox1 orderPrintZoom");
 		
 		
 		var htmldata="<html><head>";
@@ -2664,7 +2666,7 @@ var _validateOrderPrintToPdf=function(self,orderhtmldata,suborderid){
         htmldata+="<script src='https://ajax.googleapis.com/ajax/libs/angularjs/1.2.0/angular.min.js'></script>";
 	    htmldata+="<script src='https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js'></script>"; 
 	    htmldata+="</head><body>{{orderhtmldata}}</body></html>";
-	    htmldata=S(htmldata).replaceAll("{{orderhtmldata}}",orderhtmldata.s);
+	    htmldata=S(htmldata).replaceAll("{{orderhtmldata}}",orderhtmldata);
 	    htmldata=htmldata.replaceAll("()","");
 	  ///////////////////////////////////////
 	  _createAndWriteHtmlForOrderPrint(self,htmldata.s,suborderid)
