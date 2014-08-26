@@ -495,9 +495,9 @@ exports.uploadAPK=function(req,res){
   var data = req.body;
   var user = new User(data);
   logger.emit("log","REQ files "+JSON.stringify(req.files));
-  var apk = req.files.apk;
+  var apk = req.files.file;
   if(apk == undefined){
-    apk = req.files.apk;
+    apk = req.files.file;
   }
  
   user.removeAllListeners("failedUploadApk");

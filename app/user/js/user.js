@@ -1052,8 +1052,8 @@ var _validateUploadApkData=function(self,data,apk,user){
     self.emit("failedUploadApk",{"error":{"code":"AV001","message":"Please upload apk"}});
   }else if(apk.originalFilename==""){
     self.emit("failedUploadApk",{"error":{"code":"AV001","message":"Please upload apk"}});
-  }else if(!S(apk.mimetype).contains("application/vnd.android.package-archive")){
-    self.emit("failedUploadApk",{"error":{"code":"AV001","message":"Please upload apk file only"}});
+  // }else if(!S(apk.mimetype).contains("application/vnd.android.package-archive")){
+  //   self.emit("failedUploadApk",{"error":{"code":"AV001","message":"Please upload apk file only"}});
   }else if(!S(apk.extension).contains("apk")){
     self.emit("failedUploadApk",{"error":{"code":"AV001","message":"Please upload apk file only"}});
   }else{
