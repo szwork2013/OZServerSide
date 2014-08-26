@@ -1044,10 +1044,10 @@ User.prototype.uploadAPK = function(user,apk){
 var _validateUploadApkData=function(self,data,apk,user){
   if(data == undefined){
     self.emit("failedUploadApk",{"error":{"code":"AV001","message":"Please enter data"}});
-  // }else if(data.version == undefined || data.version == ""){
-  //   self.emit("failedUploadApk",{"error":{"code":"AV001","message":"Please enter version"}});
-  // }else if(data.description == undefined || data.description == ""){
-  //   self.emit("failedUploadApk",{"error":{"code":"AV001","message":"Please enter description"}});
+  }else if(data.version == undefined || data.version == ""){
+    self.emit("failedUploadApk",{"error":{"code":"AV001","message":"Please enter version"}});
+  }else if(data.description == undefined || data.description == ""){
+    self.emit("failedUploadApk",{"error":{"code":"AV001","message":"Please enter description"}});
   }else if(apk==undefined){
     self.emit("failedUploadApk",{"error":{"code":"AV001","message":"Please upload apk"}});
   }else if(apk.originalFilename==""){

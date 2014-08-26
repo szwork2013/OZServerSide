@@ -494,7 +494,7 @@ exports.getMyDeliveryAddressHistory = function(req, res) {
 exports.uploadAPK=function(req,res){
   var data = req.body;
   var user = new User(data);
-  // logger.emit("log","REQ files "+JSON.stringify(req.files));
+  logger.emit("log","REQ files "+JSON.stringify(req.files));
   var apk = req.files.apk;
   if(apk == undefined){
     apk = req.files.apk;
