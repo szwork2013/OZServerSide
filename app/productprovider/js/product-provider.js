@@ -2971,13 +2971,15 @@ var _getAllProvidersFromProductProviderModel = function(self,user){
 	})
 }
 var _getAllProvidersFromGlsPaymentPercentModel = function(self,productproviders,user){
+	productproviders=JSON.stringify(productproviders);
+	productproviders=JSON.parse(productproviders);
 	GlsPaymentPercentModel.find({},{providerid:1,percent:1,_id:0},function(err,providerpercentage){
 		if(err){
 			logger.emit('error',"Database Error  _getAllProvidersFromProductProviderModel"+err);
 			self.emit("failedGetGlsPaymentPercent",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(providerpercentage.length>0){
-			productproviders=JSON.stringify(productproviders);
-			productproviders=JSON.parse(productproviders);
+			// productproviders=JSON.stringify(productproviders);
+			// productproviders=JSON.parse(productproviders);
 			for(var i=0;i<productproviders.length;i++){
 				var percentage = __.find(providerpercentage, function(obj) { return obj.providerid == productproviders[i].providerid });
 				console.log("percentage : "+percentage);
@@ -2988,8 +2990,8 @@ var _getAllProvidersFromGlsPaymentPercentModel = function(self,productproviders,
 				}
 			}
 		}else{
-			productproviders=JSON.stringify(productproviders);
-			productproviders=JSON.parse(productproviders);
+			// productproviders=JSON.stringify(productproviders);
+			// productproviders=JSON.parse(productproviders);
 			for(var i=0;i<productproviders.length;i++){
 				productproviders[i].percent = 0;
 			}

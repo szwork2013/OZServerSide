@@ -26,6 +26,7 @@ exports.init = function (app) {
     app.put('/api/statictemplates',auth,api.commonapi.updateOZPolicies);    
     app.get('/api/loadsmstemplates',auth,api.commonapi.loadSMSTemplates)
     app.get('/api/mydeliveryaddresses/:userid',auth,api.userapi.getMyDeliveryAddressHistory);
+    app.post('/api/apk',auth,api.userapi.uploadAPK);
 
     //feedback form
     app.post("/api/feedback",auth,api.commonapi.giveFeedback);

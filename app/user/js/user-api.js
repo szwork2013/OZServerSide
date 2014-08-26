@@ -491,6 +491,31 @@ exports.getMyDeliveryAddressHistory = function(req, res) {
   }
 };
 
-
-
-
+exports.uploadAPK=function(req,res){
+  var data = req.body;
+  var user = new User(data);
+  // logger.emit("log","REQ files "+JSON.stringify(req.files));
+  var apk = req.files.apk;
+  if(apk == undefined){
+    apk = req.files.apk;
+  }
+ 
+  user.removeAllListeners("failedUploadApk");
+  user.on("failedUploadApk",function(err){
+    if(err.error.code!="ED001"){
+     logger.emit("error", err.error.message); 
+    }
+    // //user.removeAllListeners();
+    res.send(err);
+  });
+  user.removeAllListeners("successfulUploadApk");
+  user.on("successfulUploadApk",function(result){
+   
+    res.send(result);
+  });
+  if(req.user.isAdmin==false){
+    user.emit("failedUploadApk",{"error":{"message":"Only orderZapp admin user can upload apk"}});
+  }else{
+    user.uploadAPK(req.user,apk);
+  } 
+}

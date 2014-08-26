@@ -8,9 +8,20 @@ var SMSFormatModel=require("../../common/js/sms-format-model");
 var events = require("events");
 var logger=require("../../common/js/logger");
 var commonapi=require("../../common/js/common-api");
+var ApkModel=require("../../common/js/apk-model");
 var S=require('string');
 var __=require("underscore");
-var DeliveryAddressModel=require("../../productorder/js/delivery-address-history-model")
+var DeliveryAddressModel=require("../../productorder/js/delivery-address-history-model");
+var fs=require("fs");
+var path=require("path");
+var AWS = require('aws-sdk');
+var CONFIG=require("config").OrderZapp;
+var amazonbucket=CONFIG.amazonbucket;
+var exec = require('child_process').exec;
+AWS.config.update({accessKeyId:'AKIAJOGXRBMWHVXPSC7Q', secretAccessKey:'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'});
+AWS.config.update({region:'ap-southeast-1'});
+var s3bucket = new AWS.S3();
+
 var User = function(userdata) {
   this.user=userdata;
 };
@@ -1000,10 +1011,10 @@ var _successfulGetUserOrdersCount=function(self,count){
   logger.emit("log","_successfulGetUserOrdersCount");
   self.emit("successfulGetUserOrdersCount", {"success":{"message":"Getting Users & Orders Counts Successfully",count:count}});
 }
+
 User.prototype.getMyDeliveryAddressHistory = function(userid) {
   var self=this;
   _getMyDeliveryAddressHistory(self,userid);
-
 };
 var _getMyDeliveryAddressHistory=function(self,userid){
   DeliveryAddressModel.find({userid:userid},{_id:0,userid:0,__v:0},function(err,deliveryaddresses){
@@ -1020,4 +1031,139 @@ var _getMyDeliveryAddressHistory=function(self,userid){
 }
 var _successfullGetMYDeliveryAddressHistory=function(self,deliveryaddresses){
   self.emit("successfulGetMyDeliveryAddressHistory",{success:{message:"Getting My Delivery Address History Successfully",deliveryaddresses:deliveryaddresses}})
+}
+
+User.prototype.uploadAPK = function(user,apk){
+  var self=this;
+  var data = this.user;
+  console.log("apk "+JSON.stringify(apk));
+  //////////////////////////////////
+  _validateUploadApkData(self,data,apk,user);
+  //////////////////////////////////
+};
+var _validateUploadApkData=function(self,data,apk,user){
+  if(data == undefined){
+    self.emit("failedUploadApk",{"error":{"code":"AV001","message":"Please enter data"}});
+  // }else if(data.version == undefined || data.version == ""){
+  //   self.emit("failedUploadApk",{"error":{"code":"AV001","message":"Please enter version"}});
+  // }else if(data.description == undefined || data.description == ""){
+  //   self.emit("failedUploadApk",{"error":{"code":"AV001","message":"Please enter description"}});
+  }else if(apk==undefined){
+    self.emit("failedUploadApk",{"error":{"code":"AV001","message":"Please upload apk"}});
+  }else if(apk.originalFilename==""){
+    self.emit("failedUploadApk",{"error":{"code":"AV001","message":"Please upload apk"}});
+  }else if(!S(apk.mimetype).contains("application/vnd.android.package-archive")){
+    self.emit("failedUploadApk",{"error":{"code":"AV001","message":"Please upload apk file only"}});
+  }else if(!S(apk.extension).contains("apk")){
+    self.emit("failedUploadApk",{"error":{"code":"AV001","message":"Please upload apk file only"}});
+  }else{
+    if(apk!=undefined){
+      //////////////////////////////////////////////////////////////////////////////
+      _uploadAPK(data,user,apk,function(err,result){
+        if(err){
+          console.log("Apk not uploaded : "+err);
+          logger.emit("Apk not uploaded");
+          self.emit("failedUploadApk",{"error":{"code":"AV001","message":"Apk not uploaded"}});
+        }else{
+          console.log("Apk uploaded with version details");
+          logger.emit("Apk uploaded with version details");
+          _successfulUploadApk(self);
+        }
+      });
+      ///////////////////////////////////////////////////////////////////////////////
+    }
+  }
+}
+var _uploadAPK = function(data,user,apk,callback){
+  console.log("_uploadAPK");
+  fs.readFile(apk.path,function (err, data) {
+      if(err){
+        callback({error:{code:"ED001",message:"Database Issue"}});
+      }else{
+        var ext = path.extname(apk.originalname||'').split('.');
+        ext=ext[ext.length - 1];
+        var s3filekey=Math.floor((Math.random()*1000)+1)+"."+ext;
+        var bucketFolder;
+        var params;
+        bucketFolder="orderzapp/apk";
+        params = {
+           Bucket: bucketFolder,
+           Key:"order-zapp-buyers",
+           Body: data,
+           // ACL: 'public-read-write',
+           ContentType: apk.mimetype
+        };
+        //////////////////////////////////////////////////////////////////////////
+        _addApkToAmazonServer(data,params,user,apk,function(err,result){
+          if(err){
+            callback(err);
+          }else{  
+            callback(null,result);
+          }
+        });
+        ////////////////////////////////////////////////////////////////////////////
+      }
+    });
+}
+var _addApkToAmazonServer=function(data,awsparams,user,apk,callback){
+  console.log("_addApkToAmazonServer");
+  s3bucket.putObject(awsparams, function(err, data) {
+    if (err) {
+      callback({"error":{"message":"s3bucket.putObject:-_addApkToAmazonServer"+err}});
+    } else {
+      var params1 = {Bucket: awsparams.Bucket, Key: awsparams.Key,Expires: 60*60*24*365};
+      console.log("params1 : "+JSON.stringify(params1))
+      s3bucket.getSignedUrl('getObject',params1, function (err, url) {
+        console.log("getobject "+JSON.stringify(url));
+        if(err){
+          callback({"error":{"message":"_addApkToAmazonServer:Error in getting getSignedUrl"+err}});
+        }else{
+          var providerurl = {bucket:params1.Bucket,key:params1.Key,image:url};
+         ApkModel.findAndModify({"apk.key":"order-zapp-buyers"},[],{$set:{apk:providerurl}},{new:false},function(err,oz_apk){
+          // console.log("oz_apk : "+JSON.stringify(oz_apk));
+          if(err){
+            logger.emit('error',"Database Error  _addApkToAmazonServer"+err,user.userid)
+            callback({"error":{"code":"ED001","message":"Database Error"}});
+          }else if(!oz_apk){
+            // console.log("data : "+data);
+            // callback({"error":{"message":"apk does not exist"}});
+            data.apk = providerurl;
+            var apk_obj = new ApkModel(data);
+            apk_obj.save(function(err,apkdata){
+              if(err){
+                logger.emit("error","Database Error :_createOTPForJoinProviderRequest/errormessage:"+err);
+                self.emit("failedjoinproviderrequest",{"error":{"code":"ED001","message":"Database Error"}});
+              }else if(apkdata){                  
+                callback(null,{"success":{"message":"Apk Uploaded Successfully","image":url}}); 
+              }
+            }) 
+          }else{
+            console.log("data : "+JSON.stringify(data));
+            var apk_obj=oz_apk.apk;
+            if(apk_obj==undefined){
+              logger.emit("log","Apk changed");
+            }else{
+              var awsdeleteparams={Bucket:apk_obj.bucket,Key:apk_obj.key};
+              logger.emit("log",awsdeleteparams);
+              s3bucket.deleteObject(awsdeleteparams, function(err, deleteproviderlogostatus) {
+                if (err) {
+                 logger.emit("error","Apk not deleted from amazon s3 bucket "+err,user.userid);
+                }else if(deleteproviderlogostatus){
+                 logger.emit("log","Apk deleted from Amazon S3");
+                }
+              }) 
+            }
+            exec("rm -rf "+apk.path);
+            console.log("rm -rf "+apk.path);               
+                      
+              callback(null,{"success":{"message":"Apk Uploaded Successfully","image":url}});
+            }
+          })
+        }
+      });
+    }
+  }) 
+}
+var _successfulUploadApk = function(self){
+  self.emit("successfulUploadApk",{"success":{"message":"Apk Added Successfully"}});
 }
