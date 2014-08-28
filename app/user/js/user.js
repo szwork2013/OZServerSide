@@ -1085,12 +1085,12 @@ var _uploadAPK = function(data,user,apk,callback){
         var s3filekey=Math.floor((Math.random()*1000)+1)+"."+ext;
         var bucketFolder;
         var params;
-        bucketFolder="orderzapp/apk";
+        bucketFolder=amazonbucket+"/apk";
         params = {
            Bucket: bucketFolder,
-           Key:"order-zapp-buyers",
+           Key:"order-zapp-buyers.apk",
            Body: data,
-           // ACL: 'public-read-write',
+           ACL: 'public-read',
            ContentType: apk.mimetype
         };
         //////////////////////////////////////////////////////////////////////////
@@ -1145,13 +1145,13 @@ var _addApkToAmazonServer=function(data,awsparams,user,apk,callback){
             }else{
               var awsdeleteparams={Bucket:apk_obj.bucket,Key:apk_obj.key};
               logger.emit("log",awsdeleteparams);
-              s3bucket.deleteObject(awsdeleteparams, function(err, deleteproviderlogostatus) {
-                if (err) {
-                 logger.emit("error","Apk not deleted from amazon s3 bucket "+err,user.userid);
-                }else if(deleteproviderlogostatus){
-                 logger.emit("log","Apk deleted from Amazon S3");
-                }
-              }) 
+              // s3bucket.deleteObject(awsdeleteparams, function(err, deleteproviderlogostatus) {
+              //   if (err) {
+              //    logger.emit("error","Apk not deleted from amazon s3 bucket "+err,user.userid);
+              //   }else if(deleteproviderlogostatus){
+              //    logger.emit("log","Apk deleted from Amazon S3");
+              //   }
+              // }) 
             }
             exec("rm -rf "+apk.path);
             console.log("rm -rf "+apk.path);               
