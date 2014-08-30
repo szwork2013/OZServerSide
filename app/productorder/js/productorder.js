@@ -28,7 +28,7 @@ var exec = require('child_process').exec;
 var fs=require("fs");
 var amazonbucket=CONFIG.amazonbucket;
 var AWS = require('aws-sdk');
-AWS.config.update({accessKeyId:'AKIAJOGXRBMWHVXPSC7Q', secretAccessKey:'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'});
+AWS.config.update(CONFIG.amazon);
 AWS.config.update({region:'ap-southeast-1'});
 var s3bucket = new AWS.S3();
 var Order = function(orderdata) {

@@ -10,7 +10,7 @@ var exec = require('child_process').exec;
 var CONFIG=require("config").OrderZapp;
 var amazonbucket=CONFIG.amazonbucket;
 var AWS = require('aws-sdk');
-AWS.config.update({accessKeyId:'AKIAJOGXRBMWHVXPSC7Q', secretAccessKey:'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'});
+AWS.config.update(CONFIG.amazon);
 AWS.config.update({region:'ap-southeast-1'});
 var s3bucket = new AWS.S3();
 var Invoice = function(discountdata) {
@@ -100,6 +100,7 @@ var _createJSONForInvoice=function(self,suborderid){
               self.emit("failedCreateInvoice",{error:{message:"Database Error",code:"ED001"}})
               logger.emit("error","Database Error :_createJSONForInvoice"+err)
             }else if(!selleruser){
+              self.emit("failedCreateInvoice",{error:{message:"No Authorize To Create Invoice"}})
               logger.emit("error","Incorrect User")
             }else{
               var contacts=branch.contact_supports;
@@ -158,7 +159,7 @@ var _createJSONForInvoice=function(self,suborderid){
 })
 }
 var _createPDFInvocie=function(self,inoviceobject,branch){
-  fs.readFile('invoicesample1.html', function (err, data) {
+  fs.readFile('phantomjs/invoice.html', function (err, data) {
     if(err){
       logger.emit("error","Invoice Sample html Error:_createPDFInvocie "+err);
       self.emit("failedCreateInvoice",{error:{message:""}})

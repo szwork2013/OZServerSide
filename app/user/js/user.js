@@ -18,7 +18,9 @@ var AWS = require('aws-sdk');
 var CONFIG=require("config").OrderZapp;
 var amazonbucket=CONFIG.amazonbucket;
 var exec = require('child_process').exec;
-AWS.config.update({accessKeyId:'AKIAJOGXRBMWHVXPSC7Q', secretAccessKey:'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'});
+var bcrypt = require('bcrypt');
+var SALT_WORK_FACTOR = 10;
+AWS.config.update(CONFIG.amazon);
 AWS.config.update({region:'ap-southeast-1'});
 var s3bucket = new AWS.S3();
 
@@ -30,6 +32,24 @@ var CountryCodeModel=require("../../common/js/country-code-model");
 var regxemail = /\S+@\S+\.\S+/; 
 User.prototype = new events.EventEmitter;
 module.exports = User;
+var getHash=function(text,callback){
+  bcrypt.genSalt(SALT_WORK_FACTOR, function(err, salt) {
+    if(err) {
+      logger.emit("error","Error in creation hash"+JSON.stringify(err))
+      callback({error:{message:"Error in creation hash"}})
+    }else{
+      console.log("text"+text)
+      bcrypt.hash(text+"",salt,function(err, hashpassword) {
+        if(err) {
+         logger.emit("error","Error in creation hash"+JSON.stringify(err))
+         callback({error:{message:"Error in creation hash"}})
+        }else{
+          callback(null,hashpassword)
+        }
+      });  
+    }
+  });
+}
 User.prototype.registerUser = function() {
 	var self=this;
 
@@ -691,33 +711,41 @@ var _resetPasswordRequest=function(self,otp){
 }
 var _sendNewPassWord=function(self,user){
   var otp = Math.floor(Math.random()*100000000);
-  user.password=otp;
-  user.save(function(err,userdata){
+  getHash(otp,function(err,hashpassword){
     if(err){
       logger.emit("error","Database error:/_sendNewPassWord"+err);
-      self.emit("failedresetPasswordRequest",{"error":{"code":"ED001","message":"Database Error"}})             
+      self.emit("failedresetPasswordRequest",{"error":{"message":err.error.message}})             
     }else{
-      SMSTemplateModel.findOne({name:"newpassword",lang:user.preffered_lang},function(err,smstemplatedata){
+      UserModel.update({userid:user.userid},{$set:{password:hashpassword}},function(err,passwordchangestatus){
         if(err){
           logger.emit("error","Database error:/_sendNewPassWord"+err);
           self.emit("failedresetPasswordRequest",{"error":{"code":"ED001","message":"Database Error"}})             
-        }else if(!smstemplatedata){
-          logger.emit("error","Template newpassword not found")
-          self.emit("failedresetPasswordRequest",{"error":{"message":"Template Error"}})
+        }else if(passwordchangestatus==0){
+         self.emit("failedresetPasswordRequest",{"error":{"message":"Incorrect userid"}})              
         }else{
-          var smstemplate=S(smstemplatedata.template);
-          smstemplate=smstemplate.replaceAll("<password>",otp);
-          var message=smstemplate.s;
-          commonapi.sendMessage(message,user.mobileno,function(result){
-            if(result=="failure"){
-              logger.emit("error","newpassword not sent to"+user.mobileno)
-              self.emit("failedresetPasswordRequest",{"error":{"message":"Server Error"}})
+          SMSTemplateModel.findOne({name:"newpassword",lang:user.preffered_lang},function(err,smstemplatedata){
+            if(err){
+              logger.emit("error","Database error:/_sendNewPassWord"+err);
+              self.emit("failedresetPasswordRequest",{"error":{"code":"ED001","message":"Database Error"}})             
+            }else if(!smstemplatedata){
+              logger.emit("error","Template newpassword not found")
+              self.emit("failedresetPasswordRequest",{"error":{"message":"Template Error"}})
             }else{
-              ////////////////////////////////////
-              _successfullNewPassword(self)
-              ///////////////////////////////////
+              var smstemplate=S(smstemplatedata.template);
+              smstemplate=smstemplate.replaceAll("<password>",otp);
+              var message=smstemplate.s;
+              commonapi.sendMessage(message,user.mobileno,function(result){
+                if(result=="failure"){
+                  logger.emit("error","newpassword not sent to"+user.mobileno)
+                  self.emit("failedresetPasswordRequest",{"error":{"message":"Server Error"}})
+                }else{
+                  ////////////////////////////////////
+                  _successfullNewPassword(self)
+                  ///////////////////////////////////
+                }
+              }) 
             }
-          }) 
+          })
         }
       })
     }
