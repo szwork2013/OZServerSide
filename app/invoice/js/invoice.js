@@ -159,7 +159,7 @@ var _createJSONForInvoice=function(self,suborderid){
 })
 }
 var _createPDFInvocie=function(self,inoviceobject,branch){
-  fs.readFile('phantomjs/invoice.html', function (err, data) {
+  fs.readFile('phantomjs/src/invoice.html', function (err, data) {
     if(err){
       logger.emit("error","Invoice Sample html Error:_createPDFInvocie "+err);
       self.emit("failedCreateInvoice",{error:{message:""}})

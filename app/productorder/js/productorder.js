@@ -2662,7 +2662,7 @@ var _validateOrderPrintToPdf=function(self,orderhtmldata,suborderid){
 		var htmldata="<html><head>";
 		htmldata+="<link rel='stylesheet' href='https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css'>"; 
 	    htmldata+="<link href='https://netdna.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.css' rel='stylesheet'>"
-        htmldata+="<link href='oz.css' rel='stylesheet'>";
+        htmldata+="<link href='phantomjs/src/oz.css' rel='stylesheet'>";
         htmldata+="<script src='https://ajax.googleapis.com/ajax/libs/angularjs/1.2.0/angular.min.js'></script>";
 	    htmldata+="<script src='https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js'></script>"; 
 	    htmldata+="</head><body>{{orderhtmldata}}</body></html>";
