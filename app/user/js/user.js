@@ -8,6 +8,7 @@ var SMSFormatModel=require("../../common/js/sms-format-model");
 var events = require("events");
 var logger=require("../../common/js/logger");
 var commonapi=require("../../common/js/common-api");
+var emailtemplateapi=require("../../common/js/email-template-api")
 var ApkModel=require("../../common/js/apk-model");
 var S=require('string');
 var __=require("underscore");
@@ -18,7 +19,8 @@ var AWS = require('aws-sdk');
 var CONFIG=require("config").OrderZapp;
 var amazonbucket=CONFIG.amazonbucket;
 var exec = require('child_process').exec;
-AWS.config.update({accessKeyId:'AKIAJOGXRBMWHVXPSC7Q', secretAccessKey:'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'});
+var gcmapi=require('../../gcm/js/gcm-api')
+AWS.config.update(CONFIG.amazon);
 AWS.config.update({region:'ap-southeast-1'});
 var s3bucket = new AWS.S3();
 
@@ -37,7 +39,7 @@ User.prototype.registerUser = function() {
 	_validateRegisterUser(self,this.user);
 	 ////////////////////////////////////
 };
-var _sendOTPToMobileNumber=function(mobileno,otp,tempname,lang,callback){
+var _sendOTPToMobileNumber=function(mobileno,otp,tempname,lang,user,callback){
 	SMSTemplateModel.findOne({name:tempname,lang:lang},function(err,smstemplatedata){
     if(err){
       callback({"error":{"message":"error in sending SMS message"}})
@@ -364,8 +366,9 @@ var _createOtp=function(self,user){
     }else if(otpdata){
         var tempname="otp";
         var lang="EN"; 
-        ////////////////////////
-        _sendOTPToMobileNumber(user.mobileno,otpdata.otp,tempname,lang,function(result){
+        if(user.countrycode=="91"){//for Indian customer
+           ////////////////////////
+        _sendOTPToMobileNumber(user.mobileno,otpdata.otp,tempname,lang,user,function(result){
           if(result.error!=undefined){
             self.emit("failedUserRegistration",result);
           }else{
@@ -374,7 +377,35 @@ var _createOtp=function(self,user){
             //////////////////////
           }
         });
-    }
+        }else{
+          var to=user.email;
+          var templatetype="verify";
+          var data={email:user.email,otp:otpdata.otp,firstname:user.firstname}
+          emailtemplateapi.sendEmailNotification(templatetype,data,to,function(err,result){
+            if(err){
+              self.emit("failedUserRegistration",err)
+            }else{
+              var data="Please enter your One Time Password <otp> to verify your registration with OrderZapp";
+              data=S(data).replaceAll("<otp>",otpdata.otp);
+              data={message1:data.s}
+               // data={suborderid:"sunil"};
+              
+              if(user.gcmregistrationid){
+                gcmapi.sendGCMNotification(data,user.gcmregistrationid,function(err,result){
+                  if(err){
+                    logger.emit("error","err"+err)
+                  }else{
+                    logger.emit("log",result.success.message);
+                  }
+                }) 
+              }
+              ///////////////////////////
+             _successfullUserRegistration(self);
+             //////////////////////
+            }
+          })
+        } 
+      }
   })       
 }
 var _successfullUserRegistration=function(self){

@@ -17,7 +17,9 @@ var SMSTemplateModel=require("../../common/js/sms-template-model");
 var GCM = require('gcm').GCM;
 var InvoiceModel=require("../../invoice/js/invoice-model");
 var CONFIG=require("config").OrderZapp;
-var DeliveryAddressModel=require("./delivery-address-history-model")
+var DeliveryAddressModel=require("./delivery-address-history-model");
+var gcmapi=require('../../gcm/js/gcm-api')
+
 var java = require("java");
 java.classpath.push("./paytm/");
 var logger=require("../../common/js/logger");
@@ -28,7 +30,7 @@ var exec = require('child_process').exec;
 var fs=require("fs");
 var amazonbucket=CONFIG.amazonbucket;
 var AWS = require('aws-sdk');
-AWS.config.update({accessKeyId:'AKIAJOGXRBMWHVXPSC7Q', secretAccessKey:'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'});
+AWS.config.update(CONFIG.amazon);
 AWS.config.update({region:'ap-southeast-1'});
 var s3bucket = new AWS.S3();
 var Order = function(orderdata) {
@@ -1468,24 +1470,16 @@ var _sendNotificationToUser=function(suborder,status){
 				          	}
 				        });
 					}
+					var data={suborderid:suborder.suborderid,status:status};
 					var gcmregistrationid = user.gcmregistrationid;
-					var message = {
-			          registration_id: gcmregistrationid, // required Device registration id
-			          collapse_key: 'do_not_collapse', //demo,Collapse key
-		    			'data.suborderid': suborder.suborderid,
-		    			'data.status': status
-					};
-					console.log("GCM " + JSON.stringify(gcm));
-				    gcm.send(message, function(err, messageId){
-						console.log("Call GCM");
-					    if (err) {
-					    	// res.send({"error":{"message":"Something has gone wrong! " + err}});
-					        // console.log("Something has gone wrong!");		        
-					    } else {
-					        console.log("Sent with message ID: ", messageId);
-					        // res.send({"success":{"message":"Sent with message ID: " + messageId}});
-					    }
-					});
+					//call sendgcm notification
+					gcmapi.sendGCMNotification(data,gcmregistrationid,function(err,result){
+						if(err){
+							logger.emit("error",err);
+						}else{
+							logger.emit("log",result.success.message)
+						}
+					})
 				}
 			})
 		}
@@ -2662,7 +2656,7 @@ var _validateOrderPrintToPdf=function(self,orderhtmldata,suborderid){
 		var htmldata="<html><head>";
 		htmldata+="<link rel='stylesheet' href='https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css'>"; 
 	    htmldata+="<link href='https://netdna.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.css' rel='stylesheet'>"
-        htmldata+="<link href='oz.css' rel='stylesheet'>";
+        htmldata+="<link href='phantomjs/src/oz.css' rel='stylesheet'>";
         htmldata+="<script src='https://ajax.googleapis.com/ajax/libs/angularjs/1.2.0/angular.min.js'></script>";
 	    htmldata+="<script src='https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js'></script>"; 
 	    htmldata+="</head><body>{{orderhtmldata}}</body></html>";

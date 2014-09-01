@@ -38,6 +38,7 @@ var punycode=require("punycode");
 // var LocationModel=require("./location-model");
  var SMSHistoryModel=require("./sms-history-model");
  var FeedbackModel=require("./feedback-model");
+ var EmailTemplateModel=require('./email-template-model');
 //   var StateLangModel=require("./state-lang-model"); 
 function trim(stringToTrim) {
 	return stringToTrim.replace(/^\s+|\s+$/g,"");
@@ -692,6 +693,17 @@ exports.sendMail = function(message,smtpconfig,callback){
       //sending succussful then success
       
     });
+};
+exports.sendEmailNotification = function(templatetype,data,to,callback){
+  EmailTemplateModel.findOne({templatetype:templatetype},function(err,emailtemplate){
+  	if(err){
+  		callback({error:{code:"ED001",message:"Error in Database"}})
+  	}else if(!emailtemplate){
+  		callback({error:{message:"Email Template not exist for "+templatetype}})
+  	}else{
+
+  	}
+  })
 };
 
 

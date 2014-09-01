@@ -5,7 +5,7 @@ var AWS = require('aws-sdk');
 var CONFIG=require("config").OrderZapp;
 var amazonbucket=CONFIG.amazonbucket;
 
-AWS.config.update({accessKeyId:'AKIAJOGXRBMWHVXPSC7Q', secretAccessKey:'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'});
+AWS.config.update(CONFIG.amazon);
 AWS.config.update({region:'ap-southeast-1'});
 var HHIcon = function(icondata) {
   this.hhicon=icondata;
