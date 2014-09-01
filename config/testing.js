@@ -1,6 +1,6 @@
 module.exports = {
     OrderZapp: {
-      name: "development",
+      name: "testing",
       dbName: "ozpp-test",
       dbHost: "localhost",
       dbPort: "27017",

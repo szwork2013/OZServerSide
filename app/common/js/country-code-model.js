@@ -15,7 +15,7 @@ var mongoose = require('./db');
 
 var countryCodeSchema = mongoose.Schema(
   {
-  	country:{type:String,lowercase: true},
+  	country:{type:String,uppercase: true},
   	isocode1:{type:String},
   	isocode2:{type:String},
   	code:{type:String}

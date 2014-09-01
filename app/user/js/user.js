@@ -216,7 +216,7 @@ var _validateRegisterUser = function(self,userdata) {
     self.emit("failedUserRegistration",{"error":{"code":"AV001","message":"Please enter firstname"}});
   } else if(userdata.mobileno.trim()==""){
 		self.emit("failedUserRegistration",{"error":{"code":"AV001","message":"Please enter mobileno"}});
-	} else if(S(userdata.mobileno).isNumeric() && userdata.mobileno.length!=12){
+	} else if(S(userdata.mobileno).isNumeric() && userdata.mobileno.length!=10){
 		self.emit("failedUserRegistration",{"error":{"code":"AV001","message":"Mobile number should be 10 digit numeric"}});
 	} else if(userdata.usertype==undefined || userdata.usertype==""){
     self.emit("failedUserRegistration",{"error":{"code":"AV001","message":"Please select usertype"}});   
@@ -230,16 +230,18 @@ var _validateRegisterUser = function(self,userdata) {
     self.emit("failedUserRegistration",{"error":{"code":"AV001","message":"please enter email"}});
   }else if(isValidEmail(userdata.email).error!=undefined){
     self.emit("failedUserRegistration",isValidEmail(userdata.email));
+  }else  if(userdata.countrycode==undefined){
+    self.emit("failedUserRegistration",{"error":{"code":"AV001","message":"Please select countrycode"}});
   }else{
-      CountryCodeModel.findOne({country:"india"},function(err,countrycode){
+      CountryCodeModel.findOne({code:userdata.countrycode},function(err,countrycode){
         if(err){
           logger.emit("error","Database Issue _validateRegisterUser "+err)
           self.emit("failedUserRegistration",{"error":{"code":"ED001","message":"Database Issue"}});
         }else if(!countrycode){
-          self.emit("failedUserRegistration",{"error":{"message":"Country code does not exist for your country"}});
+          self.emit("failedUserRegistration",{"error":{"message":"Cuntry code is wrong"}});
         }else{
 
-          // userdata.mobileno=countrycode.code+userdata.mobileno;
+          userdata.mobileno=userdata.countrycode+userdata.mobileno;
         /////////////////////////////////////////////
         _checkMobileNumberAlreadyExists(self,userdata)
         //////////////////////////////////////////
@@ -901,9 +903,10 @@ User.prototype.getCountryCodes = function() {
 };
 
 var _getCountryCodes=function(self){
-  CountryCodeModel.find({},{code:1,country:1,_id:0}).lean().exec(function(err,countrycode){
+  CountryCodeModel.find({},{country:1,code:1,_id:0}).sort({country:1}).lean().exec(function(err,countrycode){
     if(err){
-      self.emit("failedGetCountryCode",{"error":{"code":"ED001","message":"Error in db to find countrycode"}});
+      logger.emit("error","Database Issue:"+err)
+      self.emit("failedGetCountryCode",{"error":{"code":"ED001","message":"Error in Database"}});
     }else if(countrycode){
       ////////////////////////////////
       _successfulGetCountryCode(self,countrycode);

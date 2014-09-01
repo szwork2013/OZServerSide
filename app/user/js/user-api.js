@@ -193,7 +193,7 @@ exports.signin = function(req, res) {
 }
 passport.use( new LocalStrategy({ usernameField: 'mobileno', passwordField: 'password'},
   function(mobileno, password, done) {
-    userModel.findOne({$or:[{mobileno:mobileno.toLowerCase()},{username:mobileno.toLowerCase()}],status:"active"},{password:1,mobileno:1,username:1,verified:1,isAdmin:1,usertype:1}, function(err, user) {
+    userModel.findOne({$or:[{mobileno:mobileno.toLowerCase()},{username:mobileno.toLowerCase()}],status:"active"},{password:1,mobileno:1,username:1,verified:1,isAdmin:1,usertype:1,countrycode:1}, function(err, user) {
       if (err){
         console.log("error",err)
        return done(err); 

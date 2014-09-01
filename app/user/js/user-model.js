@@ -89,7 +89,8 @@ var userSchema = mongoose.Schema(
         isAdmin:{type:Boolean,default:false},
        // secretkey:{type:String},
        appentrytype:{type:String},
-       entrytype:{type:String}//by walkin or registering only applicable for service
+       entrytype:{type:String},//by walkin or registering only applicable for service
+       countrycode:{type:String}//eg.91 FOR INDIA
 });
 
 userSchema.pre('save', function(next) {
