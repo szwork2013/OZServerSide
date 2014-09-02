@@ -57,6 +57,7 @@ Invoice.prototype.createInvoice= function(branchid,suborderid,sessionuserid) {
   
 };
 Invoice.prototype.sendInvoiceAfterOrderComplete=function(branchid,suborderid,sessionuserid,callback){
+  console.log("calling to sendInvoiceAfterOrderComplete");
 /////////////////////////////////////
   _checkInvoiceAlreadyCreated(suborderid,sessionuserid,function(err,result){
     if(err){
@@ -211,7 +212,8 @@ var _createPDFInvocie=function(inoviceobject,branch,callback){
      //delivery date and deliverytime slot
      var deliverydate=new Date(inoviceobject.deliverydate)
       htmldata=htmldata.replaceAll("{{deliverydate}}",deliverydate.getDate()+"-"+monthNames[deliverydate.getMonth()]+"-"+deliverydate.getFullYear());
-      var a=parseInt(inoviceobject.deliverytimeslot.from);
+      if(inoviceobject.deliverytimeslot){
+         var a=parseInt(inoviceobject.deliverytimeslot.from);
       var b=inoviceobject.deliverytimeslot.from-a;
       var fromminutes=Math.round(b*60);
       var fromdeliverytimeslot=a+":"+fromminutes;
@@ -221,7 +223,11 @@ var _createPDFInvocie=function(inoviceobject,branch,callback){
       var todeliverytimeslot=a+":"+tominutes;
 
       htmldata=htmldata.replaceAll("{{deliverytimeslot}}",fromdeliverytimeslot+" to "+todeliverytimeslot)
-
+ 
+      }else{
+          htmldata=htmldata.replaceAll("{{deliverytimeslot}}","")    
+      }
+     
      htmldata=htmldata.replaceAll("{{sellercontact}}",seller_contact_supports+"");
      htmldata=htmldata.replaceAll("{{selleremail}}",inoviceobject.productprovider.email);
      htmldata=htmldata.replaceAll("{{sellername}}",inoviceobject.productprovider.providername);
@@ -399,7 +405,7 @@ var _writeHtmlDataToFile=function(inoviceobject,htmldata,branch,callback){
     });
   });
 }
-var _saveInvoiceToAmazonServer=function(inoviceobject,htmldata,pdfinvoice,branch){
+var _saveInvoiceToAmazonServer=function(inoviceobject,htmldata,pdfinvoice,branch,callback){
   fs.readFile(pdfinvoice,function (err, data) {
     if(err){
        callback({error:{message:"Invoice PDF creation Error"}})

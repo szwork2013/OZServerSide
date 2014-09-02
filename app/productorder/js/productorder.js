@@ -1366,7 +1366,7 @@ var _manageOrder=function(self,action,user,suborder,status,order){
 	if(suborder.reasontocancelreject!=undefined){
 		suborderdata["suborder.$.reasontocancelreject"]=suborder.reasontocancelreject
 	}
-	if(action="accept"){
+	if(action=="accept"){
 		suborderdata["suborder.$.deliverytimeslot"]=suborder.deliverytimeslot;
 	}
 	OrderModel.update({suborder:{$elemMatch:{suborderid:suborder.suborderid}}},{$set:suborderdata},function(err,suborderupdatestatus){
@@ -1388,15 +1388,17 @@ var _manageOrder=function(self,action,user,suborder,status,order){
 					{
 						var invoice= new Invoice();
 						var branchid=suborder.productprovider.branchid;
-						
+
 						//////////////////////////////
 						 invoice.sendInvoiceAfterOrderComplete(suborder.productprovider.branchid,suborder.suborderid,user.userid,function(err,result){
 						 	if(err){
 						 		logger.emit("error",err.error.message);
 						 	}else{
-						 		var to=suborder.consumer.email;
+						 		console.log("::::::::::suborder:::::"+JSON.stringify(suborder));
+						 		var to=order.consumer.email;
+						 		logger.emit("log","emailid:::"+to);
          				var templatetype="invoice";
-         				var data={firstname:suborder.consumer.name,suborderid:suborder.suborderid,invoiceurl:result.success.invoice}
+         				var data={firstname:order.consumer.name,suborderid:suborder.suborderid,invoiceurl:result.success.invoice}
           			emailtemplateapi.sendEmailNotification(templatetype,data,to,function(err,result){
 			            if(err){
 			             logger.emit("error",err.error.message)
