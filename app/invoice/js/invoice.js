@@ -419,7 +419,7 @@ var _saveInvoiceToAmazonServer=function(inoviceobject,htmldata,pdfinvoice,branch
          Bucket: bucketFolder,
          Key:inoviceobject.suborderid+pdfinvoice,
          Body: data,
-         //ACL: 'public-read-write',
+         ACL: 'public-read',
          ContentType:"application/pdf"
       };
       s3bucket.putObject(params, function(err, data) {
@@ -432,6 +432,7 @@ var _saveInvoiceToAmazonServer=function(inoviceobject,htmldata,pdfinvoice,branch
               // callback({"error":{"message":"_addProviderLogoToAmazonServer:Error in getting getSignedUrl"+err}});
               console.log("error"+err)
             }else{
+             url=url.split("?")[0]
               exec("rm -rf "+pdfinvoice)
               console.log("url"+url)
               var invoicedata={bucket:params1.Bucket,key:params1.Key,image:url};
