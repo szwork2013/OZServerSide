@@ -934,7 +934,7 @@ User.prototype.getCountryCodes = function() {
 };
 
 var _getCountryCodes=function(self){
-  CountryCodeModel.find({},{country:1,code:1,_id:0}).sort({country:1}).lean().exec(function(err,countrycode){
+  CountryCodeModel.find({},{country:1,code:1,isocode1:1,_id:0}).sort({country:1}).lean().exec(function(err,countrycode){
     if(err){
       logger.emit("error","Database Issue:"+err)
       self.emit("failedGetCountryCode",{"error":{"code":"ED001","message":"Error in Database"}});
