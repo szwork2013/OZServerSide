@@ -24,7 +24,13 @@ exports.loadEmailTemplate=function(req,res){
 			templatetype: "welcome",
 			subject: "Welcome To OrderZapp",
 			description: "Hi <firstname>,<br> Welcome to OrderZapp! "
+		},
+		{
+			templatetype: "invoice",
+			subject: "Invocie of Suborder: <suborderid>",
+			description: "Dear <firstname>,<br> We are happy to inform you that your Suborder : <suborderid> has been successfully delivered. You can view/print your order invoice by clicking on this <a href='<invoiceurl>'>link</a>."
 		}
+
 		]
 
 
@@ -58,12 +64,16 @@ exports.sendEmailNotification = function(templatetype,data,to,callback){
   		data=JSON.parse(data);
   		var html=S(emailtemplate.description);
   		//replace all in subject
+  		subject=subject.replaceAll("<suborderid>",data.suborderid);
 
 
 
   		//replace all in html
   		html=html.replaceAll("<otp>",data.otp);
   		html=html.replaceAll("<firstname>",data.firstname);
+  		html=html.replaceAll("<suborderid>",data.suborderid);
+  		html=html.replaceAll("<invoiceurl>",data.invoiceurl);
+  		
 			var emailmessage = {
         from: "OrderZapp  <noreply@orderzapp.com>", // sender address
         to: to, // list of receivers

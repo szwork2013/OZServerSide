@@ -19,7 +19,8 @@ var InvoiceModel=require("../../invoice/js/invoice-model");
 var CONFIG=require("config").OrderZapp;
 var DeliveryAddressModel=require("./delivery-address-history-model");
 var gcmapi=require('../../gcm/js/gcm-api')
-
+var Invoice=require("../../invoice/js/invoice");
+var emailtemplateapi=require("../../common/js/email-template-api")
 var java = require("java");
 java.classpath.push("./paytm/");
 var logger=require("../../common/js/logger");
@@ -1383,12 +1384,30 @@ var _manageOrder=function(self,action,user,suborder,status,order){
 					self.emit("failedManageOrder",{error:{message:"Incorrect suborder id"}});
 				}else{
 					console.log("actiondddd"+action)
-					// if(action.toLowerCase()=="deliver")
-					// {
-					// 	//////////////////////////////
-					// 	 _createInvoiceForSuborder(suborder,user.userid);
-					// 	///////////////////////////
-					// }
+					if(action.toLowerCase()=="done")//send invoice to customer
+					{
+						var invoice= new Invoice();
+						var branchid=suborder.productprovider.branchid;
+						
+						//////////////////////////////
+						 invoice.sendInvoiceAfterOrderComplete(suborder.productprovider.branchid,suborder.suborderid,user.userid,function(err,result){
+						 	if(err){
+						 		logger.emit("error",err.error.message);
+						 	}else{
+						 		var to=suborder.consumer.email;
+         				var templatetype="invoice";
+         				var data={firstname:suborder.consumer.name,suborderid:suborder.suborderid,invoiceurl:result.success.invoice}
+          			emailtemplateapi.sendEmailNotification(templatetype,data,to,function(err,result){
+			            if(err){
+			             logger.emit("error",err.error.message)
+			            }else{
+									 	logger.emit("log",result.success.message)
+									}
+								});
+						
+							}
+						})
+					}
 					console.log("orderid"+order.orderid)
 					if(action.toLowerCase()=="done" && suborder.buyerpayment.mode.toLowerCase()!="paytm")
 					{

@@ -22,10 +22,10 @@ module.exports = Invoice;
 Invoice.prototype.getInvoiceDetials= function(branchid,suborderid) {
 	var self=this;
 	/////////////////////////////////////
-	_getInvoiceDetails(self,branchid,suborderid)
+	_getInvoiceDetails(branchid,suborderid)
 	///////////////////////////////////
 };
-var _getInvoiceDetails=function(self,branchid,suborderid){
+var _getInvoiceDetails=function(branchid,suborderid){
   InvoiceModel.findOne({suborderid:suborderid},{invoice:1},function(err,invoice){
   	if(err){
   		logger.emit("error","Database Error"+err);
@@ -35,45 +35,69 @@ var _getInvoiceDetails=function(self,branchid,suborderid){
   	}else{
 
   		//////////////////////////////////
-  		_successfullGetInvoiceDetails(self,invoice);
+  		_successfullGetInvoiceDetails(invoice);
   		/////////////////////////////////
   	}
   })
 }
-var _successfullGetInvoiceDetails=function(self,invoice){
+var _successfullGetInvoiceDetails=function(invoice){
 	self.emit("successfulGetInvoiceDetails",{success:{message:"Getting Invoice Successfully",invoice:invoice.invoice.image}})
 }
 Invoice.prototype.createInvoice= function(branchid,suborderid,sessionuserid) {
   var self=this;
   /////////////////////////////////////
-  _checkInvoiceAlreadyCreated(self,suborderid,sessionuserid)
+  _checkInvoiceAlreadyCreated(suborderid,sessionuserid,function(err,result){
+    if(err){
+      self.emit("failedCreateInvoice",err)
+    }else{
+      self.emit("successfulCreateInvoice",result)
+    }
+  })
   ////////////////////////////////
   
 };
-var _checkInvoiceAlreadyCreated=function(self,suborderid,sessionuserid){
+Invoice.prototype.sendInvoiceAfterOrderComplete=function(branchid,suborderid,sessionuserid,callback){
+/////////////////////////////////////
+  _checkInvoiceAlreadyCreated(suborderid,sessionuserid,function(err,result){
+    if(err){
+      callback(err)
+    }else{
+      callback(null,result)
+    }
+  })
+  ////////////////////////////////
+  
+}
+var _checkInvoiceAlreadyCreated=function(suborderid,sessionuserid,callback){
   InvoiceModel.findOne({suborderid:suborderid},function(err,invoice){
     if(err){
       logger.emit(" error","Database Error:_checkInvoiceAlreadyCreated"+err)
-      self.emit("failedCreateInvoice",{error:{message:"Database Error",code:"ED001"}})
+      callback({error:{message:"Database Error",code:"ED001"}})
     }else if(invoice){
       var url=invoice.invoice.image;
       ////////////////////////////
-      self.emit("successfulCreateInvoice",{success:{message:"Invoice Already created",invoice:url}})
+      callback(null,{success:{message:"Invoice Already created",invoice:url}})
       //////////////////////////
     }else{
       /////////////////////////////////////
-      _createJSONForInvoice(self,suborderid,sessionuserid)
+      _createJSONForInvoice(suborderid,function(err,result){
+        if(err){
+          callback(err);
+        }else{
+          callback(null,result);
+        }
+      })
      ///////////////////////////////////
     }
   })
 }
-var _createJSONForInvoice=function(self,suborderid){
+var _createJSONForInvoice=function(suborderid,callback){
   ProductOrderModel.aggregate({$match:{"suborder.suborderid":suborderid}},{$unwind:"$suborder"},{$match:{"suborder.suborderid":suborderid}},function(err,suborder){
     if(err){
       logger.emit(" error","Database Error:_createJSONForInvoice"+err)
-      self.emit("failedCreateInvoice",{error:{message:"Database Error",code:"ED001"}})
+      callback({error:{message:"Database Error",code:"ED001"}})
     }else if(suborder.length==0){
-      self.emit("failedCreateInvoice",{error:{message:"Incorrect SubOrder No "}})
+      callback({error:{message:"Incorrect SubOrder No "}})
     }else{
       var order=suborder[0];
       var suborder=suborder[0].suborder;
@@ -84,11 +108,11 @@ var _createJSONForInvoice=function(self,suborderid){
       
       ProductProviderModel.aggregate({$match:{providerid:suborder.productprovider.providerid}},{$unwind:"$branch"},{$match:{"branch.branchid":suborder.productprovider.branchid}},function(err,branch){
         if(err){
-          self.emit("failedCreateInvoice",{error:{message:"Database Error",code:"ED001"}})
+          callback({error:{message:"Database Error",code:"ED001"}})
           logger.emit("error","Database Error :_createJSONForInvoice"+err)
         }else if(branch.length==0){
           logger.emit("error","branchid is wrong");
-          self.emit("failedCreateInvoice",{error:{message:"Incorrect Branch ID"}})
+          callback({error:{message:"Incorrect Branch ID"}})
           logger.emit("error","branchid is wrong for _createJSONForInvoice")
         }else{
           var selleruserid=branch[0].user.userid;
@@ -97,10 +121,11 @@ var _createJSONForInvoice=function(self,suborderid){
           console.log("provider"+JSON.stringify(provider));
           UserModel.findOne({userid:selleruserid},{email:1,firstname:1,lastname:1},function(err,selleruser){
             if(err){
-              self.emit("failedCreateInvoice",{error:{message:"Database Error",code:"ED001"}})
+              callback({error:{message:"Database Error",code:"ED001"}})
               logger.emit("error","Database Error :_createJSONForInvoice"+err)
             }else if(!selleruser){
               logger.emit("error","Incorrect User")
+              callback({error:{message:"Incorrect User"}})
             }else{
               var contacts=branch.contact_supports;
               var selleremail=selleruser.email;
@@ -145,11 +170,15 @@ var _createJSONForInvoice=function(self,suborderid){
               // inoviceobject.delivery
               logger.emit("log","invoice:\n"+JSON.stringify(inoviceobject))
               // var invoice_data=new InvoiceModel(inoviceobject);
-              _createPDFInvocie(self,inoviceobject,branch);
-              ////////////////////////////////
-              // _SubOrderInvoiceCreation(suborders,++value,order);
-              ////////////////////////
-              // invoicearray.push(inoviceobject);
+              ////////////////////////////////////////////////////////////////
+              _createPDFInvocie(inoviceobject,branch,function(err,result){
+                if(err){
+                  callback(err);
+                }else{
+                  callback(null,result);
+                }
+              })
+              //////////////////////////////////////////////////
             }
           })
         }
@@ -157,17 +186,15 @@ var _createJSONForInvoice=function(self,suborderid){
   }
 })
 }
-var _createPDFInvocie=function(self,inoviceobject,branch){
+var _createPDFInvocie=function(inoviceobject,branch,callback){
   fs.readFile('phantomjs/src/invoice.html', function (err, data) {
     if(err){
       logger.emit("error","Invoice Sample html Error:_createPDFInvocie "+err);
-      self.emit("failedCreateInvoice",{error:{message:""}})
+      callback({error:{message:""}})
     }else{
-      var monthNames = [ "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December" ];
-     var htmldata=S(data);
-
-     htmldata=htmldata.replaceAll("{{orderid}}",inoviceobject.orderid);
+      var monthNames = [ "January", "February", "March", "April", "May", "June","July", "August", "September", "October", "November", "December" ];
+      var htmldata=S(data);
+       htmldata=htmldata.replaceAll("{{orderid}}",inoviceobject.orderid);
       htmldata=htmldata.replaceAll("{{invoiceno}}",inoviceobject.invoiceno);
      var invoicedate=new Date();
      htmldata=htmldata.replaceAll("{{invoicedate}}",invoicedate.getDate()+"-"+monthNames[invoicedate.getMonth()]+"-"+invoicedate.getFullYear());
@@ -333,7 +360,13 @@ var _createPDFInvocie=function(self,inoviceobject,branch){
        }
           htmldata=htmldata.replaceAll("{{products}}",productshtml);
      ////////////////////////////////////////
-     _writeHtmlDataToFile(self,inoviceobject,htmldata.s,branch);
+     _writeHtmlDataToFile(inoviceobject,htmldata.s,branch,function(err,result){
+        if(err){
+          callback(err);
+        }else{
+          callback(null,result);
+        }
+      });
      /////////////////////////////////////        
      console.log("htmldata"+htmldata)
 
@@ -341,7 +374,7 @@ var _createPDFInvocie=function(self,inoviceobject,branch){
   
   });
 }
-var _writeHtmlDataToFile=function(self,inoviceobject,htmldata,branch){
+var _writeHtmlDataToFile=function(inoviceobject,htmldata,branch,callback){
   var filename="test.html";
   var stream = fs.createWriteStream(filename);
   var pdfinvoice=inoviceobject.suborderid+".pdf";
@@ -349,21 +382,27 @@ var _writeHtmlDataToFile=function(self,inoviceobject,htmldata,branch){
     stream.write(htmldata);
     exec("phantomjs/bin/phantomjs phantomjs/bin/rasterize.js "+filename+" "+pdfinvoice+" A4",function(err,out,code){
       if(err){
-        self.emit("failedCreateInvoice",{error:{message:"Invoice Pdf creation Error"}})
+        callback({error:{message:"Invoice Pdf creation Error"}})
         logger.emit("error","Invoice html Error:_writeHtmlDataToFile "+err);
       }else{
         exec("rm -rf "+filename);
         //////////////////////////////////////////////////
-        _saveInvoiceToAmazonServer(self,inoviceobject,htmldata,pdfinvoice,branch)
+        _saveInvoiceToAmazonServer(inoviceobject,htmldata,pdfinvoice,branch,function(err,result){
+          if(err){
+            callback(err);
+          }else{
+            callback(null,result);
+          }
+        })
         ////////////////////////////////////////////////
       }
     });
   });
 }
-var _saveInvoiceToAmazonServer=function(self,inoviceobject,htmldata,pdfinvoice,branch){
+var _saveInvoiceToAmazonServer=function(inoviceobject,htmldata,pdfinvoice,branch){
   fs.readFile(pdfinvoice,function (err, data) {
     if(err){
-       self.emit("failedCreateInvoice",{error:{message:"Invoice PDF creation Error"}})
+       callback({error:{message:"Invoice PDF creation Error"}})
         logger.emit("error","Invoice html Error:_saveInvoiceToAmazonServer "+err);
     }else{
       var bucketFolder;
@@ -391,7 +430,13 @@ var _saveInvoiceToAmazonServer=function(self,inoviceobject,htmldata,pdfinvoice,b
               console.log("url"+url)
               var invoicedata={bucket:params1.Bucket,key:params1.Key,image:url};
               //////////////////////////
-               _saveInvoiceDataIntoCollection(self,inoviceobject,invoicedata)
+               _saveInvoiceDataIntoCollection(inoviceobject,invoicedata,function(err,result){
+                if(err){
+                  callback(err);
+                }else{
+                  callback(null,result);
+                }
+              })
               //////////////////////////////
             }
           })
@@ -400,23 +445,29 @@ var _saveInvoiceToAmazonServer=function(self,inoviceobject,htmldata,pdfinvoice,b
     }
   })
 }
-var _saveInvoiceDataIntoCollection=function(self,inoviceobject,invoicedata){
+var _saveInvoiceDataIntoCollection=function(inoviceobject,invoicedata,callback){
   var inoviceobject={invoiceno:inoviceobject.invoiceno,orderid:inoviceobject.orderid,suborderid:inoviceobject.suborderid,invoicedate:new Date(),invoice:invoicedata};
   var invoice=new InvoiceModel(inoviceobject);
   invoice.save(function(err,invoice){
     if(err){
       logger.emit("error")
-      self.emit("failedCreateInvoice",{error:{code:"ED001",message:"Database Error"}})
+      callback({error:{code:"ED001",message:"Database Error"}})
     }else{
       ////////////////////////////////
-      _successfullInvoiceCreation(self,invoicedata.image)
+      _successfullInvoiceCreation(invoicedata.image,function(err,result){
+        if(err){
+          callback(err);
+        }else{
+          callback(null,result);
+        }
+      })
       ////////////////////////////////
     }
   })
 
 }
-var _successfullInvoiceCreation=function(self,invoicepdf){
-  self.emit("successfulCreateInvoice",{success:{message:"Invoice Created Successfully",invoice:invoicepdf}})
+var _successfullInvoiceCreation=function(invoicepdf,callback){
+  callback(null,{success:{message:"Invoice Created Successfully",invoice:invoicepdf}})
 }
 
       ////////////////////////////////////////////////////////////////////////////
