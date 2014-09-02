@@ -28,6 +28,7 @@ module.exports = {
         WEBSITE:"giantleapsystems",
         merchantKey:"kzAVMuQG8xKIiaVl",
         CHANNEL_ID:"WAP"
-      }
+      },
+      oz_adminusermail: "poonam@giantleapsystems.com",
     }
   }

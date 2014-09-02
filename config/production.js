@@ -18,7 +18,7 @@ module.exports = {
           pass: "Orderzapp123"
         }
       },
-          paytmconfigaccesskey:"12345",
+      paytmconfigaccesskey:"12345",
       paytm:{
         connectionurl:"/api/orderzapp/payment",
         checksumurl:"/api/paytm/generatechecksum",
@@ -27,6 +27,7 @@ module.exports = {
         WEBSITE:"giantleapsystems",
         merchantKey:"T5n43ZNnszBBO0v3",
         CHANNEL_ID:"WEB"
-      }
+      },
+      oz_adminusermail: "sarita@giantleapsystems.com",
 	}
 }

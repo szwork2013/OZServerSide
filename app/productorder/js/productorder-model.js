@@ -59,19 +59,18 @@ var suborderSchema=mongoose.Schema({
       country: { type:String},
       zipcode: {type:String},     
     },
-    sellerpayment:{
-        status:{type:String,default:"pending"},
-        paiddate:{type:Date}
-   },
-    buyerpayment:{
-      status:{type:String,default:"pending"},
-      mode:{type:String},
+    // glspaymentpercent:{type:Number},
+    payment:{
+      mode:{type:String},//cod and paytm
+      status:{type:String},
+      //CASE :payment mode is cod
+      //1.status>>
       paiddate:{type:Date}
     },
-    glspayment:{
-      status:{type:String,default:"pending"},//not for cod
-      paymentdate:{type:Date}
-    },
+    // glspayment:{
+    //   status:{type:String,default:"pending"},//not for cod
+    //   paymentdate:{type:Date}
+    // },
     tracking:[{status:String,datetime:Date,updatedby:String}],//eg.[{accept:true,datetime:},{accept:pack,datetime:},{accept:pickup,datetime:}]
     deliverydate:{type:Date},//when provider accept then provider will define when order will be delivered
     deliverytimeslot:{from:Number,to:Number},

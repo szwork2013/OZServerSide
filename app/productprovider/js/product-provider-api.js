@@ -1091,3 +1091,26 @@ exports.getGlsPaymentPercent=function(req,res){
     productprovider.getGlsPaymentPercent(req.user);
   }   
 }
+
+exports.getSellersPayableInfo=function(req,res){
+  var data = req.body;
+  var productprovider = new ProductProvider(data);
+  productprovider.removeAllListeners("failedGetSellersPayableInfo");
+  productprovider.on("failedGetSellersPayableInfo",function(err){
+    if(err.error.code!="ED001"){
+     logger.emit("error", err.error.message); 
+    }    
+    // //user.removeAllListeners();
+    res.send(err);
+  });
+  productprovider.removeAllListeners("successfulGetSellersPayableInfo");
+  productprovider.on("successfulGetSellersPayableInfo",function(result){
+   
+    res.send(result);
+  });
+  if(req.user.isAdmin == false){
+    productprovider.emit("failedGetSellersPayableInfo",{error:{message:"Only OrderZapp admin user can get sellers payable details"}});
+  }else{
+    productprovider.getSellersPayableInfo(req.user);
+  }   
+}

@@ -4,6 +4,7 @@ var logger = require("../../common/js/logger");
 var OrderModel = require("./productorder-model");
 var CategoryModel = require("../../productcategory/js/product-category-model");
 var ProductProviderModel = require("../../productprovider/js/productprovider-model");
+var GlsPaymentPercentModel = require("../../productprovider/js/gls-payment-percent-model");
 var ProductLeadTimeModel=require("../../productcatalog/js/product-leadtime-model");
 var generateId = require('time-uuid');
 var UserModel=require("../../user/js/user-model");
@@ -131,8 +132,7 @@ var sendOrderReceivedNotificationToSeller=function(suborders,index){
 				logger.emit("error","Database Error"+err)
 			}else if(!provider){
 				logger.emit("error","Incorrect Seller id");
-			}else{
-				
+			}else{		
 			  
 				var selleremail=provider.provideremail;
 				console.log('selleremail'+selleremail);
@@ -143,19 +143,19 @@ var sendOrderReceivedNotificationToSeller=function(suborders,index){
 				html=S(html);
 				html=html.replaceAll("<suborderid>",suborder.suborderid);
 				var emailmessage = {
-          from: "OrderZapp  <noreply@orderzapp.com>", // sender address
-          to: selleremail, // list of receivers
-          subject:subject.s, // Subject line
-          html: html.s
-         };
-        commonapi.sendMail(emailmessage,CONFIG.smtp_general, function (result){
-          if(result=="failure"){
-            logger.emit("error","Order(suborderid:"+suborder.suborderid+") creation notification not sent to "+emailmessage.to);
-          }else{
-            logger.emit("log","Order(suborderid:"+suborder.suborderid+") creation notification sent to seller email "+emailmessage.to);
-          }
-        });
-      }
+		          from: "OrderZapp  <noreply@orderzapp.com>", // sender address
+		          to: selleremail, // list of receivers
+		          subject:subject.s, // Subject line
+		          html: html.s
+		        };
+		        commonapi.sendMail(emailmessage,CONFIG.smtp_general, function (result){
+		          if(result=="failure"){
+		            logger.emit("error","Order(suborderid:"+suborder.suborderid+") creation notification not sent to "+emailmessage.to);
+		          }else{
+		            logger.emit("log","Order(suborderid:"+suborder.suborderid+") creation notification sent to seller email "+emailmessage.to);
+		          }
+		        });
+      		}
 		})
 	}else{
 		logger.emit("log","Successfully Order Creation Notification send to seller");
@@ -188,8 +188,10 @@ var _validateCreateOrderData = function(self,orderdata,user){
 		self.emit("failedCreateOrder",{"error":{"code":"AV001","message":"Please enter billing address area"}});
 	}else if(orderdata.billing_address.zipcode == undefined){
 		self.emit("failedCreateOrder",{"error":{"code":"AV001","message":"Please enter zipcode for billing address"}});
-	}else  if(orderdata.paymentmode==undefined ||orderdata.paymentmode==""){
+	}else if(orderdata.paymentmode==undefined ||orderdata.paymentmode==""){
 		self.emit("failedCreateOrder",{"error":{"code":"AV001","message":"Please select paymentoptions"}});
+	}else if(["cod","paytm"].indexOf(orderdata.paymentmode.toLowerCase())<0){
+		self.emit("failedCreateOrder",{"error":{"code":"AV001","message":"paymentoptions should be cod or paytm"}});
 	// }else if(orderdata.orderinstructions==undefined && !isArray(orderdata.orderinstructions)){
 		// self.emit("failedCreateOrder",{"error":{"code":"AV001","message":"Please pass order instructions"}});
 	// }else if(orderdata.deliverycharges==undefined){
@@ -197,13 +199,12 @@ var _validateCreateOrderData = function(self,orderdata,user){
 	// }else if(!isArray(orderdata.deliverycharges)){
 	// 	self.emit("failedCreateOrder",{"error":{"code":"AV001","message":"deliverycharges should not be Array"}});	
 	}else if(orderdata.sellerdelivery==undefined){
-			self.emit("failedCreateOrder",{"error":{"code":"AV001","message":"please enter sellerdelivery"}});	
+		self.emit("failedCreateOrder",{"error":{"code":"AV001","message":"please enter sellerdelivery"}});	
 	}else if(!isArray(orderdata.sellerdelivery)){
 		self.emit("failedCreateOrder",{"error":{"code":"AV001","message":"sellerdelivery should not be JSON array"}});	
 	}else if(orderdata.sellerdelivery.length==0){
 		self.emit("failedCreateOrder",{"error":{"code":"AV001","message":"sellerdelivery should not be empty"}});	
-	
-  }else{ 
+  	}else{ 
 		var deliverytypesarray=[];
 		for(var i=0;i<orderdata.sellerdelivery.length;i++){
 			deliverytypesarray.push(orderdata.sellerdelivery[i].deliverytype)
@@ -218,7 +219,7 @@ var _validateCreateOrderData = function(self,orderdata,user){
 		_validateCartDetails(self,orderdata,user)
 		//////////////////////////////////////////
 		}
-  }
+  	}
 }
 var _validatePreferredDeliveryDate=function(self,orderdata,user){
 
@@ -290,9 +291,33 @@ var _getAllSellerBranchDetails=function(self,orderdata,validproductids,user){
 		}else if(branches.length==0){
 			self.emit("failedCreateOrder",{error:{message:"Sellerdelivery information does'nt exists"}})
 		}else{
-				/////////////////////////////////////////////////////////////////////////
+			// var providerids = [];
+			// branches = JSON.stringify(branches);
+			// branches = JSON.parse(branches);
+			// for(var i=0;i<branches.length;i++){
+			// 	providerids.push(branches[i].providerid);
+			// }			
+			///////////Getting Provider Gls Payment Percent///////////////
+			// GlsPaymentPercentModel.find({providerid:{$in:providerids}},{providerid:1,percent:1,_id:0},function(err,percentdata){
+			// 	if(err){
+			// 		logger.emit("error","Database Error _getAllSellerBranchDetails"+err)
+			// 		self.emit("failedCreateOrder",{"error":{"code":"ED001","message":"Database Error"}});
+			// 	}else if(percentdata.length==0){
+			// 		self.emit("failedCreateOrder",{error:{message:"Seller gls payment percent information does'nt exists"}});
+			// 	}else{
+			// 		for(var i=0;i<branches.length;i++){
+			// 			percentage = __.find(percentdata, function(obj) { return obj.providerid == branches[i].providerid });
+			// 			// console.log("percentage : "+JSON.stringify(percentage));
+			// 			branches[i].glspaymentpercent = percentage.percent;
+			// 		}
+			// 		/////////////////////////////////////////////////////////////////////////
+			// 		_ProviderBranchSpecificCartsProducts(self,orderdata,validproductids,user,branches,sellerbranchids)
+			// 		/////////////////////////////////////////////////////////////////////////
+			// 	}
+			// });
+			// /////////////////////////////////////////////////////////////////////////
 			_ProviderBranchSpecificCartsProducts(self,orderdata,validproductids,user,branches,sellerbranchids)
-			/////////////////////////////////////////////////////////////////////////
+			// /////////////////////////////////////////////////////////////////////////
 		}
 	})
 }
@@ -313,10 +338,8 @@ var _ProviderBranchSpecificCartsProducts=function(self,orderdata,validproductids
 				branches[j][i]=orderdata.sellerdelivery[index][i];
 			}
 		}
-		branchids.push(branches[j].branchid);
-	
+		branchids.push(branches[j].branchid);	
 	}
-	console.log("branches"+JSON.stringify(branches));
 	ProductaCtalogModel.aggregate({$match:{productid:{$in:validproductids}}},{$group:{_id:"$branch.branchid",productcatalog:{$addToSet:{tax:"$tax",productid:"$productid",price:"$price",productname:"$productname",productlogo:"$productlogo",productcode:"$productcode",price:"$price"}}}},function(err,branchproducts){
 		if(err){
 			logger.emit("error","Database Error _ProviderBranchSpecificCartsProducts"+err)
@@ -327,11 +350,10 @@ var _ProviderBranchSpecificCartsProducts=function(self,orderdata,validproductids
 			var suborders=[];
 			var totalorderprice=0;
 			for(var i=0;i<branchproducts.length;i++){
-				console.log('branchproducts['+i+"]:"+JSON.stringify(branchproducts[i]));
 				var branchid=branchproducts[i]._id
 				
 				if(branchids.indexOf(branchid)>=0){
-					var branchindex=branchids.indexOf(branchid)
+					var branchindex=branchids.indexOf(branchid);
 					var product_provider=branches[branchindex];
 					//sellerdelivery info example:
 					//selleranddeliveryinfo={ "branchid":"branchid", "deliverytype":"home/pickup", "prefdeldtime":"Preffered delivery date and time", "deliverycharge":{"charge":"charge in percent or amount","delivery":"true/false is delivery available in area","isdeliverychargeinpercent":"true/fals"}, "orderinstructions":"orderinstructions", "pickup_address":{"address1":"Tirumal Niwas","address2":"Hingne Home Colony","area":"karvenagar","city":"pune","zipcode":"411052"}, "delivery_address":{"deliveryaddressid":"","address1":"Tirumal Niwas","address2":"Hingne Home Colony","area":"karvenagar","city":"pune","zipcode":"411052"} }
@@ -340,8 +362,8 @@ var _ProviderBranchSpecificCartsProducts=function(self,orderdata,validproductids
 					product_provider.providerlogo=product_provider.providerlogo.image;
 					var suborder={status:"orderreceived",suborderid:"SODR-"+product_provider.providercode.toUpperCase()+"-"+Math.floor(Math.random()*100000000),productprovider:product_provider};
 					var suborderproducts=[];
-				  var suborderprice=0;
-				  for(var j=0;j<branchproducts[i].productcatalog.length;j++){
+				  	var suborderprice=0;
+				  	for(var j=0;j<branchproducts[i].productcatalog.length;j++){
 						for(var x=0;x<orderdata.cart.length;x++){//use for if same product add in cart
 							if(branchproducts[i].productcatalog[j].productid==orderdata.cart[x].productid){
 								var indexofproduct=x;
@@ -357,19 +379,19 @@ var _ProviderBranchSpecificCartsProducts=function(self,orderdata,validproductids
 						}//end to check same product added
 					}
 					var delivery_charge=0;
-				  var dilivery_type="pickup";
-          var prefdeldtime;
-          var prefdeltimeslot;
-          if(selleranddeliveryinfo.deliverytype!=undefined){
+				  	var dilivery_type="pickup";
+		            var prefdeldtime;
+		            var prefdeltimeslot;
+          			if(selleranddeliveryinfo.deliverytype!=undefined){
 					 	dilivery_type=selleranddeliveryinfo.deliverytype;	
-			  	}
-			  	if(selleranddeliveryinfo.deliverycharge!=undefined){
+			  		}
+			  		if(selleranddeliveryinfo.deliverycharge!=undefined){
 						if(selleranddeliveryinfo.deliverytype.toLowerCase()=="home"){
-								if(selleranddeliveryinfo.deliverycharge.isdeliverychargeinpercent==false){
-					  	delivery_charge=	parseFloat(selleranddeliveryinfo.deliverycharge.charge)	
-						  }else{
-						  	delivery_charge=suborderprice*(parseFloat(selleranddeliveryinfo.deliverycharge.charge)/100)
-						  }
+							if(selleranddeliveryinfo.deliverycharge.isdeliverychargeinpercent==false){
+					  			delivery_charge=	parseFloat(selleranddeliveryinfo.deliverycharge.charge)	
+						  	}else{
+						  		delivery_charge=suborderprice*(parseFloat(selleranddeliveryinfo.deliverycharge.charge)/100)
+						  	}
 						}
 					}
 					//for setting preffered delivery date 
@@ -400,20 +422,25 @@ var _ProviderBranchSpecificCartsProducts=function(self,orderdata,validproductids
 					delivery_charge=Math.round(delivery_charge*100)/100;
 					suborderprice+=delivery_charge;
 					suborder.deliverycharge=delivery_charge;
-					console.log("delivery_charge"+delivery_charge);
+					
 					totalorderprice+=suborderprice;
 					suborder.products=suborderproducts;
-					suborder.sellerpayment={status:"pending",mode:orderdata.paymentmode};
-					suborder.buyerpayment={status:"pending",mode:orderdata.paymentmode};
+					if(orderdata.paymentmode.toLowerCase()=="cod"){
+						suborder.payment={status:"buyerpaymentbycodpending",mode:orderdata.paymentmode};
+					}else{
+						suborder.payment={status:"buyerpaymentbycardpending",mode:orderdata.paymentmode};
+					}
+					
+					// suborder.glspaymentpercent=product_provider.glspaymentpercent;
 					suborder.billing_address=orderdata.billing_address;
 					suborder.suborder_price=suborderprice;
-				  suborder.prefdeldtime=prefdeldtime;
-				  suborder.prefdeltimeslot=prefdeltimeslot;
-		      suborder.deliverytype=dilivery_type;
+				    suborder.prefdeldtime=prefdeldtime;
+				    suborder.prefdeltimeslot=prefdeltimeslot;
+		        	suborder.deliverytype=dilivery_type;
 		  	
-		  	  suborders.push(suborder);
+		  	  		suborders.push(suborder);
+		  		}
 		  	}
-		  }
 			var consumername=" ";
 			if(user.firstname!=undefined){
 				consumername=user.firstname
@@ -443,7 +470,7 @@ var _createOrder=function(self,orderobject,user){
 	var order=new OrderModel(orderobject);
 	order.save(function(err,orderdata){
 		if(err){
-
+			logger.emit("log","Database Error "+err);
 			self.emit("failedCreateOrder",{"error":{"code":"ED001","message":"Database Error"}});
 		}else{
 			
@@ -954,7 +981,6 @@ Order.prototype.getDeliveryCharges = function(city,area,branchdata){
 	///////////////////////////////
 	_validateDeliveryChargeData(self,city,area,branchdata);
 	/////////////////////////////
-
 }
 var _validateDeliveryChargeData=function(self,city,area,branchdatas){
 	console.log("branchdatas"+branchdatas)
@@ -1340,8 +1366,8 @@ var _checkManageOrderAction=function(self,user,suborder,action,order,order_staus
     	self.emit("failedManageOrder",{error:{message:"Order is already completed"}})
     }else{
     	indexofcurrentstatus=indexofcurrentstatus+1;
-    	console.log("order order_staus"+order_staus[indexofcurrentstatus]);
-    	console.log("order ordddder_staus"+actionstatus[action]);
+    	console.log("order order_status"+order_staus[indexofcurrentstatus]);
+    	console.log("order ordddder_status"+actionstatus[action]);
     	
       if(order_staus[indexofcurrentstatus]==actionstatus[action]){
       		/////////////////////////////////
@@ -1432,6 +1458,31 @@ var _sendNotificationToUser=function(suborder,status){
 				           		logger.emit("log","Order "+status+" SMS send to consumer mobileno");
 				          	}
 				        });
+				        console.log("price : "+JSON.stringify(suborder.suborder_price));
+				        /////////Send email notification to orderzapp admin/////////
+				        var oz_adminusermail = CONFIG.oz_adminusermail;
+						var subject="Order Cancelled By Seller";
+						subject=S(subject);
+						// subject=subject.replaceAll("<suborderid>",suborder.suborderid);
+						// subject=subject.replaceAll("<suborder_price>",suborder.suborder_price);
+						var html="You have received a order cancelled notification. Check Sellers Web Application for further order details.<br> Suborder Id : <suborderid><br> Order Price : <suborder_price> <br> Initiated By : Seller";
+						html=S(html);
+						html=html.replaceAll("<suborderid>",suborder.suborderid);
+						html=html.replaceAll("<suborder_price>",suborder.suborder_price);
+						var emailmessage = {
+				          from: "OrderZapp  <noreply@orderzapp.com>", // sender address
+				          to: oz_adminusermail, // list of receivers
+				          subject:subject.s, // Subject line
+				          html: html.s
+				        };
+				        commonapi.sendMail(emailmessage,CONFIG.smtp_general, function (result){
+				          if(result=="failure"){
+				            logger.emit("error","Order(suborderid:"+suborder.suborderid+") cancelled notification not sent to "+emailmessage.to);
+				          }else{
+				            logger.emit("log","Order(suborderid:"+suborder.suborderid+") cancelled notification sent to seller email "+emailmessage.to);
+				          }
+				        });
+
 					}else if(status == "accepted"){
 						var preferred_delivery_date = new Date(suborder.prefdeldtime);
 						var deliverydate = new Date(suborder.deliverydate);
@@ -2154,9 +2205,9 @@ var _updateOrderPaymentDatails = function(self,responseobject){
 var _makeSubOrderPaymentDoneByOnline=function(orderid,suborderid,responseobject){
 	var suborderpaymentdata={};
 	if(responseobject.STATUS.toLowerCase()=="txn_success"){
-		suborderpaymentdata={"suborder.$.buyerpayment.status":"done","suborder.$.buyerpayment.paiddate":new Date()}
+		suborderpaymentdata={"suborder.$.payment.status":"buyerpaymentbycarddone","suborder.$.payment.paiddate":new Date()}
 	}else{
-		suborderpaymentdata={"suborder.$.buyerpayment.status":"fail"}	
+		suborderpaymentdata={"suborder.$.payment.status":"buyerpaymentbycardfail"}	
 	}
 	OrderModel.update({orderid:orderid,"suborder.suborderid":suborderid},{$set:suborderpaymentdata},function(err,suborderpaymentstaus){
 		if(err){
@@ -2171,7 +2222,7 @@ var _makeSubOrderPaymentDoneByOnline=function(orderid,suborderid,responseobject)
 var _makeSubOrderPaymentDone=function(orderid,suborderid){
 	var suborderpaymentdata={};
 	
-	suborderpaymentdata={"suborder.$.sellerpayment.status":"done","suborder.$.sellerpayment.paiddate":new Date(),"suborder.$.buyerpayment.status":"done","suborder.$.buyerpayment.paiddate":new Date()}
+	suborderpaymentdata={"suborder.$.payment.status":"buyertoseller","suborder.$.payment.paiddate":new Date()}
 	
 	OrderModel.update({orderid:orderid,"suborder.suborderid":suborderid},{$set:suborderpaymentdata},function(err,suborderpaymentstaus){
 		if(err){
@@ -2584,7 +2635,7 @@ var _validateCancelOrderDataByConsumer=function(self,orderid,suborderids){
 	}
 }	
 var _checkSuborderIsValidOrder=function(self,orderid,suborderids){
-	OrderModel.aggregate({$match:{orderid:orderid}},{$unwind:"$suborder"},{$match:{"suborder.suborderid":{$in:suborderids}}},{$project:{orderid:1,suborderid:"$suborder.suborderid",status:"$suborder.status"}},function(err,suborders){
+	OrderModel.aggregate({$match:{orderid:orderid}},{$unwind:"$suborder"},{$match:{"suborder.suborderid":{$in:suborderids}}},{$project:{orderid:1,suborderid:"$suborder.suborderid",suborder_price:"$suborder.suborder_price",status:"$suborder.status"}},function(err,suborders){
 		if(err){
 			logger.emit("error","Database Issue :_checkSuborderIsValidOrder"+err)
 			self.emit("failedCancelOrderByConsumer",{error:{code:"ED001",message:"Database Error"}})
@@ -2594,23 +2645,23 @@ var _checkSuborderIsValidOrder=function(self,orderid,suborderids){
 			var validsuborderids=[];
 			console.log("Orders"+JSON.stringify(suborders))
 			var suborderstatus=["orderreceived","accepted"]
-			var valistatussuborderids=[]
+			var valistatussuborders=[]
 			for(var i=0;i<suborders.length;i++){
 				if(suborderids.indexOf(suborders[i].suborderid)>=0){
 					validsuborderids.push(suborders[i].suborderid);
 					if(suborderstatus.indexOf(suborders[i].status)>=0){
-						valistatussuborderids.push(suborders[i].suborderid);
+						valistatussuborders.push({suborderid:suborders[i].suborderid,suborder_price:suborders[i].suborder_price});
 					}
 				}
 			}
 			if(validsuborderids.length==0){
-				self.emit("failedCancelOrderByConsumer",{error:{message:"Please enter valid suborderid"}})
+				self.emit("failedCancelOrderByConsumer",{error:{message:"Please enter valid suborderid"}});
 			}else{
-				if(valistatussuborderids.length==0){
-					self.emit("failedCancelOrderByConsumer",{error:{message:"You can not cancel the order"}})
+				if(valistatussuborders.length==0){
+					self.emit("failedCancelOrderByConsumer",{error:{message:"You can not cancel the order"}});
 				}else{
 					///////////////////////////////////////////
-					_cancelOrderByConsumer(self,valistatussuborderids,0);
+					_cancelOrderByConsumer(self,valistatussuborders,0);
 					////////////////////////////////////////
 				}
 
@@ -2618,15 +2669,36 @@ var _checkSuborderIsValidOrder=function(self,orderid,suborderids){
 		}
 	})
 }
-var _cancelOrderByConsumer=function(self,suborderids,index){
-	if(suborderids.length>index){
-		OrderModel.update({"suborder.suborderid":suborderids[index]},{$set:{"suborder.$.status":"cancelledbyconsumer"}},function(err,suborderupdatestatus){
+var _cancelOrderByConsumer=function(self,suborders,index){
+	if(suborders.length>index){
+		OrderModel.update({"suborder.suborderid":suborders[index].suborderid},{$set:{"suborder.$.status":"cancelledbyconsumer"}},function(err,suborderupdatestatus){
 			if(err){
 				logger.emit("error","Database Issue :_cancelOrderByConsumer "+err)
 				self.emit("failedCancelOrderByConsumer",{error:{code:"ED001",message:"Database Error"}})
 			}else{
+				var oz_adminusermail = CONFIG.oz_adminusermail;
+				var subject="Order Cancelled By Consumer";
+				subject=S(subject);
+				// subject=subject.replaceAll("<suborderid>",suborders[index].suborderid);
+				var html="You have received a order cancelled notification. Check Sellers Web Application for further order details.<br> Suborder Id : <suborderid><br> Order Price : <suborder_price> <br> Initiated By : Consumer";
+				html=S(html);
+				html=html.replaceAll("<suborderid>",suborders[index].suborderid);
+				html=html.replaceAll("<suborder_price>",suborders[index].suborder_price);
+				var emailmessage = {
+		          from: "OrderZapp  <noreply@orderzapp.com>", // sender address
+		          to: oz_adminusermail, // list of receivers
+		          subject:subject.s, // Subject line
+		          html: html.s
+		        };
+		        commonapi.sendMail(emailmessage,CONFIG.smtp_general, function (result){
+		          if(result=="failure"){
+		            logger.emit("error","Order cancelled notification not sent to "+emailmessage.to);
+		          }else{
+		            logger.emit("log","Order cancelled notification sent to seller email "+emailmessage.to);
+		          }
+		        });
 				/////////////////////////////////////////////
-				_cancelOrderByConsumer(self,suborderids,++index)
+				_cancelOrderByConsumer(self,suborders,++index);
 				////////////////////////////////////////
 			}
 		})

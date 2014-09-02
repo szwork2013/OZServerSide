@@ -1,6 +1,7 @@
 var ProductCategoryModel=require("../../productcategory/js/product-category-model");
 var ProductProviderModel=require("./productprovider-model");
 var GlsPaymentPercentModel = require("./gls-payment-percent-model");
+var OrderModel = require("../../productorder/js/productorder-model");
 var SellersAgreementModel = require("./sellersagreement-model");
 var BranchPolicyModel = require("./branch-policy-model");
 var ProductCatalogModel = require("../../productcatalog/js/product-catalog-model");
@@ -3002,4 +3003,55 @@ var _getAllProvidersFromGlsPaymentPercentModel = function(self,productproviders,
 }
 var _successfulGetGlsPaymentPercent=function(self,doc){
 	self.emit("successfulGetGlsPaymentPercent",{"success":{"message":"Gls Payable Payment Percent Getting Successfully","doc":doc}});
+}
+
+ProductProvider.prototype.getSellersPayableInfo = function(user) {
+	var self = this;
+	var data = this.productprovider;
+	console.log("Data : "+JSON.stringify(data));
+	//////////////////////////////////
+	_getSellersPayableInfo(self,data);
+	//////////////////////////////////
+}
+var _getSellersPayableInfo = function(self,data){
+	OrderModel.aggregate({$unwind:"$suborder"},{$group:{_id:{providerid:"$suborder.productprovider.providerid",providername:"$suborder.productprovider.providername"},total:{$sum:"$suborder.suborder_price"},suborder:{$addToSet:{suborderid:"$suborder.suborderid",suborder_price:"$suborder.suborder_price",paymentmode:"$payment.mode"}}}},{$project:{providerid:"$_id.providerid",providername:"$_id.providername",total:1,suborder:1,_id:0}}).exec(function(err,orders){
+		if(err){
+			self.emit("failedGetSellersPayableInfo",{"error":{"code":"ED001","message":"Database Error : "+err}});
+		}else if(orders.length==0){
+			self.emit("failedGetSellersPayableInfo",{"error":{"message":"Order does not exist"}});
+		}else{
+			//////////////////////////////////////////////
+			_getSellersPaymentPercent(self,orders);			
+			//////////////////////////////////////////////
+		}
+	});
+}
+var _getSellersPaymentPercent = function(self,sellers){
+	var providerids = [];
+	// sellers = JSON.stringify(sellers);
+	// sellers = JSON.parse(sellers);
+	for(var i=0;i<sellers.length;i++){
+		providerids.push(sellers[i].providerid);
+	}			
+	/////////Getting Provider Gls Payment Percent///////////////
+	GlsPaymentPercentModel.find({providerid:{$in:providerids}},{providerid:1,percent:1,_id:0},function(err,percentdata){
+		if(err){
+			logger.emit("error","Database Error _getAllSellerBranchDetails"+err)
+			self.emit("failedGetSellersPayableInfo",{"error":{"code":"ED001","message":"Database Error"}});
+		}else if(percentdata.length==0){
+			self.emit("failedGetSellersPayableInfo",{"error":{"message":"Seller gls payment percent information does'nt exists"}});
+		}else{
+			for(var i=0;i<sellers.length;i++){
+				percentage = __.find(percentdata, function(obj) { return obj.providerid == sellers[i].providerid });
+				sellers[i].orderzappchargeinpercent = percentage.percent;
+				sellers[i].paytmchargeinpercent = 2.5;
+			}
+			///////////////////////////////////////////////
+			_successfulGetSellersPayableInfo(self,sellers);
+			///////////////////////////////////////////////
+		}
+	});
+}
+var _successfulGetSellersPayableInfo=function(self,doc){
+	self.emit("successfulGetSellersPayableInfo",{"success":{"message":"Sellers Payable Information Getting Successfully","doc":doc}});
 }
