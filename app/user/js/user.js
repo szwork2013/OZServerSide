@@ -232,24 +232,39 @@ var _validateRegisterUser = function(self,userdata) {
     self.emit("failedUserRegistration",{"error":{"code":"AV001","message":"please enter email"}});
   }else if(isValidEmail(userdata.email).error!=undefined){
     self.emit("failedUserRegistration",isValidEmail(userdata.email));
-  }else  if(userdata.countrycode==undefined){
-    self.emit("failedUserRegistration",{"error":{"code":"AV001","message":"Please select countrycode"}});
   }else{
-      CountryCodeModel.findOne({code:userdata.countrycode},function(err,countrycode){
-        if(err){
-          logger.emit("error","Database Issue _validateRegisterUser "+err)
-          self.emit("failedUserRegistration",{"error":{"code":"ED001","message":"Database Issue"}});
-        }else if(!countrycode){
-          self.emit("failedUserRegistration",{"error":{"message":"Cuntry code is wrong"}});
-        }else{
-
-          userdata.mobileno=userdata.countrycode+userdata.mobileno;
+    if(userdata.location){
+      if(userdata.location.country){
+         CountryCodeModel.findOne({country:userdata.location.country.toLowerCase()},function(err,countrycode){
+          if(err){
+            logger.emit("error","Database Issue _validateRegisterUser "+err)
+            self.emit("failedUserRegistration",{"error":{"code":"ED001","message":"Database Issue"}});
+          }else if(!countrycode){
+            self.emit("failedUserRegistration",{"error":{"message":"Cuntry does not exists"}});
+          }else{
+            userdata.countrycode=countrycode.code;
+            userdata.mobileno=countrycode.code+userdata.mobileno;
+           /////////////////////////////////////////////
+           _checkMobileNumberAlreadyExists(self,userdata)
+           //////////////////////////////////////////
+           
+          }
+       })
+      }else{
+        userdata.countrycode="91";
+         userdata.mobileno="91"+userdata.mobileno;
         /////////////////////////////////////////////
         _checkMobileNumberAlreadyExists(self,userdata)
         //////////////////////////////////////////
-        }
-      })
+      }
+    }else{
+      userdata.countrycode="91";
+       userdata.mobileno="91"+userdata.mobileno;
+        /////////////////////////////////////////////
+        _checkMobileNumberAlreadyExists(self,userdata)
+        //////////////////////////////////////////
     }
+         }
   }
 
 
