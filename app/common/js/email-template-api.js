@@ -28,7 +28,7 @@ exports.loadEmailTemplate=function(req,res){
 		{
 			templatetype: "invoice",
 			subject: "Invocie of Suborder: <suborderid>",
-			description: "Dear <firstname>,<br> We are happy to inform you that your Suborder : <suborderid> has been successfully delivered. You can view/print your order invoice by clicking on this <a href='<invoiceurl>'>link</a>."
+			description: "Dear <firstname>,<br> We are happy to inform you that your Suborder : <suborderid> has been successfully delivered. You can view/print your order invoice by clicking on this <a href='<invoiceurl>'>link</a>.<br><br>From OrderZapp.<br>www.order-zapp.com"
 		}
 
 		]
