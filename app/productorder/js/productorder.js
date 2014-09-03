@@ -161,6 +161,7 @@ var sendOrderReceivedNotificationToSeller=function(suborders,index){
 		logger.emit("log","Successfully Order Creation Notification send to seller");
 	}
 }
+
 Order.prototype.createOrder = function(user){
 	var self = this;
 	var orderdata = this.order;
@@ -370,7 +371,7 @@ var _ProviderBranchSpecificCartsProducts=function(self,orderdata,validproductids
 						for(var x=0;x<orderdata.cart.length;x++){//use for if same product add in cart
 							if(branchproducts[i].productcatalog[j].productid==orderdata.cart[x].productid){
 								var indexofproduct=x;
-						    var productlogo;
+						        var productlogo;
 								if(branchproducts[i].productcatalog[j].productlogo!=undefined){
 									productlogo=branchproducts[i].productcatalog[j].productlogo.image
 								}
@@ -2161,19 +2162,19 @@ var _validateCheckSumPayTm=function(self,paytmresponsedata,responseobject){
 
 var _updateOrderPaymentDatails = function(self,responseobject){
 	var paymentsetdata={};
-	for(i in responseobject){
-		if(responseobject[i]!=undefined){
-			paymentsetdata[i]=responseobject[i];	
-		}
-		
-	}
+	
   // paymentsetdata.mode="paytm";
   // paymentsetdata.paymentid=generateId()
 	// paymentsetdata.status="approved";//if payment is done order status should set to approved
-	console.log(paymentsetdata);
+	// console.log(paymentsetdata);
 	var ordersetdata={};
 	if(responseobject.STATUS.toLowerCase()=="txn_success"){//if payment success then order status change to approved
-		ordersetdata={status:"approved",payment:paymentsetdata}
+		ordersetdata={status:"approved"};
+		for(i in responseobject){
+			if(responseobject[i]!=undefined){
+				ordersetdata["payment."+i]=	responseobject[i];
+		    }
+		}
 	}else{
 		ordersetdata={payment:paymentsetdata}
 	}
