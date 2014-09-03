@@ -211,27 +211,27 @@ var _validateCreateOrderData = function(self,orderdata,user){
 		 }
 		if(deliverytypesarray.indexOf("home")<0){//if in create order there is not deliverytypes home
 			logger.emit("log","order validated");
-		///////////////////////////////////////////
-		_validateCartDetails(self,orderdata,user)
-		//////////////////////////////////////////
+			///////////////////////////////////////////
+			_validateCartDetails(self,orderdata,user)
+			//////////////////////////////////////////
 		}else{
 			///////////////////////////////////////////
-		_validateCartDetails(self,orderdata,user)
-		//////////////////////////////////////////
+			_validateCartDetails(self,orderdata,user)
+			//////////////////////////////////////////
 		}
   	}
 }
-var _validatePreferredDeliveryDate=function(self,orderdata,user){
+// var _validatePreferredDeliveryDate=function(self,orderdata,user){
 
-	for(var i=0;i<orderdata.sellerdelivery.length;i++){
-		if(orderdata.sellerdelivery[i].prefdeldtime!=undefined){
-			orderdata.sellerdelivery[i].prefdeldtime=new Date(orderdata.sellerdelivery[i].prefdeldtime);
-		}
-	}
-	////////////////////////////
-	_validateCartDetails(self,orderdata,user)
-	//////////////////////////
-}
+// 	for(var i=0;i<orderdata.sellerdelivery.length;i++){
+// 		if(orderdata.sellerdelivery[i].prefdeldtime!=undefined){
+// 			orderdata.sellerdelivery[i].prefdeldtime=new Date(orderdata.sellerdelivery[i].prefdeldtime);
+// 		}
+// 	}
+// 	////////////////////////////
+// 	_validateCartDetails(self,orderdata,user)
+// 	//////////////////////////
+// }
 var _validateCartDetails=function(self,orderdata,user){
 	var carts=[];
 	for(var i=0;i<orderdata.cart.length;i++){
@@ -352,13 +352,16 @@ var _ProviderBranchSpecificCartsProducts=function(self,orderdata,validproductids
 			for(var i=0;i<branchproducts.length;i++){
 				var branchid=branchproducts[i]._id
 				
-				if(branchids.indexOf(branchid)>=0){
-					var branchindex=branchids.indexOf(branchid);
-					var product_provider=branches[branchindex];
+				var obj = __.find(branches, function(obj) { return obj.branchid == branchid });
+
+				if(obj != undefined){
+					// var branchindex=branchids.indexOf(branchid);
+					var product_provider=obj; //branches[branchindex];
 					//sellerdelivery info example:
 					//selleranddeliveryinfo={ "branchid":"branchid", "deliverytype":"home/pickup", "prefdeldtime":"Preffered delivery date and time", "deliverycharge":{"charge":"charge in percent or amount","delivery":"true/false is delivery available in area","isdeliverychargeinpercent":"true/fals"}, "orderinstructions":"orderinstructions", "pickup_address":{"address1":"Tirumal Niwas","address2":"Hingne Home Colony","area":"karvenagar","city":"pune","zipcode":"411052"}, "delivery_address":{"deliveryaddressid":"","address1":"Tirumal Niwas","address2":"Hingne Home Colony","area":"karvenagar","city":"pune","zipcode":"411052"} }
 					//also include  providerid,branchid,providerbrandname,providername,provideremail,location,providercode,providerlogo,branchname,contact_supports
-					var selleranddeliveryinfo=orderdata.sellerdelivery[branchindex]
+					// var selleranddeliveryinfo=orderdata.sellerdelivery[branchindex]
+					var selleranddeliveryinfo = __.find(orderdata.sellerdelivery, function(obj) { return obj.branchid == branchid });
 					product_provider.providerlogo=product_provider.providerlogo.image;
 					var suborder={status:"orderreceived",suborderid:"SODR-"+product_provider.providercode.toUpperCase()+"-"+Math.floor(Math.random()*100000000),productprovider:product_provider};
 					var suborderproducts=[];
@@ -388,9 +391,9 @@ var _ProviderBranchSpecificCartsProducts=function(self,orderdata,validproductids
 			  		if(selleranddeliveryinfo.deliverycharge!=undefined){
 						if(selleranddeliveryinfo.deliverytype.toLowerCase()=="home"){
 							if(selleranddeliveryinfo.deliverycharge.isdeliverychargeinpercent==false){
-					  			delivery_charge=	parseFloat(selleranddeliveryinfo.deliverycharge.charge)	
+					  			delivery_charge = parseFloat(selleranddeliveryinfo.deliverycharge.charge)	
 						  	}else{
-						  		delivery_charge=suborderprice*(parseFloat(selleranddeliveryinfo.deliverycharge.charge)/100)
+						  		delivery_charge = suborderprice*(parseFloat(selleranddeliveryinfo.deliverycharge.charge)/100)
 						  	}
 						}
 					}
@@ -440,7 +443,7 @@ var _ProviderBranchSpecificCartsProducts=function(self,orderdata,validproductids
 		  	
 		  	  		suborders.push(suborder);
 		  		}
-		  	}
+		  	}//end of branchproducts for loop
 			var consumername=" ";
 			if(user.firstname!=undefined){
 				consumername=user.firstname
@@ -452,11 +455,15 @@ var _ProviderBranchSpecificCartsProducts=function(self,orderdata,validproductids
 			if(orderdata.paymentmode.toLowerCase()=="cod"){
 				orderobject.status="approved";	
 			}
-			
+			if(suborders.length==0){
+				self.emit("failedCreateOrder",{"error":{"message":"Given Sellerdelivery information is wrong"}});
+			}else{
+				////////////////////////////////,
+			   _createOrder(self,orderobject,user);
+			    ///////////////////////////////	
+			}
 			logger.emit("log","Final Order Data:"+JSON.stringify(orderobject))
-			////////////////////////////////,
-			_createOrder(self,orderobject,user);
-			///////////////////////////////
+			
 		}
 	})
 }
@@ -482,9 +489,6 @@ var _createOrder=function(self,orderobject,user){
 			////////////////////////////////////////
 			//////////////////////////////////////////////
 
-			///////////////////////////////
-			// _successfullCreateOrder(self,orderdata)
-			////////////////////////////////
 			//////////////////////////////////////////////
 			// _SubOrderInvoiceCreation(orderdata.suborder,0,orderdata);
 			/////////////////////////////////////////////
