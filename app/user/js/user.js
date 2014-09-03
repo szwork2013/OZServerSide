@@ -1104,7 +1104,7 @@ var _validateUploadApkData=function(self,data,apk,user){
 }
 var _uploadAPK = function(data,user,apk,callback){
   console.log("_uploadAPK");
-  fs.readFile(apk.path,function (err, data) {
+  fs.readFile(apk.path,function (err, binarydata) {
       if(err){
         callback({error:{code:"ED001",message:"Database Issue"}});
       }else{
@@ -1117,7 +1117,7 @@ var _uploadAPK = function(data,user,apk,callback){
         params = {
            Bucket: bucketFolder,
            Key:"order-zapp-buyers.apk",
-           Body: data,
+           Body: binarydata,
            ACL: 'public-read',
            ContentType: apk.mimetype
         };
@@ -1135,7 +1135,7 @@ var _uploadAPK = function(data,user,apk,callback){
 }
 var _addApkToAmazonServer=function(data,awsparams,user,apk,callback){
   console.log("_addApkToAmazonServer");
-  s3bucket.putObject(awsparams, function(err, data) {
+  s3bucket.putObject(awsparams, function(err, putobjdata) {
     if (err) {
       callback({"error":{"message":"s3bucket.putObject:-_addApkToAmazonServer"+err}});
     } else {
@@ -1146,8 +1146,9 @@ var _addApkToAmazonServer=function(data,awsparams,user,apk,callback){
         if(err){
           callback({"error":{"message":"_addApkToAmazonServer:Error in getting getSignedUrl"+err}});
         }else{
+          url=url.split("?")[0];
           var providerurl = {bucket:params1.Bucket,key:params1.Key,image:url};
-         ApkModel.findAndModify({"apk.key":"order-zapp-buyers"},[],{$set:{apk:providerurl}},{new:false},function(err,oz_apk){
+         ApkModel.findAndModify({"apk.key":"order-zapp-buyers.apk"},[],{$set:{apk:providerurl,version:data.version,description:data.description}},{new:false},function(err,oz_apk){
           // console.log("oz_apk : "+JSON.stringify(oz_apk));
           if(err){
             logger.emit('error',"Database Error  _addApkToAmazonServer"+err,user.userid)
