@@ -694,17 +694,6 @@ exports.sendMail = function(message,smtpconfig,callback){
       
     });
 };
-exports.sendEmailNotification = function(templatetype,data,to,callback){
-  EmailTemplateModel.findOne({templatetype:templatetype},function(err,emailtemplate){
-  	if(err){
-  		callback({error:{code:"ED001",message:"Error in Database"}})
-  	}else if(!emailtemplate){
-  		callback({error:{message:"Email Template not exist for "+templatetype}})
-  	}else{
-
-  	}
-  })
-};
 
 
 exports.loaddefaultcounrycode=function(req,res){
