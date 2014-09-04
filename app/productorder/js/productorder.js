@@ -1509,12 +1509,12 @@ var _sendNotificationToUser=function(suborder,status){
 						var tempname;
 						if(suborder.deliverytype.toLowerCase()=="home"){
 							tempname="finaldeliveryhomeonline";
-							if(suborder.buyerpayment.mode.toLowerCase()=="cod"){
+							if(suborder.payment.mode.toLowerCase()=="cod"){
 								tempname="finaldeliveryhomecod";
 							}
 						}else{//if delivery type is pickup
 							tempname="finaldeliverypickuponline";
-							if(suborder.buyerpayment.mode.toLowerCase()=="cod"){
+							if(suborder.payment.mode.toLowerCase()=="cod"){
 								tempname="finaldeliverypickupcod";
 							}
 						}
@@ -1852,7 +1852,7 @@ var _validateSubOrderPaymentDone=function(self,user,suborderid){
 	})
 }
 var _validateSubOrderStatusForPayment=function(self,user,suborder){
-	if(suborder.buyerpayment.mode=="paytm"){
+	if(suborder.payment.mode=="paytm"){
 		self.emit("failedSubOrderPaymentDone",{error:{message:"Payment through banking"}})	
 	}else if(suborder.sellerpayment.status=="done"){
 		self.emit("failedSubOrderPaymentDone",{error:{message:"Payment already made"}})	
