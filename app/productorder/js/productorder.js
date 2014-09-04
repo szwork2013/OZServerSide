@@ -2132,6 +2132,8 @@ var _validateCheckSumPayTm=function(self,paytmresponsedata,responseobject){
 	    "TXNDATE":txndate,
 	    "IS_CHECKSUM_VALID": "N"
  		}
+ 	console.log("^^^^^^^^^RESPONSEOBJECT^^^^^^^^^^^^^^^"+JSON.stringify(responseobject))
+ 	console.log("^^^^^^^^^paytmresponsedata^^^^^^^^^^^^^^^"+JSON.stringify(paytmresponsedata))
  	
 	java.callStaticMethod("PayTm", "validateCheckSum",paytmChecksum,merchantKey,MID,TXNID,ORDER_ID,BANKTXNID,STATUS,RESPCODE,TXNAMOUNT, function(err, results) {
   	if(err) {
@@ -2149,6 +2151,7 @@ var _validateCheckSumPayTm=function(self,paytmresponsedata,responseobject){
 			/////////////////////////////////////////////
  			
   		}else{
+  			console.log("^^^^^^^^Payment Failure^^^^^^^^^^^^^")
   			self.emit("failedPaytmCallbackUrl",{error:{message:"CHECKSUMHASH IS NOT VALID",responseobject:responseobject}})
   		}
  
