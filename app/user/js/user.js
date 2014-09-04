@@ -953,7 +953,8 @@ var _getCountryCodes=function(self){
     if(err){
       logger.emit("error","Database Issue:"+err)
       self.emit("failedGetCountryCode",{"error":{"code":"ED001","message":"Error in Database"}});
-    }else if(countrycode){
+    }else if(countrycode.length!=0){
+     
       ////////////////////////////////
       _successfulGetCountryCode(self,countrycode);
       //////////////////////////////////
@@ -965,8 +966,37 @@ var _getCountryCodes=function(self){
 
 var _successfulGetCountryCode=function(self,countrycode){
   logger.emit("log","_successfulGetCountryCode");
-  self.emit("successfulGetCountryCode", {"success":{"message":"Getting Country Code Details Successfully","countrycode":countrycode}});
+  self.emit("successfulGetCountryCode", {"success":{"message":"Getting Country Details Successfully","countrycode":countrycode}});
 }
+User.prototype.getCountry = function() {
+  var self=this;
+  _getCountry(self);
+};
+
+var _getCountry=function(self){
+  CountryCodeModel.find({},{country:1,code:1,isocode1:1,_id:0}).sort({country:1}).lean().exec(function(err,countrycode){
+    if(err){
+      logger.emit("error","Database Issue:"+err)
+      self.emit("failedGetCountry",{"error":{"code":"ED001","message":"Error in Database"}});
+    }else if(countrycode.length!=0){
+      var country=[]
+      for(var i=0;i<countrycode.length;i++){
+        country.push(countrycode[i].country)
+      }
+      ////////////////////////////////
+      _successfulGetCountry(self,country);
+      //////////////////////////////////
+    }else{
+        self.emit("failedGetCountry",{"error":{"code":"AU005","message":"Country code does not exist"}});
+    }
+  })
+}
+
+var _successfulGetCountry=function(self,country){
+  logger.emit("log","_successfulGetCountryCode");
+  self.emit("successfulGetCountry", {"success":{"message":"Getting Country Details Successfully","country":country}});
+}
+
 
 User.prototype.productRecommend = function(productid,userid) {
   var self=this;

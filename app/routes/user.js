@@ -15,6 +15,7 @@ exports.init = function (app) {
 	app.post('/api/resetpassword',api.userapi.resetPasswordRequest);
 	app.post('/api/regenerateverificationtoken',api.userapi.regenerateotp);
 	app.get('/api/countrycode',api.userapi.getCountryCodes);
+    app.get('/api/country',api.userapi.getCountry);
     app.post('/api/verifyproviderrequest',api.userapi.confirmjoinproviderrequest);
     app.get('/api/logout',auth,api.userapi.signOutSessions);
     app.get('/api/productrecommend/:productid',auth,api.userapi.productRecommend);

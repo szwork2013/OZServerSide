@@ -519,3 +519,19 @@ exports.uploadAPK=function(req,res){
     user.uploadAPK(req.user,apk);
   } 
 }
+exports.getCountry = function(req, res) {
+  var user=new User();
+  user.removeAllListeners("failedGetCountry");
+  user.on("failedGetCountry",function(err){
+    logger.emit("error", err.error.message,req.user.userid);
+    //user.removeAllListeners();
+    res.send(err);
+  });
+  user.removeAllListeners("successfulGetCountry");
+  user.on("successfulGetCountry",function(result){
+    // logger.emit("info", result.success.message,req.user.userid);
+    //user.removeAllListeners();
+    res.send(result);
+  });
+  user.getCountry();
+};
