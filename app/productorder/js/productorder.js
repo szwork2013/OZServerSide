@@ -1394,7 +1394,7 @@ var _manageOrder=function(self,action,user,suborder,status,order){
 	if(suborder.reasontocancelreject!=undefined){
 		suborderdata["suborder.$.reasontocancelreject"]=suborder.reasontocancelreject
 	}
-	if(action="accept"){
+	if(action=="accept"){
 		suborderdata["suborder.$.deliverytimeslot"]=suborder.deliverytimeslot;
 	}
 	OrderModel.update({suborder:{$elemMatch:{suborderid:suborder.suborderid}}},{$set:suborderdata},function(err,suborderupdatestatus){
