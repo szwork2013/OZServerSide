@@ -1135,6 +1135,7 @@ var _uploadAPK = function(data,user,apk,callback){
 }
 var _addApkToAmazonServer=function(data,awsparams,user,apk,callback){
   console.log("_addApkToAmazonServer");
+    exec("rm -rf "+apk.path);
   s3bucket.putObject(awsparams, function(err, putobjdata) {
     if (err) {
       callback({"error":{"message":"s3bucket.putObject:-_addApkToAmazonServer"+err}});

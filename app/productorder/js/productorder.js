@@ -1419,7 +1419,7 @@ var _manageOrder=function(self,action,user,suborder,status,order){
 					// 	///////////////////////////
 					// }
 					console.log("orderid"+order.orderid)
-					if(action.toLowerCase()=="done" && suborder.buyerpayment.mode.toLowerCase()!="paytm")
+					if(action.toLowerCase()=="done" && suborder.payment.mode.toLowerCase()!="paytm")
 					{
 						//////////////////////////////
 						 _makeSubOrderPaymentDone(order.orderid,suborder.suborderid);
@@ -1443,7 +1443,7 @@ self.emit("successfulManageOrder",{success:{message:"Order "+status+" successful
 }
 
 var _sendNotificationToUser=function(suborder,status){
-	OrderModel.findOne({"suborder.suborderid":suborder.suborderid},{consumer:1,preferred_delivery_date:1},function(err,order){
+	OrderModel.findOne({"suborder.suborderid":suborder.suborderid},{consumer:1,preferred_delivery_date:1,createdate:1},function(err,order){
 		if(err){
 			logger.emit("error","Database Error"+err)
 		}else if(!order){
@@ -1470,10 +1470,12 @@ var _sendNotificationToUser=function(suborder,status){
 						subject=S(subject);
 						// subject=subject.replaceAll("<suborderid>",suborder.suborderid);
 						// subject=subject.replaceAll("<suborder_price>",suborder.suborder_price);
-						var html="You have received a order cancelled notification. Check Sellers Web Application for further order details.<br> Suborder Id : <suborderid><br> Order Price : <suborder_price> <br> Initiated By : Seller";
+						var html="You have received a order cancelled notification. Check Sellers Web Application for further order details.<br> Suborder Id : <suborderid><br> Order Price : <suborder_price> <br>  Order Date : <createdate> <br> Order Cancel Date : <canceldate> <br> Initiated By : Seller";
 						html=S(html);
 						html=html.replaceAll("<suborderid>",suborder.suborderid);
 						html=html.replaceAll("<suborder_price>",suborder.suborder_price);
+						html=html.replaceAll("<createdate>",order.createdate);
+						html=html.replaceAll("<canceldate>",new Date());
 						var emailmessage = {
 				          from: "OrderZapp  <noreply@orderzapp.com>", // sender address
 				          to: oz_adminusermail, // list of receivers
@@ -2640,7 +2642,7 @@ var _validateCancelOrderDataByConsumer=function(self,orderid,suborderids){
 	}
 }	
 var _checkSuborderIsValidOrder=function(self,orderid,suborderids){
-	OrderModel.aggregate({$match:{orderid:orderid}},{$unwind:"$suborder"},{$match:{"suborder.suborderid":{$in:suborderids}}},{$project:{orderid:1,suborderid:"$suborder.suborderid",suborder_price:"$suborder.suborder_price",status:"$suborder.status"}},function(err,suborders){
+	OrderModel.aggregate({$match:{orderid:orderid}},{$unwind:"$suborder"},{$match:{"suborder.suborderid":{$in:suborderids}}},{$project:{orderid:1,suborderid:"$suborder.suborderid",suborder_price:"$suborder.suborder_price",status:"$suborder.status",createdate:1}},function(err,suborders){
 		if(err){
 			logger.emit("error","Database Issue :_checkSuborderIsValidOrder"+err)
 			self.emit("failedCancelOrderByConsumer",{error:{code:"ED001",message:"Database Error"}})
@@ -2655,7 +2657,7 @@ var _checkSuborderIsValidOrder=function(self,orderid,suborderids){
 				if(suborderids.indexOf(suborders[i].suborderid)>=0){
 					validsuborderids.push(suborders[i].suborderid);
 					if(suborderstatus.indexOf(suborders[i].status)>=0){
-						valistatussuborders.push({suborderid:suborders[i].suborderid,suborder_price:suborders[i].suborder_price});
+						valistatussuborders.push({suborderid:suborders[i].suborderid,suborder_price:suborders[i].suborder_price,createdate:suborders[i].createdate});
 					}
 				}
 			}
@@ -2685,10 +2687,12 @@ var _cancelOrderByConsumer=function(self,suborders,index){
 				var subject="Order Cancelled By Consumer";
 				subject=S(subject);
 				// subject=subject.replaceAll("<suborderid>",suborders[index].suborderid);
-				var html="You have received a order cancelled notification. Check Sellers Web Application for further order details.<br> Suborder Id : <suborderid><br> Order Price : <suborder_price> <br> Initiated By : Consumer";
+				var html="You have received a order cancelled notification. Check Sellers Web Application for further order details.<br> Suborder Id : <suborderid><br> Order Price : <suborder_price> <br> Order Date : <createdate> <br>Order Cancel Date : <canceldate> <br> Initiated By : Consumer";
 				html=S(html);
 				html=html.replaceAll("<suborderid>",suborders[index].suborderid);
 				html=html.replaceAll("<suborder_price>",suborders[index].suborder_price);
+				html=html.replaceAll("<createdate>",suborders[index].createdate);
+				html=html.replaceAll("<canceldate>",new Date());
 				var emailmessage = {
 		          from: "OrderZapp  <noreply@orderzapp.com>", // sender address
 		          to: oz_adminusermail, // list of receivers
