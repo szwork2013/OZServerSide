@@ -1474,12 +1474,12 @@ var _sendNotificationToUser=function(suborder,status){
 						var tempname;
 						if(suborder.deliverytype.toLowerCase()=="home"){
 							tempname="finaldeliveryhomeonline";
-							if(suborder.buyerpayment.mode.toLowerCase()=="cod"){
+							if(suborder.payment.mode.toLowerCase()=="cod"){
 								tempname="finaldeliveryhomecod";
 							}
 						}else{//if delivery type is pickup
 							tempname="finaldeliverypickuponline";
-							if(suborder.buyerpayment.mode.toLowerCase()=="cod"){
+							if(suborder.payment.mode.toLowerCase()=="cod"){
 								tempname="finaldeliverypickupcod";
 							}
 						}
