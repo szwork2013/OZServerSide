@@ -1411,7 +1411,7 @@ var _manageOrder=function(self,action,user,suborder,status,order){
 						})
 					}
 					console.log("orderid"+order.orderid)
-					if(action.toLowerCase()=="done" && suborder.buyerpayment.mode.toLowerCase()!="paytm")
+					if(action.toLowerCase()=="done" && suborder.payment.mode.toLowerCase()!="paytm")
 					{
 						//////////////////////////////
 						 _makeSubOrderPaymentDone(order.orderid,suborder.suborderid);
