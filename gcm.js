@@ -1,18 +1,19 @@
 var GCM = require('gcm').GCM;
 
-var apiKey = 'AIzaSyD9sNb97eYjsCzt1m7TGxDAHdZmnKigA-g';
+var apiKey = 'AIzaSyDunDAT6c-kge_RNzvwzXoPGljWpdpi2FI';
 var gcm = new GCM(apiKey);
 
 var message = {
-    registration_id: 'APA91bHfzWo_uQvcOpY9qeQzWV2HkP1MVMFzlNz1AkuIXiLMqisCSiWoG9ICEUbzbG0USQF4qtJ47x2un8-Ck1PjDS2KIszfFF0ys1YaJJ9o3zQQucodJKoB7mOfze4JbINPIMUbfjAqU4uuOFxzIELK1dienJBNQg', // required
+    registration_id: 'APA91bFsOp3UdHnPmBAkLOCuUwn8svaYoGxAZ7uOe5OxIcDvdeRBiNxvchEuKPoVC5bUEDeK3Pp9rnDpdtqJ5nTYjOxPONmSyYOwrSky6YF30xyk9IuAu04Kyejfy9fgbtFQRPQAvFi6QfubXdTPTOAzJAaayqcoTQ', // required
     collapse_key: 'Collapse key', 
-    'data.suborderid': 'value1',
-    'data.status': 'value2'
+    delayWhileIdle: true,
+    'data.suborderid': 'testing',
+    'data.status': 'testing'
 };
 
 gcm.send(message, function(err, messageId){
     if (err) {
-        console.log("Something has gone wrong!");
+        console.log("Something has gone wrong!"+err);
     } else {
         console.log("Sent with message ID: ", messageId);
     }
