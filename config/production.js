@@ -8,7 +8,7 @@ module.exports = {
       gtranslatekey:"AIzaSyBd6VpfinXfXMKKlEUbU6IWsDZ9eOmB9Dc",
       amazonbucket:'orderzapp/products/production',
       merchantKey:"T5n43ZNnszBBO0v3",
-      gcmapikey:"AIzaSyD9sNb97eYjsCzt1m7TGxDAHdZmnKigA-g",
+      gcmapikey:"AIzaSyDunDAT6c-kge_RNzvwzXoPGljWpdpi2FI",
       amazon:{accessKeyId:'AKIAIA4VS3PT4IPKADWQ', secretAccessKey:'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'},
       smtp_general:{
         host: "smtp.giantleapsystems.com", // hostname
