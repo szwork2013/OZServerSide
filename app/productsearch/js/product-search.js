@@ -232,14 +232,20 @@ var _applyDiscountCodesToProductCatalog=function(doc,callback){
 				// console.log("discountcodes : "+JSON.stringify(discountcodes));
 				for(var i=0;i<doc.length;i++){
 					for(var j=0;j<doc[i].productcatalog.length;j++){
-						for(var k=0;k<discountcodes.length;k++){
-							if(discountcodes[k].products == doc[i].productcatalog[j].productid){
-								// console.log("Code ####### "+JSON.stringify(discountcodes[k].discountcode));
-								doc[i].productcatalog[j].discount = {code:discountcodes[k].discountcode,percent:discountcodes[k].percent};
-							}else{
-								doc[i].productcatalog[j].discount = {code:"none",percent:0};
-							}
-						}
+						discount = __.find(discountcodes, function(obj) { return obj.products == doc[i].productcatalog[j].productid }); 
+                        if(discount != undefined){ 
+                            doc[i].productcatalog[j].discount = {code:discount.discountcode,percent:discount.percent}; 
+                        }else{ 
+                            doc[i].productcatalog[j].discount = {code:"none",percent:0}; 
+                        }
+						// for(var k=0;k<discountcodes.length;k++){
+						// 	if(discountcodes[k].products == doc[i].productcatalog[j].productid){
+						// 		// console.log("Code ####### "+JSON.stringify(discountcodes[k].discountcode));
+						// 		doc[i].productcatalog[j].discount = {code:discountcodes[k].discountcode,percent:discountcodes[k].percent};
+						// 	}else{
+						// 		doc[i].productcatalog[j].discount = {code:"none",percent:0};
+						// 	}
+						// }
 					}		
 				}
 				callback(null,doc);

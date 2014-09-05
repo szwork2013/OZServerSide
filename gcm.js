@@ -4,11 +4,11 @@ var apiKey = 'AIzaSyDunDAT6c-kge_RNzvwzXoPGljWpdpi2FI';
 var gcm = new GCM(apiKey);
 
 var message = {
-    registration_id: 'APA91bFsOp3UdHnPmBAkLOCuUwn8svaYoGxAZ7uOe5OxIcDvdeRBiNxvchEuKPoVC5bUEDeK3Pp9rnDpdtqJ5nTYjOxPONmSyYOwrSky6YF30xyk9IuAu04Kyejfy9fgbtFQRPQAvFi6QfubXdTPTOAzJAaayqcoTQ', // required
+    registration_id: 'APA91bHyiVyEoxe0l0z6hPhwB2UA6NrPPAQ-Edv-nckugIjXhLgZ9w55drr3wjGpZzs_7lRqpBUpwq9dkm3dSjjFOgRfUhL3j3FZkztdCoZ9CYON2u_Z_8iCbYO0abH67eD_mN1OwnOW8AT4PISce2OJEvkcTgtobQ', // required
     collapse_key: 'Collapse key', 
-    delayWhileIdle: true,
-    'data.suborderid': 'testing',
-    'data.status': 'testing'
+     delayWhileIdle: 0,
+    data:{suborderid: 'testing',
+    status: 'testing'}
 };
 
 gcm.send(message, function(err, messageId){
