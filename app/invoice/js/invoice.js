@@ -120,17 +120,17 @@ var _createJSONForInvoice=function(suborderid,callback){
           var provider=branch[0]
           var branch=branch[0].branch;
           console.log("provider"+JSON.stringify(provider));
-          UserModel.findOne({userid:selleruserid},{email:1,firstname:1,lastname:1},function(err,selleruser){
-            if(err){
-              callback({error:{message:"Database Error",code:"ED001"}})
-              logger.emit("error","Database Error :_createJSONForInvoice"+err)
-            }else if(!selleruser){
-              logger.emit("error","Incorrect User")
-              callback({error:{message:"Incorrect User"}})
-            }else{
+          // UserModel.findOne({userid:selleruserid},{email:1,firstname:1,lastname:1},function(err,selleruser){
+          //   if(err){
+          //     callback({error:{message:"Database Error",code:"ED001"}})
+          //     logger.emit("error","Database Error :_createJSONForInvoice"+err)
+          //   }else if(!selleruser){
+          //     logger.emit("error","Incorrect User")
+          //     callback({error:{message:"Incorrect User"}})
+          //   }else{
               var contacts=branch.contact_supports;
-              var selleremail=selleruser.email;
-              console.log("selleruser"+selleruser.email);
+              // var selleremail=selleruser.email;
+              // console.log("selleruser"+selleruser.email);
               console.log("contact_supports"+contacts)
               var inoviceobject={orderid:suborder.suborderid,suborderid:suborder.suborderid,invoicedate:order.createdate,orderdate:order.createdate,tinno:provider.tax.tino,billing_address:suborder.billing_address,delivery_address:suborder.delivery_address,deliverytype:suborder.deliverytype}
               var products=[];
@@ -180,8 +180,8 @@ var _createJSONForInvoice=function(suborderid,callback){
                 }
               })
               //////////////////////////////////////////////////
-            }
-          })
+            // }
+          // })
         }
     })
   }
