@@ -136,6 +136,8 @@ var _createJSONForInvoice=function(suborderid,callback){
               var products=[];
               inoviceobject.invoiceno=Math.floor(Math.random()*1000000)
               inoviceobject.buyername=order.consumer.name;
+              inoviceobject.buyermobileno=order.consumer.mobileno;
+              
               // console.log("suborder products"+order.suborder[i].products)
               var productprovider=JSON.stringify(suborder.productprovider);
               productprovider=JSON.parse(productprovider)
@@ -316,6 +318,7 @@ var _createPDFInvocie=function(inoviceobject,branch,callback){
       buyername=inoviceobject.buyername;
      }
      htmldata=htmldata.replaceAll("{{buyername}}",buyername);
+      htmldata=htmldata.replaceAll("{{buyermobileno}}",inoviceobject.buyermobileno);
      var productsobject=inoviceobject.products;
      var productshtml="";
      for(var i=0;i<productsobject.length;i++){
