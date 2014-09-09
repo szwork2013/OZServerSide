@@ -8,6 +8,8 @@ exports.init = function (app) {
  	app.get('/api/loadmoreproduct/:branchid',api.productsearchapi.loadmoreProduct);
  	app.get('/api/searchproduct',api.productsearchapi.randomProductSearch);
 
+ 	app.get('/api/searchproduct/city/:city',api.productsearchapi.searchProductByCity);//Product Search By City
+
  	// Admin access
  	app.post('/api/searchprovider',auth,api.productsearchapi.searchProvider);
 }

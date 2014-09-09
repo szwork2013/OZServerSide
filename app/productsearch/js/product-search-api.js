@@ -101,3 +101,23 @@ exports.searchProvider = function(req,res){
     productsearch.searchProvider(); 
   }  
 }
+
+exports.searchProductByCity = function(req,res){
+  var city = req.params.city;
+  console.log("city " +JSON.stringify(city));  
+  var productsearch = new ProductSearch(city);
+  var sessionuserid;// = req.user.userid;
+
+    productsearch.removeAllListeners("failedSearchProductByCity");
+    productsearch.on("failedSearchProductByCity",function(err){
+      logger.emit("error", err.error.message,sessionuserid);
+      res.send(err);
+    });
+    productsearch.removeAllListeners("successfulSearchProductByCity");
+    productsearch.on("successfulSearchProductByCity",function(doc){
+      logger.emit("info", doc.success.message,sessionuserid);
+      // console.log("L " + doc.success.doc.length);
+      res.send(doc);
+    });  
+    productsearch.searchProductByCity(); 
+}
