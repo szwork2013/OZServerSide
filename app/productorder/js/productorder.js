@@ -18,7 +18,10 @@ var SMSTemplateModel=require("../../common/js/sms-template-model");
 var GCM = require('gcm').GCM;
 var InvoiceModel=require("../../invoice/js/invoice-model");
 var CONFIG=require("config").OrderZapp;
-var DeliveryAddressModel=require("./delivery-address-history-model")
+var DeliveryAddressModel=require("./delivery-address-history-model");
+var gcmapi=require('../../gcm/js/gcm-api')
+var Invoice=require("../../invoice/js/invoice");
+var emailtemplateapi=require("../../common/js/email-template-api")
 var java = require("java");
 java.classpath.push("./paytm/");
 var logger=require("../../common/js/logger");
@@ -904,7 +907,11 @@ var _criteriawiseSuborders=function(self,userid,providerid,branchid,criteriastat
         query.push({$match:{"suborder.productprovider.providerid":providerid,status:{$ne:"waitforapproval"}}})
 				query.push({$unwind:"$suborder"})
 				query.push({$match:{"suborder.productprovider.branchid":branchid}})
-				query.push({$project:{deliverycharge:"$suborder.deliverycharge",reasontocancelreject:"$suborder.reasontocancelreject",buyerpayment:"$suborder.buyerpayment",sellerpayment:"$suborder.sellerpayment",orderinstructions:"$suborder.orderinstructions", payment:"$suborder.payment",preferred_delivery_date:"$suborder.prefdeldtime",prefdeltimeslot:"$suborder.prefdeltimeslot",createdate:1,suborderid:"$suborder.suborderid",products:"$suborder.products",suborder_price:"$suborder.suborder_price",billing_address:"$suborder.billing_address",delivery_address:"$suborder.delivery_address",deliverytype:"$suborder.deliverytype",deliverydate:"$suborder.deliverydate",status:"$suborder.status",_id:0,consumer:1}})
+// <<<<<<< HEAD
+// 				query.push({$project:{deliverycharge:"$suborder.deliverycharge",reasontocancelreject:"$suborder.reasontocancelreject",buyerpayment:"$suborder.buyerpayment",sellerpayment:"$suborder.sellerpayment",orderinstructions:"$suborder.orderinstructions", payment:"$suborder.payment",preferred_delivery_date:"$suborder.prefdeldtime",prefdeltimeslot:"$suborder.prefdeltimeslot",createdate:1,suborderid:"$suborder.suborderid",products:"$suborder.products",suborder_price:"$suborder.suborder_price",billing_address:"$suborder.billing_address",delivery_address:"$suborder.delivery_address",deliverytype:"$suborder.deliverytype",deliverydate:"$suborder.deliverydate",status:"$suborder.status",_id:0,consumer:1}})
+// =======
+				query.push({$project:{deliverycharge:"$suborder.deliverycharge",reasontocancelreject:"$suborder.reasontocancelreject",buyerpayment:"$suborder.buyerpayment",payment:"$suborder.payment",orderinstructions:"$suborder.orderinstructions",preferred_delivery_date:"$suborder.prefdeldtime",prefdeltimeslot:"$suborder.prefdeltimeslot",createdate:1,suborderid:"$suborder.suborderid",products:"$suborder.products",suborder_price:"$suborder.suborder_price",billing_address:"$suborder.billing_address",delivery_address:"$suborder.delivery_address",deliverytype:"$suborder.deliverytype",deliverydate:"$suborder.deliverydate",status:"$suborder.status",_id:0,consumer:1}})
+// >>>>>>> ozv2-sprint1
 				query.push({$sort:{createdate:1}})
 		/////////////////////////////////////////////////
 		_getMySubOrders(self,userid,providerid,branchid,query);
@@ -921,7 +928,11 @@ var _criteriawiseSuborders=function(self,userid,providerid,branchid,criteriastat
 				query.push({$match:{"suborder.prefdeldtime":{$ne:null}}})
 				query.push({$sort:{createdate:1}})
 				query.push({$match:{"suborder.productprovider.branchid":branchid,"suborder.status":{$in:statusarray[criteriastatus]}}})
-				query.push({$project:{pref_deliverydatetime:{$add:["$suborder.prefdeldtime",60*60*1000*5.5]},deliverycharge:"$suborder.deliverycharge",reasontocancelreject:"$suborder.reasontocancelreject",pickup_address:"$suborder.pickup_address",buyerpayment:"$suborder.buyerpayment",sellerpayment:"$suborder.sellerpayment",orderinstructions:"$suborder.orderinstructions", payment:"$suborder.payment",preferred_delivery_date:"$suborder.prefdeldtime",prefdeltimeslot:"$suborder.prefdeltimeslot",createdate:1,suborderid:"$suborder.suborderid",products:"$suborder.products",suborder_price:"$suborder.suborder_price",billing_address:"$suborder.billing_address",delivery_address:"$suborder.delivery_address",deliverytype:"$suborder.deliverytype",deliverydate:"$suborder.deliverydate",status:"$suborder.status",_id:0,consumer:1}})
+// <<<<<<< HEAD
+// 				query.push({$project:{pref_deliverydatetime:{$add:["$suborder.prefdeldtime",60*60*1000*5.5]},deliverycharge:"$suborder.deliverycharge",reasontocancelreject:"$suborder.reasontocancelreject",pickup_address:"$suborder.pickup_address",buyerpayment:"$suborder.buyerpayment",sellerpayment:"$suborder.sellerpayment",orderinstructions:"$suborder.orderinstructions", payment:"$suborder.payment",preferred_delivery_date:"$suborder.prefdeldtime",prefdeltimeslot:"$suborder.prefdeltimeslot",createdate:1,suborderid:"$suborder.suborderid",products:"$suborder.products",suborder_price:"$suborder.suborder_price",billing_address:"$suborder.billing_address",delivery_address:"$suborder.delivery_address",deliverytype:"$suborder.deliverytype",deliverydate:"$suborder.deliverydate",status:"$suborder.status",_id:0,consumer:1}})
+// =======
+				query.push({$project:{pref_deliverydatetime:{$add:["$suborder.prefdeldtime",60*60*1000*5.5]},deliverycharge:"$suborder.deliverycharge",reasontocancelreject:"$suborder.reasontocancelreject",pickup_address:"$suborder.pickup_address",payment:"$suborder.payment",sellerpayment:"$suborder.sellerpayment",orderinstructions:"$suborder.orderinstructions",preferred_delivery_date:"$suborder.prefdeldtime",prefdeltimeslot:"$suborder.prefdeltimeslot",createdate:1,suborderid:"$suborder.suborderid",products:"$suborder.products",suborder_price:"$suborder.suborder_price",billing_address:"$suborder.billing_address",delivery_address:"$suborder.delivery_address",deliverytype:"$suborder.deliverytype",deliverydate:"$suborder.deliverydate",status:"$suborder.status",_id:0,consumer:1}})
+// >>>>>>> ozv2-sprint1
 				query.push({$project:{pref_deliverydatetime:{day:{$dayOfMonth:'$pref_deliverydatetime'},month:{$month:'$pref_deliverydatetime'},year:{$year:'$pref_deliverydatetime'}},deliverycharge:1,buyerpayment:1,reasontocancelreject:1,sellerpayment:1,orderinstructions:1, payment:1,pickup_address:1,preferred_delivery_date:1,createdate:1,suborderid:1,products:1,suborder_price:1,billing_address:1,delivery_address:1,prefdeltimeslot:1,deliverytype:1,deliverydate:1,status:1,consumer:1}})
 				query.push({$group:{_id:"$pref_deliverydatetime",suborders:{$addToSet:{deliverycharge:"$deliverycharge",buyerpayment:"$buyerpayment",sellerpayment:"$sellerpayment",orderinstructions:"$orderinstructions",reasontocancelreject:"$reasontocancelreject", pickup_address:"$pickup_address",payment:"$payment",preferred_delivery_date:"$preferred_delivery_date",createdate:"$createdate",suborderid:"$suborderid",products:"$products",prefdeltimeslot:"$prefdeltimeslot",suborder_price:"$suborder_price",billing_address:"$billing_address",delivery_address:"$delivery_address",deliverytype:"$deliverytype",deliverydate:"$deliverydate",status:"$status",consumer:"$consumer"}}}})
 				query.push({$project:{deliverydatetime:"$_id",suborders:1,_id:0}});
@@ -934,7 +945,11 @@ var _criteriawiseSuborders=function(self,userid,providerid,branchid,criteriastat
 				query.push({$unwind:"$suborder"})
 				query.push({$sort:{createdate:1}})
 				query.push({$match:{"suborder.productprovider.branchid":branchid,"suborder.status":{$in:statusarray[criteriastatus]}}})
-				query.push({$project:{pref_deliverydatetime:{$add:["$suborder.deliverydate",60*60*1000*5.5]},deliverycharge:"$suborder.deliverycharge",reasontocancelreject:"$suborder.reasontocancelreject",buyerpayment:"$suborder.buyerpayment",deliverytimeslot:"$suborder.deliverytimeslot", pickup_address:"$suborder.pickup_address",sellerpayment:"$suborder.sellerpayment",orderinstructions:"$suborder.orderinstructions", payment:"$suborder.payment",preferred_delivery_date:"$suborder.prefdeldtime",prefdeltimeslot:"$suborder.prefdeltimeslot",createdate:1,suborderid:"$suborder.suborderid",products:"$suborder.products",suborder_price:"$suborder.suborder_price",billing_address:"$suborder.billing_address",delivery_address:"$suborder.delivery_address",deliverytype:"$suborder.deliverytype",deliverydate:"$suborder.deliverydate",status:"$suborder.status",_id:0,consumer:1}})
+// <<<<<<< HEAD
+// 				query.push({$project:{pref_deliverydatetime:{$add:["$suborder.deliverydate",60*60*1000*5.5]},deliverycharge:"$suborder.deliverycharge",reasontocancelreject:"$suborder.reasontocancelreject",buyerpayment:"$suborder.buyerpayment",deliverytimeslot:"$suborder.deliverytimeslot", pickup_address:"$suborder.pickup_address",sellerpayment:"$suborder.sellerpayment",orderinstructions:"$suborder.orderinstructions", payment:"$suborder.payment",preferred_delivery_date:"$suborder.prefdeldtime",prefdeltimeslot:"$suborder.prefdeltimeslot",createdate:1,suborderid:"$suborder.suborderid",products:"$suborder.products",suborder_price:"$suborder.suborder_price",billing_address:"$suborder.billing_address",delivery_address:"$suborder.delivery_address",deliverytype:"$suborder.deliverytype",deliverydate:"$suborder.deliverydate",status:"$suborder.status",_id:0,consumer:1}})
+// =======
+				query.push({$project:{pref_deliverydatetime:{$add:["$suborder.deliverydate",60*60*1000*5.5]},deliverycharge:"$suborder.deliverycharge",reasontocancelreject:"$suborder.reasontocancelreject",payment:"$suborder.payment",deliverytimeslot:"$suborder.deliverytimeslot", pickup_address:"$suborder.pickup_address",sellerpayment:"$suborder.sellerpayment",orderinstructions:"$suborder.orderinstructions",preferred_delivery_date:"$suborder.prefdeldtime",prefdeltimeslot:"$suborder.prefdeltimeslot",createdate:1,suborderid:"$suborder.suborderid",products:"$suborder.products",suborder_price:"$suborder.suborder_price",billing_address:"$suborder.billing_address",delivery_address:"$suborder.delivery_address",deliverytype:"$suborder.deliverytype",deliverydate:"$suborder.deliverydate",status:"$suborder.status",_id:0,consumer:1}})
+// >>>>>>> ozv2-sprint1
 				query.push({$project:{pref_deliverydatetime:{day:{$dayOfMonth:'$pref_deliverydatetime'},month:{$month:'$pref_deliverydatetime'},year:{$year:'$pref_deliverydatetime'}},deliverycharge:1,pickup_address:1,reasontocancelreject:1,deliverytimeslot:1,buyerpayment:1,sellerpayment:1,orderinstructions:1, payment:1,preferred_delivery_date:1,createdate:1,suborderid:1,products:1,suborder_price:1,billing_address:1,delivery_address:1,prefdeltimeslot:1,deliverytype:1,deliverydate:1,status:1,consumer:1}})
 				query.push({$group:{_id:"$pref_deliverydatetime",suborders:{$addToSet:{buyerpayment:"$buyerpayment",sellerpayment:"$sellerpayment",orderinstructions:"$orderinstructions",deliverycharge:"$deliverycharge",reasontocancelreject:"$reasontocancelreject",deliverytimeslot:"$deliverytimeslot", pickup_address:"$pickup_address", payment:"$payment",preferred_delivery_date:"$preferred_delivery_date",createdate:"$createdate",suborderid:"$suborderid",products:"$products",prefdeltimeslot:"$prefdeltimeslot",suborder_price:"$suborder_price",billing_address:"$billing_address",delivery_address:"$delivery_address",deliverytype:"$deliverytype",deliverydate:"$deliverydate",status:"$status",consumer:"$consumer"}}}})
 				query.push({$project:{deliverydatetime:"$_id",suborders:1}})
@@ -943,7 +958,11 @@ var _criteriawiseSuborders=function(self,userid,providerid,branchid,criteriastat
 				query.push({$match:{"suborder.productprovider.providerid":providerid,status:{$ne:"waitforapproval"}}})
 				query.push({$unwind:"$suborder"})
 				query.push({$match:{"suborder.productprovider.branchid":branchid,"suborder.status":{$in:statusarray[criteriastatus]}}})
-				query.push({$project:{deliverycharge:"$suborder.deliverycharge",reasontocancelreject:"$suborder.reasontocancelreject",buyerpayment:"$suborder.buyerpayment",pickup_address:"$suborder.pickup_address",sellerpayment:"$suborder.sellerpayment",orderinstructions:"$suborder.orderinstructions", payment:"$suborder.payment",preferred_delivery_date:"$suborder.prefdeldtime",prefdeltimeslot:"$suborder.prefdeltimeslot",createdate:1,suborderid:"$suborder.suborderid",products:"$suborder.products",suborder_price:"$suborder.suborder_price",billing_address:"$suborder.billing_address",delivery_address:"$suborder.delivery_address",deliverytype:"$suborder.deliverytype",deliverytimeslot:"$suborder.deliverytimeslot", deliverydate:"$suborder.deliverydate",status:"$suborder.status",_id:0,consumer:1}})
+// <<<<<<< HEAD
+// 				query.push({$project:{deliverycharge:"$suborder.deliverycharge",reasontocancelreject:"$suborder.reasontocancelreject",buyerpayment:"$suborder.buyerpayment",pickup_address:"$suborder.pickup_address",sellerpayment:"$suborder.sellerpayment",orderinstructions:"$suborder.orderinstructions", payment:"$suborder.payment",preferred_delivery_date:"$suborder.prefdeldtime",prefdeltimeslot:"$suborder.prefdeltimeslot",createdate:1,suborderid:"$suborder.suborderid",products:"$suborder.products",suborder_price:"$suborder.suborder_price",billing_address:"$suborder.billing_address",delivery_address:"$suborder.delivery_address",deliverytype:"$suborder.deliverytype",deliverytimeslot:"$suborder.deliverytimeslot", deliverydate:"$suborder.deliverydate",status:"$suborder.status",_id:0,consumer:1}})
+// =======
+				query.push({$project:{deliverycharge:"$suborder.deliverycharge",reasontocancelreject:"$suborder.reasontocancelreject",payment:"$suborder.payment",pickup_address:"$suborder.pickup_address",sellerpayment:"$suborder.sellerpayment",orderinstructions:"$suborder.orderinstructions",preferred_delivery_date:"$suborder.prefdeldtime",prefdeltimeslot:"$suborder.prefdeltimeslot",createdate:1,suborderid:"$suborder.suborderid",products:"$suborder.products",suborder_price:"$suborder.suborder_price",billing_address:"$suborder.billing_address",delivery_address:"$suborder.delivery_address",deliverytype:"$suborder.deliverytype",deliverytimeslot:"$suborder.deliverytimeslot", deliverydate:"$suborder.deliverydate",status:"$suborder.status",_id:0,consumer:1}})
+// >>>>>>> ozv2-sprint1
 				query.push({$sort:{createdate:1}})
 			}
 		 _getMySubOrders(self,userid,providerid,branchid,query,criteriastatus)
@@ -1412,12 +1431,32 @@ var _manageOrder=function(self,action,user,suborder,status,order){
 					self.emit("failedManageOrder",{error:{message:"Incorrect suborder id"}});
 				}else{
 					console.log("actiondddd"+action)
-					// if(action.toLowerCase()=="deliver")
-					// {
-					// 	//////////////////////////////
-					// 	 _createInvoiceForSuborder(suborder,user.userid);
-					// 	///////////////////////////
-					// }
+					if(action.toLowerCase()=="done")//send invoice to customer
+					{
+						var invoice= new Invoice();
+						var branchid=suborder.productprovider.branchid;
+
+						//////////////////////////////
+						 invoice.sendInvoiceAfterOrderComplete(suborder.productprovider.branchid,suborder.suborderid,user.userid,function(err,result){
+						 	if(err){
+						 		logger.emit("error",err.error.message);
+						 	}else{
+						 		console.log("::::::::::suborder:::::"+JSON.stringify(suborder));
+						 		var to=order.consumer.email;
+						 		logger.emit("log","emailid:::"+to);
+         				var templatetype="invoice";
+         				var data={firstname:order.consumer.name,suborderid:suborder.suborderid,invoiceurl:result.success.invoice}
+          			emailtemplateapi.sendEmailNotification(templatetype,data,to,function(err,result){
+			            if(err){
+			             logger.emit("error",err.error.message)
+			            }else{
+									 	logger.emit("log",result.success.message)
+									}
+								});
+						
+							}
+						})
+					}
 					console.log("orderid"+order.orderid)
 					if(action.toLowerCase()=="done" && suborder.payment.mode.toLowerCase()!="paytm")
 					{
@@ -1526,24 +1565,16 @@ var _sendNotificationToUser=function(suborder,status){
 				          	}
 				        });
 					}
+					var data={suborderid:suborder.suborderid,status:status};
 					var gcmregistrationid = user.gcmregistrationid;
-					var message = {
-			          registration_id: gcmregistrationid, // required Device registration id
-			          collapse_key: 'do_not_collapse', //demo,Collapse key
-		    			'data.suborderid': suborder.suborderid,
-		    			'data.status': status
-					};
-					console.log("GCM " + JSON.stringify(gcm));
-				    gcm.send(message, function(err, messageId){
-						console.log("Call GCM");
-					    if (err) {
-					    	// res.send({"error":{"message":"Something has gone wrong! " + err}});
-					        // console.log("Something has gone wrong!");		        
-					    } else {
-					        console.log("Sent with message ID: ", messageId);
-					        // res.send({"success":{"message":"Sent with message ID: " + messageId}});
-					    }
-					});
+					//call sendgcm notification
+					gcmapi.sendGCMNotification(data,gcmregistrationid,function(err,result){
+						if(err){
+							logger.emit("error",err);
+						}else{
+							logger.emit("log",result.success.message)
+						}
+					})
 				}
 			})
 		}
@@ -2686,6 +2717,7 @@ var _cancelOrderByConsumer=function(self,suborders,index){
 				logger.emit("error","Database Issue :_cancelOrderByConsumer "+err)
 				self.emit("failedCancelOrderByConsumer",{error:{code:"ED001",message:"Database Error"}})
 			}else{
+
 				var oz_adminusermail = CONFIG.oz_adminusermail;
 				var subject="Order Cancelled By Consumer";
 				subject=S(subject);
@@ -2709,6 +2741,7 @@ var _cancelOrderByConsumer=function(self,suborders,index){
 		            logger.emit("log","Order cancelled notification sent to seller email "+emailmessage.to);
 		          }
 		        });
+
 				/////////////////////////////////////////////
 				_cancelOrderByConsumer(self,suborders,++index);
 				////////////////////////////////////////

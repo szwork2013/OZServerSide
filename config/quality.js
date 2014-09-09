@@ -9,6 +9,9 @@ module.exports = {
       gtranslatekey:"AIzaSyBd6VpfinXfXMKKlEUbU6IWsDZ9eOmB9Dc",
       amazonbucket:'orderzapp/products/quality',
       merchantKey:"kzAVMuQG8xKIiaVl",
+
+      gcmapikey:"AIzaSyA1qTwcg7N1OV4HRwecUdqtyZKdC8SPrDM",
+
       amazon:{accessKeyId:'AKIAIA4VS3PT4IPKADWQ', secretAccessKey:'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'},
       smtp_general:{
         host: "smtp.giantleapsystems.com", // hostname

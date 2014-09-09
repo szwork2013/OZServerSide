@@ -7,9 +7,12 @@ module.exports = {
       SMSLongCode:"9243007462",
       gtranslatekey:"AIzaSyBd6VpfinXfXMKKlEUbU6IWsDZ9eOmB9Dc",
       debug:true,
-      amazon:{accessKeyId:'AKIAIA4VS3PT4IPKADWQ', secretAccessKey:'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'},
+
+      gcmapikey:"AIzaSyDunDAT6c-kge_RNzvwzXoPGljWpdpi2FI",
       merchantKey:"kzAVMuQG8xKIiaVl",
       amazonbucket:'orderzapp/products/prodsupport',
+      amazon:{accessKeyId:'AKIAIA4VS3PT4IPKADWQ', secretAccessKey:'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'},
+
       smtp_general:{
         host: "smtp.giantleapsystems.com", // hostname
         secureConnection: true, // use SSL
@@ -28,7 +31,11 @@ module.exports = {
         WEBSITE:"giantleapsystems",
         merchantKey:"kzAVMuQG8xKIiaVl",
         CHANNEL_ID:"WAP"
+<<<<<<< HEAD
       },
       oz_adminusermail: "dinesh@giantleapsystems.com",
+=======
+      }
+>>>>>>> ozv2-sprint1
     }
   }

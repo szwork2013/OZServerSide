@@ -315,8 +315,6 @@ var _validateAddProductToDiscountCode=function(self,sessionuser,discountid,produ
 		self.emit("failedAddProductsToDiscountCode",{"error":{"code":"AV001","message":"Please enter products to add"}});
 	}else if(!isArray(products)){
 		self.emit("failedAddProductsToDiscountCode",{"error":{"code":"AV001","message":"Products should be sent in a JSON array"}});
-	}else if(products.length==0){
-		self.emit("failedAddProductsToDiscountCode",{"error":{"code":"AV001","message":"Please add atleast one product"}});
 	}else{
 		//////////////////////////////////////////////////////////////////////////////////////
 		_isValidBranchIdForAddProductToDiscount(self,sessionuser,discountid,products,branchid);

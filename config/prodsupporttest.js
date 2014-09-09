@@ -7,6 +7,10 @@ module.exports = {
       SMSLongCode:"9243007462",
       gtranslatekey:"AIzaSyBd6VpfinXfXMKKlEUbU6IWsDZ9eOmB9Dc",
       debug:true,
+<<<<<<< HEAD
+=======
+      gcmapikey:"AIzaSyDunDAT6c-kge_RNzvwzXoPGljWpdpi2FI",
+>>>>>>> ozv2-sprint1
       merchantKey:"kzAVMuQG8xKIiaVl",
       amazonbucket:'orderzapp/products/prodsupporttest',
       amazon:{accessKeyId:'AKIAIA4VS3PT4IPKADWQ', secretAccessKey:'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'},
@@ -28,7 +32,11 @@ module.exports = {
         WEBSITE:"giantleapsystems",
         merchantKey:"kzAVMuQG8xKIiaVl",
         CHANNEL_ID:"WAP"
+<<<<<<< HEAD
       },
       oz_adminusermail: "poonam@giantleapsystems.com",
+=======
+      }
+>>>>>>> ozv2-sprint1
     }
   }

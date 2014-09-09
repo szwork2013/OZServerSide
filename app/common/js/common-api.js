@@ -38,6 +38,7 @@ var punycode=require("punycode");
 // var LocationModel=require("./location-model");
  var SMSHistoryModel=require("./sms-history-model");
  var FeedbackModel=require("./feedback-model");
+ var EmailTemplateModel=require('./email-template-model');
 //   var StateLangModel=require("./state-lang-model"); 
 function trim(stringToTrim) {
 	return stringToTrim.replace(/^\s+|\s+$/g,"");

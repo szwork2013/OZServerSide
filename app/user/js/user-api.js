@@ -193,7 +193,7 @@ exports.signin = function(req, res) {
 }
 passport.use( new LocalStrategy({ usernameField: 'mobileno', passwordField: 'password'},
   function(mobileno, password, done) {
-    userModel.findOne({$or:[{mobileno:mobileno.toLowerCase()},{username:mobileno.toLowerCase()}],status:"active"},{password:1,mobileno:1,username:1,verified:1,isAdmin:1,usertype:1}, function(err, user) {
+    userModel.findOne({$or:[{mobileno:mobileno.toLowerCase()},{username:mobileno.toLowerCase()}],status:"active"},{password:1,mobileno:1,username:1,verified:1,isAdmin:1,usertype:1,countrycode:1}, function(err, user) {
       if (err){
         console.log("error",err)
        return done(err); 
@@ -519,3 +519,19 @@ exports.uploadAPK=function(req,res){
     user.uploadAPK(req.user,apk);
   } 
 }
+exports.getCountry = function(req, res) {
+  var user=new User();
+  user.removeAllListeners("failedGetCountry");
+  user.on("failedGetCountry",function(err){
+    logger.emit("error", err.error.message,req.user.userid);
+    //user.removeAllListeners();
+    res.send(err);
+  });
+  user.removeAllListeners("successfulGetCountry");
+  user.on("successfulGetCountry",function(result){
+    // logger.emit("info", result.success.message,req.user.userid);
+    //user.removeAllListeners();
+    res.send(result);
+  });
+  user.getCountry();
+};

@@ -232,21 +232,14 @@ var _applyDiscountCodesToProductCatalog=function(doc,callback){
 				console.log("discountcodes : "+JSON.stringify(discountcodes));
 				for(var i=0;i<doc.length;i++){
 					for(var j=0;j<doc[i].productcatalog.length;j++){
-						discount = __.find(discountcodes, function(obj) { return obj.products == doc[i].productcatalog[j].productid });
-						if(discount != undefined){
-							doc[i].productcatalog[j].discount = {code:discount.discountcode,percent:discount.percent};
-						}else{
-							doc[i].productcatalog[j].discount = {code:"none",percent:0};
-						}
-						// for(var k=0;k<discountcodes.length;k++){
-						// 	if(doc[i].productcatalog[j].productid == discountcodes[k].products){
-								// console.log("yes : "+JSON.stringify(discount));
-						// 		doc[i].productcatalog[j].discount = {code:discountcodes[k].discountcode,percent:discountcodes[k].percent};
-						// 	}else{
-						// 		console.log("none : "+doc[i].productcatalog[j].productid);
-						// 		doc[i].productcatalog[j].discount = {code:"none",percent:0};
-						// 	}
-						// }
+
+						discount = __.find(discountcodes, function(obj) { return obj.products == doc[i].productcatalog[j].productid }); 
+                        if(discount != undefined){ 
+                            doc[i].productcatalog[j].discount = {code:discount.discountcode,percent:discount.percent}; 
+                        }else{ 
+                            doc[i].productcatalog[j].discount = {code:"none",percent:0}; 
+                        }
+
 					}		
 				}
 				callback(null,doc);

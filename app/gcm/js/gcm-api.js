@@ -13,8 +13,9 @@
 var GCM = require('gcm').GCM;
 var logger=require("../../common/js/logger");
 //AIzaSyCAUpsawrb6abG0YAonb1r2HL9DKCZoVUY
-var apiKey = 'AIzaSyCAUpsawrb6abG0YAonb1r2HL9DKCZoVUY';
-var gcm = new GCM(apiKey);
+var CONFIG = require('config').OrderZapp; 
+
+var gcm = new GCM(CONFIG.gcmapikey);
 // var gcm = require('node-gcm');
 //Message To Device from server
 exports.messageTheDevice = function(req,res){
@@ -102,6 +103,27 @@ exports.messageTheDevice = function(req,res){
 
     }
 	
+}
+exports.sendGCMNotification=function(data,gcmregistrationid,callback){
+	var message = {
+    registration_id: gcmregistrationid, // required Device registration id
+    collapse_key: 'do_not_collapse', //demo,Collapse key
+  	data:data
+  };
+
+  console.log("____-GCM_______"+JSON.stringify(gcm));
+  console.log("____-GCMapikey_______"+CONFIG.gcmapikey)
+	gcm.send(message, function(err, messageId){
+	  if (err) {
+	  	console.log("gcm err"+err)
+	  	logger.emit("error","sendGCMNotification:"+err)
+    	callback({error:{message:"Error In sending GCM notification"}})
+    }else{
+    	console.log("messageId"+messageId)
+      callback(null,{success:{message:"Successfully send gcm notification to "+gcmregistrationid}})  
+    }
+    	console.log("messageId"+messageId)
+	});
 }
 
 

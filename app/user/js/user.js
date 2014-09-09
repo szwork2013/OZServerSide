@@ -8,6 +8,7 @@ var SMSFormatModel=require("../../common/js/sms-format-model");
 var events = require("events");
 var logger=require("../../common/js/logger");
 var commonapi=require("../../common/js/common-api");
+var emailtemplateapi=require("../../common/js/email-template-api")
 var ApkModel=require("../../common/js/apk-model");
 var S=require('string');
 var __=require("underscore");
@@ -20,6 +21,7 @@ var amazonbucket=CONFIG.amazonbucket;
 var exec = require('child_process').exec;
 var bcrypt = require('bcrypt');
 var SALT_WORK_FACTOR = 10;
+var gcmapi=require('../../gcm/js/gcm-api')
 AWS.config.update(CONFIG.amazon);
 AWS.config.update({region:'ap-southeast-1'});
 var s3bucket = new AWS.S3();
@@ -57,7 +59,7 @@ User.prototype.registerUser = function() {
 	_validateRegisterUser(self,this.user);
 	 ////////////////////////////////////
 };
-var _sendOTPToMobileNumber=function(mobileno,otp,tempname,lang,callback){
+var _sendOTPToMobileNumber=function(mobileno,otp,tempname,lang,user,callback){
 	SMSTemplateModel.findOne({name:tempname,lang:lang},function(err,smstemplatedata){
     if(err){
       callback({"error":{"message":"error in sending SMS message"}})
@@ -236,7 +238,7 @@ var _validateRegisterUser = function(self,userdata) {
     self.emit("failedUserRegistration",{"error":{"code":"AV001","message":"Please enter firstname"}});
   } else if(userdata.mobileno.trim()==""){
 		self.emit("failedUserRegistration",{"error":{"code":"AV001","message":"Please enter mobileno"}});
-	} else if(S(userdata.mobileno).isNumeric() && userdata.mobileno.length!=12){
+	} else if(S(userdata.mobileno).isNumeric() && userdata.mobileno.length!=10){
 		self.emit("failedUserRegistration",{"error":{"code":"AV001","message":"Mobile number should be 10 digit numeric"}});
 	} else if(userdata.usertype==undefined || userdata.usertype==""){
     self.emit("failedUserRegistration",{"error":{"code":"AV001","message":"Please select usertype"}});   
@@ -251,21 +253,38 @@ var _validateRegisterUser = function(self,userdata) {
   }else if(isValidEmail(userdata.email).error!=undefined){
     self.emit("failedUserRegistration",isValidEmail(userdata.email));
   }else{
-      CountryCodeModel.findOne({country:"india"},function(err,countrycode){
-        if(err){
-          logger.emit("error","Database Issue _validateRegisterUser "+err)
-          self.emit("failedUserRegistration",{"error":{"code":"ED001","message":"Database Issue"}});
-        }else if(!countrycode){
-          self.emit("failedUserRegistration",{"error":{"message":"Country code does not exist for your country"}});
-        }else{
-
-          // userdata.mobileno=countrycode.code+userdata.mobileno;
+    if(userdata.location){
+      if(userdata.location.country){
+         CountryCodeModel.findOne({country:userdata.location.country.toLowerCase()},function(err,countrycode){
+          if(err){
+            logger.emit("error","Database Issue _validateRegisterUser "+err)
+            self.emit("failedUserRegistration",{"error":{"code":"ED001","message":"Database Issue"}});
+          }else if(!countrycode){
+            self.emit("failedUserRegistration",{"error":{"message":"Cuntry does not exists"}});
+          }else{
+            userdata.countrycode=countrycode.code;
+            userdata.mobileno=countrycode.code+userdata.mobileno;
+           /////////////////////////////////////////////
+           _checkMobileNumberAlreadyExists(self,userdata)
+           //////////////////////////////////////////
+           
+          }
+       })
+      }else{
+        userdata.countrycode="91";
+         userdata.mobileno="91"+userdata.mobileno;
         /////////////////////////////////////////////
         _checkMobileNumberAlreadyExists(self,userdata)
         //////////////////////////////////////////
-        }
-      })
+      }
+    }else{
+      userdata.countrycode="91";
+       userdata.mobileno="91"+userdata.mobileno;
+        /////////////////////////////////////////////
+        _checkMobileNumberAlreadyExists(self,userdata)
+        //////////////////////////////////////////
     }
+         }
   }
 
 
@@ -382,8 +401,9 @@ var _createOtp=function(self,user){
     }else if(otpdata){
         var tempname="otp";
         var lang="EN"; 
-        ////////////////////////
-        _sendOTPToMobileNumber(user.mobileno,otpdata.otp,tempname,lang,function(result){
+        if(user.countrycode=="91"){//for Indian customer
+           ////////////////////////
+        _sendOTPToMobileNumber(user.mobileno,otpdata.otp,tempname,lang,user,function(result){
           if(result.error!=undefined){
             self.emit("failedUserRegistration",result);
           }else{
@@ -392,7 +412,35 @@ var _createOtp=function(self,user){
             //////////////////////
           }
         });
-    }
+        }else{
+          var to=user.email;
+          var templatetype="verify";
+          var data={email:user.email,otp:otpdata.otp,firstname:user.firstname}
+          emailtemplateapi.sendEmailNotification(templatetype,data,to,function(err,result){
+            if(err){
+              self.emit("failedUserRegistration",err)
+            }else{
+              var data="Please enter your One Time Password <otp> to verify your registration with OrderZapp";
+              data=S(data).replaceAll("<otp>",otpdata.otp);
+              data={message1:data.s}
+               // data={suborderid:"sunil"};
+              
+              if(user.gcmregistrationid){
+                gcmapi.sendGCMNotification(data,user.gcmregistrationid,function(err,result){
+                  if(err){
+                    logger.emit("error","err"+err)
+                  }else{
+                    logger.emit("log",result.success.message);
+                  }
+                }) 
+              }
+              ///////////////////////////
+             _successfullUserRegistration(self);
+             //////////////////////
+            }
+          })
+        } 
+      }
   })       
 }
 var _successfullUserRegistration=function(self){
@@ -929,10 +977,12 @@ User.prototype.getCountryCodes = function() {
 };
 
 var _getCountryCodes=function(self){
-  CountryCodeModel.find({},{code:1,country:1,_id:0}).lean().exec(function(err,countrycode){
+  CountryCodeModel.find({},{country:1,code:1,isocode1:1,_id:0}).sort({country:1}).lean().exec(function(err,countrycode){
     if(err){
-      self.emit("failedGetCountryCode",{"error":{"code":"ED001","message":"Error in db to find countrycode"}});
-    }else if(countrycode){
+      logger.emit("error","Database Issue:"+err)
+      self.emit("failedGetCountryCode",{"error":{"code":"ED001","message":"Error in Database"}});
+    }else if(countrycode.length!=0){
+     
       ////////////////////////////////
       _successfulGetCountryCode(self,countrycode);
       //////////////////////////////////
@@ -944,8 +994,37 @@ var _getCountryCodes=function(self){
 
 var _successfulGetCountryCode=function(self,countrycode){
   logger.emit("log","_successfulGetCountryCode");
-  self.emit("successfulGetCountryCode", {"success":{"message":"Getting Country Code Details Successfully","countrycode":countrycode}});
+  self.emit("successfulGetCountryCode", {"success":{"message":"Getting Country Details Successfully","countrycode":countrycode}});
 }
+User.prototype.getCountry = function() {
+  var self=this;
+  _getCountry(self);
+};
+
+var _getCountry=function(self){
+  CountryCodeModel.find({},{country:1,code:1,isocode1:1,_id:0}).sort({country:1}).lean().exec(function(err,countrycode){
+    if(err){
+      logger.emit("error","Database Issue:"+err)
+      self.emit("failedGetCountry",{"error":{"code":"ED001","message":"Error in Database"}});
+    }else if(countrycode.length!=0){
+      var country=[]
+      for(var i=0;i<countrycode.length;i++){
+        country.push(countrycode[i].country)
+      }
+      ////////////////////////////////
+      _successfulGetCountry(self,country);
+      //////////////////////////////////
+    }else{
+        self.emit("failedGetCountry",{"error":{"code":"AU005","message":"Country code does not exist"}});
+    }
+  })
+}
+
+var _successfulGetCountry=function(self,country){
+  logger.emit("log","_successfulGetCountryCode");
+  self.emit("successfulGetCountry", {"success":{"message":"Getting Country Details Successfully","country":country}});
+}
+
 
 User.prototype.productRecommend = function(productid,userid) {
   var self=this;
@@ -1117,7 +1196,9 @@ var _uploadAPK = function(data,user,apk,callback){
         params = {
            Bucket: bucketFolder,
            Key:"order-zapp-buyers.apk",
+
            Body: binarydata,
+
            ACL: 'public-read',
            ContentType: apk.mimetype
         };

@@ -7,6 +7,7 @@ module.exports = {
       SMSLongCode:"9243007462",
       gtranslatekey:"AIzaSyBd6VpfinXfXMKKlEUbU6IWsDZ9eOmB9Dc",
       debug:true,
+      gcmapikey:"AIzaSyDunDAT6c-kge_RNzvwzXoPGljWpdpi2FI",
       merchantKey:"kzAVMuQG8xKIiaVl",
       amazonbucket:'orderzapp/products/dev',
       amazon:{accessKeyId:'AKIAIA4VS3PT4IPKADWQ', secretAccessKey:'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'},

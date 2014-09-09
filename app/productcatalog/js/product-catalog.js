@@ -11,7 +11,9 @@ var CONFIG=require("config").OrderZapp;
 var amazonbucket=CONFIG.amazonbucket;
 var isNumeric = require("isnumeric");
 var exec = require('child_process').exec;
+
 AWS.config.update(CONFIG.amazon)
+
 AWS.config.update({region:'ap-southeast-1'});
 var s3bucket = new AWS.S3();
 var S=require("string");
