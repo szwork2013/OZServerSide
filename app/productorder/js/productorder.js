@@ -908,15 +908,18 @@ var _loadMoreOrders = function(self,orderid,order,ordertype){
 		}else{
 			orders=JSON.stringify(orders);
 			orders=JSON.parse(orders);
-			if(ordertype.toLowerCase()=="failed"){
+			if(ordertype){
+				if(ordertype.toLowerCase()=="failed"){
 				for(var i=0;i<orders.length;i++){
 					if(S(orders[i].payment.STATUS).contains("failure")){
 						orders[i].orderfailedreason=orders[i].payment.RESPMSG;
 					}else{
 						orders[i].orderfailedreason="Transaction cancelled by User";
 					}
-				}
+					}
+				}	
 			}
+			
 			///////////////////////////////////////
 			_successfulLoadMoreOrders(self,orders);
 			///////////////////////////////////////
