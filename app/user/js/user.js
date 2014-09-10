@@ -1021,7 +1021,7 @@ var _usersCount = function(self){
   })  
 }
 var _ordersCount = function(self,obj){
-  OrderModel.count().exec(function(err,orders){
+  OrderModel.find({$or:[{"payment.mode":{ $regex:'cod',$options:'i'}},{"payment.STATUS":{ $regex: 'TXN_SUCCESS', $options: 'i' }}]}).count().exec(function(err,orders){
     if(err){
       logger.emit("error","Error in db to get user count "+err);
       self.emit("failedGetUserOrdersCount",{"error":{"code":"ED001","message":"Error in db to get orders count"}});
