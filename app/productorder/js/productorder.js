@@ -825,11 +825,12 @@ var _getAllOrdersForBranch=function(self,branchid,userid,ordertype){
 			orders=JSON.parse(orders);
 			if(ordertype!="passed"){
 				for(var i=0;i<orders.length;i++){
-					if(S(orders[i].payment.STATUS).contains("failure")){
-						orders[i].orderfailedreason=orders[i].payment.RESPMSG;
+					if(!orders[i].payment.STATUS){
+						orders[i].orderfailedreason="Transaction cancelled by User";	
 					}else{
-						orders[i].orderfailedreason="Transaction cancelled by User";
+						orders[i].orderfailedreason=orders[i].payment.RESPMSG;
 					}
+					
 				}
 			}
 			//////////////////////////////////////////////
