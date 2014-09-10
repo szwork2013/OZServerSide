@@ -686,7 +686,7 @@ var _getProductCatalog = function(self,branchid,productid){
 			DiscountModel.aggregate([{$unwind:"$products"},{$match:{status:"active",products:productid,startdate:{$lte:new Date()},expirydate:{$gte:new Date()}}},{$project:{products:1,discountcode:1,percent:1,_id:0}}]).exec(function(err,discountcodes){
 				if(err){
 					logger.emit("log","_getAllProductCatalog "+err);
-					self.emit("failedGetAllProductCatalog",{"error":{"code":"ED001","message":"Database Error"}});
+					self.emit("failedGetProductCatalog",{"error":{"code":"ED001","message":"Database Error"}});
 				}else if(discountcodes.length>0){
 					
 					discount = __.find(discountcodes, function(obj) { return obj.products == product.productid});
