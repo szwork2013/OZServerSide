@@ -692,7 +692,7 @@ var _getProductCatalog = function(self,branchid,productid){
 					discount = __.find(discountcodes, function(obj) { return obj.products == product.productid});
 					
 		            if(discount != undefined){
-		                product.discount = {code:discount.discountcode,percent:discount.percent,discountedprice:product.price.value*discount.percent/100}; 
+		                product.discount = {code:discount.discountcode,percent:discount.percent,discountedprice:product.price.value*(1-discount.percent/100)}; 
 		                console.log("product s: "+JSON.stringify(product));
 		            }else{
 		                product.discount = {code:"none",percent:"none",discountedprice:"none"}; 
@@ -768,7 +768,7 @@ var _applyDiscountToAllProducts = function(self,product){
 				discount = __.find(discountcodes, function(obj) { return obj.products == product[i].productid});
 				console.log("discount : "+JSON.stringify(discount));
                 if(discount != undefined){
-                    product[i].discount = {code:discount.discountcode,percent:discount.percent,discountedprice:product[i].price.value*discount.percent/100}; 
+                    product[i].discount = {code:discount.discountcode,percent:discount.percent,discountedprice:product[i].price.value*(1-discount.percent/100)}; 
                 }else{
                     product[i].discount = {code:"none",percent:"none",discountedprice:"none"}; 
                 }					
