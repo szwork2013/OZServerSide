@@ -18,6 +18,7 @@ var events = require("events");
 var logger = require("../../common/js/logger");
 var S = require("string");
 var __=require("underscore");
+var UserModel=require("../../user/js/user-model")
 
 var ProductSearch = function(productsearchdata) {
 	this.product = productsearchdata;
@@ -581,8 +582,9 @@ var _validateSearchProviderData = function(self,providername){
 							users=JSON.parse(users);
 							
 							for(var i=0;i<resultarray.length;i++){
-								var user= _.findWhere(users, {userid:resultarray[i].userid}); 
+								var user= __.findWhere(users, {userid:resultarray[i].userid}); 
 								resultarray[i].user=user;
+								
 							};
 							//////////////////////////////////
 							successfulsearchProvider(self,resultarray);
