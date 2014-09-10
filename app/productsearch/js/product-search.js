@@ -582,9 +582,9 @@ var _getSearchResultsByQuery=function(query,callback){
 ProductSearch.prototype.searchProductByCity = function(){
 	var self=this;
 	var city = this.product;
-	_validateSearchProviderData(self,city);
+	_validateSearchProductByCity(self,city);
 }
-var _validateSearchProviderData = function(self,city){	
+var _validateSearchProductByCity = function(self,city){	
 	if(city==undefined || city==""){
 		self.emit("failedSearchProductByCity",{"error":{"message":"Please enter city"}});
 	}else{		

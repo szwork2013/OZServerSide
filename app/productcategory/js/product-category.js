@@ -362,7 +362,7 @@ ProductCategory.prototype.getLevelFourCategory = function(session_userid) {
 };
 
 var _getLevelFourCategory = function(self,session_userid){
-	ProductCatalogModel.aggregate({$project:{categoryname: '$category.categoryname',categoryid:'$category.id',_id:0}},{$group: {_id: null,category:{$addToSet:{categoryid:'$categoryid',categoryname:'$categoryname'}}}}).exec(function(err,doc){
+	ProductCatalogModel.aggregate({$project:{categoryname:'$category.categoryname',categoryid:'$category.id',_id:0}},{$group: {_id: null,category:{$addToSet:{categoryid:'$categoryid',categoryname:'$categoryname'}}}}).exec(function(err,doc){
 		if(err){
 			logger.emit("error","Database Error : " + err);
 			self.emit("failedGetLevelFourCategory",{"error":{"code":"ED001","message":"Database Error"}});
