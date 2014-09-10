@@ -35,7 +35,7 @@ var methodOverride = require('method-override')
 var cookieParser = require('cookie-parser')
 var bodyParser = require('body-parser')
 var logger = require('express-logger');
-// var errorHandler = require('express-error-handler');
+var CONFIG=require("config").OrderZapp;
 // app.use(function(req, res, next) {
 
 //   res.on('header', function() {
@@ -157,7 +157,7 @@ files.forEach(function (file) {
 });
 
 app.get("/api",function(req,res){
-  res.send("Welcome to Order Zapp "+JSON.stringify(req.headers));
+  res.send("Welcome to Order Zapp "+CONFIG.name);
 })
 // var log = new Log();
 
