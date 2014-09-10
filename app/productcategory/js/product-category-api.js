@@ -138,3 +138,22 @@ exports.getAllLevelOneCategory = function(req,res){
     });
     product_category.getAllLevelOneCategory(session_userid);
 }
+
+exports.getLevelFourCategory = function(req,res){
+  console.log("getLevelFourCategory");
+  var session_userid;// = req.user.userid;
+  var product_category = new ProductCategory();
+  product_category.removeAllListeners("failedGetLevelFourCategory");
+    product_category.on("failedGetLevelFourCategory",function(err){
+      logger.emit("error", err.error.message);
+      //product_category.removeAllListeners();
+      res.send(err);
+    });
+    product_category.removeAllListeners("successfulGetLevelFourCategory");
+    product_category.on("successfulGetLevelFourCategory",function(result){
+      logger.emit("info", result.success.message);
+      // product_category.removeAllListeners();
+      res.send(result);
+    });
+    product_category.getLevelFourCategory(session_userid);
+}

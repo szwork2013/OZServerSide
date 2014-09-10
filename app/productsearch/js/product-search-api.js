@@ -121,3 +121,44 @@ exports.searchProductByCity = function(req,res){
     });  
     productsearch.searchProductByCity(); 
 }
+
+exports.getProductProviderByFourthLevelCategory = function(req,res){
+  var categoryid = req.params.categoryid;
+  console.log("categoryid " +JSON.stringify(categoryid));  
+  var productsearch = new ProductSearch();
+  var sessionuserid;// = req.user.userid;
+
+    productsearch.removeAllListeners("failedGetProductProviderByFourthLevelCategory");
+    productsearch.on("failedGetProductProviderByFourthLevelCategory",function(err){
+      logger.emit("error", err.error.message,sessionuserid);
+      res.send(err);
+    });
+    productsearch.removeAllListeners("successfulGetProductProviderByFourthLevelCategory");
+    productsearch.on("successfulGetProductProviderByFourthLevelCategory",function(doc){
+      logger.emit("info", doc.success.message,sessionuserid);
+      // console.log("L " + doc.success.doc.length);
+      res.send(doc);
+    });  
+    productsearch.getProductProviderByFourthLevelCategory(categoryid); 
+}
+
+exports.getProductsOfProviderByCategory = function(req,res){
+  var categoryid = req.params.categoryid;
+  var providerid = req.params.providerid;
+  console.log("categoryid " +categoryid+" providerid "+providerid);  
+  var productsearch = new ProductSearch();
+  var sessionuserid;// = req.user.userid;
+
+    productsearch.removeAllListeners("failedGetProductsOfProviderByCategory");
+    productsearch.on("failedGetProductsOfProviderByCategory",function(err){
+      logger.emit("error", err.error.message,sessionuserid);
+      res.send(err);
+    });
+    productsearch.removeAllListeners("successfulGetProductsOfProviderByCategory");
+    productsearch.on("successfulGetProductsOfProviderByCategory",function(doc){
+      logger.emit("info", doc.success.message,sessionuserid);
+      // console.log("L " + doc.success.doc.length);
+      res.send(doc);
+    });  
+    productsearch.getProductsOfProviderByCategory(categoryid,providerid); 
+}

@@ -353,3 +353,31 @@ var _successfullGetAllProductCategory = function(self,doc){
 	logger.emit("log","_successfullGetAllProductCategory");
 	self.emit("successfulGetAllLevelOneCategory", {"success":{"message":"Getting First Level Category","category":doc}});
 }
+
+ProductCategory.prototype.getLevelFourCategory = function(session_userid) {
+	var self=this;
+	////////////////////////////////////////////
+	_getLevelFourCategory(self,session_userid);
+	////////////////////////////////////////////
+};
+
+var _getLevelFourCategory = function(self,session_userid){
+	ProductCatalogModel.aggregate({$project:{categoryname: '$category.categoryname',categoryid:'$category.id',_id:0}},{$group: {_id: null,category:{$addToSet:{categoryid:'$categoryid',categoryname:'$categoryname'}}}}).exec(function(err,doc){
+		if(err){
+			logger.emit("error","Database Error : " + err);
+			self.emit("failedGetLevelFourCategory",{"error":{"code":"ED001","message":"Database Error"}});
+		}else if(doc.length==0){
+			self.emit("failedGetLevelFourCategory",{"error":{"code":"AD001","message":"Fourth level category with products does not exist"}});
+		}else{
+			console.log(JSON.stringify(doc));
+			///////////////////////////////////////////
+	  		_successfulGetLevelFourCategory(self,doc[0].category);
+	  		////////////////////////////////////////////
+	  	}
+	});
+}
+
+var _successfulGetLevelFourCategory = function(self,doc){
+	logger.emit("log","_successfulGetLevelFourCategory");
+	self.emit("successfulGetLevelFourCategory", {"success":{"message":"Getting Fourth Level Category Successfully","category":doc}});
+}
