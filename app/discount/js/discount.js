@@ -207,7 +207,7 @@ var _isValidProviderToGetAllProducts=function(self,userid,providerid,branchid){
 	})
 }
 var _getAllProducts = function(self,userid,providerid,branchid){
-	ProductCatalogModel.find({status:"publish","provider.providerid":providerid,"branch.branchid":branchid},{_id:0,productname:1,productid:1},function(err,products){
+	ProductCatalogModel.find({status:"publish","provider.providerid":providerid,"branch.branchid":branchid},{_id:0,productname:1,productid:1,price:1},function(err,products){
 	  	if(err){
 	      	logger.emit("error","Database Error:_getAllProducts"+err,sessionuser.userid);
 			self.emit("failedGetAllProducts",{"error":{"message":"Database Error"}})
@@ -472,27 +472,30 @@ var _isValidProviderToGetDiscountedProducts=function(self,userid,branchid,discou
 }
 var _getDiscountedProductList = function(self,userid,branchid,discountid){
 	console.log("");
-	DiscountModel.findOne({status:{$ne:"deactive"},discountid:discountid},{_id:0,products:1},function(err,discountdata){
+	DiscountModel.findOne({status:{$ne:"deactive"},discountid:discountid},{_id:0,products:1,percent:1},function(err,discountdata){
 	  	if(err){
 	      	logger.emit("error","Database Error:_getDiscountedProductList "+err,sessionuser.userid);
 			self.emit("failedGetDiscountedProducts",{"error":{"message":"Database Error"}})
 	  	}else if(!discountdata){
 	      	self.emit("failedGetDiscountedProducts",{"error":{"message":"Incorrect Discount id"}});
 	  	}else{
-	  		_getDiscountedProductData(self,discountdata.products);
-
-
+	  		_getDiscountedProductData(self,discountdata);
 	    }
   	})
 }
-var _getDiscountedProductData = function(self,products){
-	ProductCatalogModel.find({productid:{$in:products}},{_id:0,productid:1,productname:1},function(err,products){
+var _getDiscountedProductData = function(self,discountdata){
+	ProductCatalogModel.find({productid:{$in:discountdata.products}},{_id:0,productid:1,productname:1,price:1},function(err,products){
 	  	if(err){
 	      	logger.emit("error","Database Error:_getDiscountedProductData "+err,sessionuser.userid);
 			self.emit("failedGetDiscountedProducts",{"error":{"message":"Database Error"}})
 	  	}else if(products.length==0){
 	      	self.emit("failedGetDiscountedProducts",{"error":{"message":"Product does not exist"}});
 	  	}else{
+	  		products = JSON.stringify(products);
+	  		products = JSON.parse(products);
+	  		for(var i=0;i<products.length;i++){
+	  			products[i].price.discountedprice = products[i].price.value*(1-discountdata.percent/100); 
+	  		}
 	  		_successfulGetDiscountedProducts(self,products);
 	    }
   	})
