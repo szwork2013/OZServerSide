@@ -139,8 +139,9 @@ exports.getAllLevelOneCategory = function(req,res){
     product_category.getAllLevelOneCategory(session_userid);
 }
 
-exports.getLevelFourCategory = function(req,res){
+exports.getLevelFourCategoryWithProviders = function(req,res){
   console.log("getLevelFourCategory");
+  var city = req.query.city;
   var session_userid;// = req.user.userid;
   var product_category = new ProductCategory();
   product_category.removeAllListeners("failedGetLevelFourCategory");
@@ -155,5 +156,5 @@ exports.getLevelFourCategory = function(req,res){
       // product_category.removeAllListeners();
       res.send(result);
     });
-    product_category.getLevelFourCategory(session_userid);
+    product_category.getLevelFourCategoryWithProviders(city,session_userid);
 }

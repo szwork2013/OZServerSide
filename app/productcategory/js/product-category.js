@@ -354,24 +354,46 @@ var _successfullGetAllProductCategory = function(self,doc){
 	self.emit("successfulGetAllLevelOneCategory", {"success":{"message":"Getting First Level Category","category":doc}});
 }
 
-ProductCategory.prototype.getLevelFourCategory = function(session_userid) {
+ProductCategory.prototype.getLevelFourCategoryWithProviders = function(city) {
 	var self=this;
-	////////////////////////////////////////////
-	_getLevelFourCategory(self,session_userid);
-	////////////////////////////////////////////
+	//////////////////////////////////////////////////////
+	_validateGetLevelFourCategoryWithProviders(self,city);
+	//////////////////////////////////////////////////////
 };
-
-var _getLevelFourCategory = function(self,session_userid){
-	ProductCatalogModel.aggregate({$project:{categoryname:'$category.categoryname',categoryid:'$category.id',_id:0}},{$group: {_id: null,category:{$addToSet:{categoryid:'$categoryid',categoryname:'$categoryname'}}}}).exec(function(err,doc){
+var _validateGetLevelFourCategoryWithProviders = function(self,city){
+	var query;
+	if(city == undefined || city == "" || city.toLowerCase() == "all"){
+		query = [{$match:{status:"publish"}},{$project:{categoryname:'$category.categoryname',categoryid:'$category.id',provider:1,_id:0}},{$group:{_id:{categoryid:"$categoryid",categoryname:"$categoryname"},provider:{$addToSet:{providerid:"$provider.providerid",providername:"$provider.providername"}}}},{$project:{categoryid:"$_id.categoryid",categoryname:"$_id.categoryname",provider:1,_id:0}}];
+		_getLevelFourCategoryWithProviders(self,city,query);
+	}else{
+		var providerids = [];
+		ProductProvider.find({"branch.deliverycharge.coverage.city":city.toLowerCase()},{providerid:1,_id:0}).exec(function(err,doc){
+			if(err){
+				self.emit("failedSearchProductByCity",{"error":{"code":"ED001","message":"Error in db to search provider "+err}});
+			}else if(doc.length==0){
+				self.emit("failedSearchProductByCity",{"error":{"message":"Sellers does not exist in "+city}});
+			}else{				
+				for(var i=0;i<doc.length;i++){
+					providerids.push(doc[i].providerid);
+				}
+				query = [{$match:{status:"publish","provider.providerid":{$in:providerids}}},{$project:{categoryname:'$category.categoryname',categoryid:'$category.id',provider:1,_id:0}},{$group:{_id:{categoryid:"$categoryid",categoryname:"$categoryname"},provider:{$addToSet:{providerid:"$provider.providerid",providername:"$provider.providername"}}}},{$project:{categoryid:"$_id.categoryid",categoryname:"$_id.categoryname",provider:1,_id:0}}]
+				_getLevelFourCategoryWithProviders(self,city,query);
+			}
+		});		
+	}
+	
+}
+var _getLevelFourCategoryWithProviders = function(self,city,query){		
+	ProductCatalogModel.aggregate(query).exec(function(err,doc){
 		if(err){
 			logger.emit("error","Database Error : " + err);
 			self.emit("failedGetLevelFourCategory",{"error":{"code":"ED001","message":"Database Error"}});
 		}else if(doc.length==0){
-			self.emit("failedGetLevelFourCategory",{"error":{"code":"AD001","message":"Fourth level category with products does not exist"}});
+			self.emit("failedGetLevelFourCategory",{"error":{"code":"AV001","message":"Fourth level category with providers does not exist"}});
 		}else{
 			console.log(JSON.stringify(doc));
 			///////////////////////////////////////////
-	  		_successfulGetLevelFourCategory(self,doc[0].category);
+	  		_successfulGetLevelFourCategory(self,doc);
 	  		////////////////////////////////////////////
 	  	}
 	});
@@ -379,5 +401,5 @@ var _getLevelFourCategory = function(self,session_userid){
 
 var _successfulGetLevelFourCategory = function(self,doc){
 	logger.emit("log","_successfulGetLevelFourCategory");
-	self.emit("successfulGetLevelFourCategory", {"success":{"message":"Getting Fourth Level Category Successfully","category":doc}});
+	self.emit("successfulGetLevelFourCategory", {"success":{"message":"Getting fourth level category with providers successfully","doc":doc}});
 }

@@ -26,20 +26,30 @@ var ProductSearch = function(productsearchdata) {
 ProductSearch.prototype = new events.EventEmitter;
 module.exports = ProductSearch;
 
-ProductSearch.prototype.searchProduct = function(productsearchdata,foodtype){
-	console.log("ProductSearch : " + productsearchdata);
-	var self=this;
-	_validateSearchData(self,productsearchdata,foodtype);
+var _getAllProvidersWhichProvidesServiceInCity = function(city,callback){
+	ProductProviderModel.find({"branch.deliverycharge.coverage.city":city.toLowerCase()},{providerid:1,_id:0}).exec(function(err,doc){
+		if(err){
+			callback({error:{message:"Error in db to search provider"}});
+		}else if(doc.length==0){
+			callback({error:{message:"Sellers does not provide service in "+city}});
+		}else{
+			var providerids = [];
+			for(var i=0;i<doc.length;i++){
+				providerids.push(doc[i].providerid);
+			}
+			callback(null,providerids);
+		}
+	});
 }
 
-var _validateSearchData = function(self,productsearchdata,foodtype){
+ProductSearch.prototype.searchProduct = function(productsearchdata,city){
+	console.log("ProductSearch : " + productsearchdata);
+	var self=this;
+	_validateSearchData(self,productsearchdata,city);
+}
+
+var _validateSearchData = function(self,productsearchdata,city){
 	var regex = /^[A-Za-z ,]+$/;	
-	if(foodtype == undefined){
-		foodtype = ["veg","non-veg","both"];
-	}else{
-		foodtype = [foodtype];
-	}
-	console.log("foodtype : "+foodtype.length);
 	if(!productsearchdata.match(regex)){
 		self.emit("failedToSearchProduct",{"error":{"message":"Please enter valid search criteria"}});
 	}else if(S(productsearchdata).contains(",")){
@@ -48,14 +58,14 @@ var _validateSearchData = function(self,productsearchdata,foodtype){
 		if(S(productsearchdata).charAt(S(productsearchdata).length-1) == ","){
 			self.emit("failedToSearchProduct",{"error":{"message":"Please enter valid search criteria"}});
 		}else{
-			_searchProductProviderArea(self,productsearchdata,foodtype);	
+			_searchProductProviderArea(self,productsearchdata,city);	
 		}		
 	}else{
-		_searchProduct(self,productsearchdata,foodtype);
+		_searchProduct(self,productsearchdata,city);
 	}
 }
 
-var _searchProductProviderArea = function(self,productsearchdata,foodtype){
+var _searchProductProviderArea = function(self,productsearchdata,city){
 	var prod_name_arr = [];
 	var query_match = [];
 	var product_or_name_array = [];
@@ -73,25 +83,42 @@ var _searchProductProviderArea = function(self,productsearchdata,foodtype){
 		product_or_name_array.push(new RegExp(prod_name_arr[i].substr(0,prod_name_arr[i].length), "i"));
 	}
 	// console.log("product_or_name_array : "+product_or_name_array);
-	for(var j=0;j<product_or_name_array.length;j++){
-		var match_object={$match:{status:"publish",foodtype:{$in:foodtype},$or:[{producttags:product_or_name_array[j]},{categorytags:product_or_name_array[j]},{providertags:product_or_name_array[j]},{locationtags:product_or_name_array[j]}]}}
-		query_match.push(match_object);
-	}
 
-	// query_match.push({$group:{_id:{branch:"$branch",provider:"$provider"},productcatalog:{"$addToSet":{productid:"$productid",productname:"$productname",category:"$category",productdescription:"$productdescription",price:"$price",productlogo:"$productlogo",foodtype:"$foodtype",max_weight:"$max_weight",min_weight:"$min_weight",productnotavailable:"$productnotavailable",specialinstruction:"$specialinstruction",productconfiguration:"$productconfiguration"}}}})
-	// query_match.push({$project:{branch:"$_id.branch",provider:"$_id.provider",productcatalog:1,_id:0}});
-	
-	query_match.push({$group:{_id:{branch:"$branch.branchid",provider:"$provider.providerid"},productcatalog:{"$addToSet":{productid:"$productid",productname:"$productname",category:"$category",productdescription:"$productdescription",price:"$price",productlogo:"$productlogo",foodtype:"$foodtype",max_weight:"$max_weight",min_weight:"$min_weight",productnotavailable:"$productnotavailable",specialinstruction:"$specialinstruction",productconfiguration:"$productconfiguration"}},array:{"$addToSet":{branch:"$branch",provider:"$provider"}}}});
-	query_match.push({$unwind:"$array"});
-	query_match.push({$project:{branch:"$array.branch",provider:"$array.provider",productcatalog:1,branchid:"$array.branch.branchid",_id:0}});
-	
-	_fetchingResult(self,query_match,5);
+	if(city == undefined || city == "" || city.toLowerCase() == "all"){
+		for(var j=0;j<product_or_name_array.length;j++){
+			var match_object={$match:{status:"publish",$or:[{producttags:product_or_name_array[j]},{categorytags:product_or_name_array[j]},{providertags:product_or_name_array[j]},{locationtags:product_or_name_array[j]}]}}
+			query_match.push(match_object);
+		}
+		query_match.push({$group:{_id:{branch:"$branch.branchid",provider:"$provider.providerid"},productcatalog:{"$addToSet":{productid:"$productid",productname:"$productname",category:"$category",productdescription:"$productdescription",price:"$price",productlogo:"$productlogo",foodtype:"$foodtype",max_weight:"$max_weight",min_weight:"$min_weight",productnotavailable:"$productnotavailable",specialinstruction:"$specialinstruction",productconfiguration:"$productconfiguration"}},array:{"$addToSet":{branch:"$branch",provider:"$provider"}}}});
+		query_match.push({$unwind:"$array"});
+		query_match.push({$project:{branch:"$array.branch",provider:"$array.provider",productcatalog:1,branchid:"$array.branch.branchid",_id:0}});
+		
+		_fetchingResult(self,query_match,5);
+	}else{
+		_getAllProvidersWhichProvidesServiceInCity(city,function(err,providerids){
+			if(err){
+				self.emit("failedToSearchProduct",{"error":{"code":"ED001","message":err}});
+			}else{
+				for(var j=0;j<product_or_name_array.length;j++){
+					var match_object={$match:{status:"publish","provider.providerid":{$in:providerids},$or:[{producttags:product_or_name_array[j]},{categorytags:product_or_name_array[j]},{providertags:product_or_name_array[j]},{locationtags:product_or_name_array[j]}]}}
+					query_match.push(match_object);
+				}
+				query_match.push({$group:{_id:{branch:"$branch.branchid",provider:"$provider.providerid"},productcatalog:{"$addToSet":{productid:"$productid",productname:"$productname",category:"$category",productdescription:"$productdescription",price:"$price",productlogo:"$productlogo",foodtype:"$foodtype",max_weight:"$max_weight",min_weight:"$min_weight",productnotavailable:"$productnotavailable",specialinstruction:"$specialinstruction",productconfiguration:"$productconfiguration"}},array:{"$addToSet":{branch:"$branch",provider:"$provider"}}}});
+				query_match.push({$unwind:"$array"});
+				query_match.push({$project:{branch:"$array.branch",provider:"$array.provider",productcatalog:1,branchid:"$array.branch.branchid",_id:0}});
+				
+				_fetchingResult(self,query_match,5);
+			}
+		});		
+	}
 }
 
-var _searchProduct = function(self,productsearchdata,foodtype){
+var _searchProduct = function(self,productsearchdata,city){
+	console.log("_searchProduct")
 	var prod_name_arr = [];
 	var query_match=[];
 	var product_or_name_array=[];
+	
 	prod_name_arr.push(productsearchdata);
 
 	for(var i=0;i<prod_name_arr.length;i++){
@@ -99,19 +126,34 @@ var _searchProduct = function(self,productsearchdata,foodtype){
 		product_or_name_array.push(new RegExp(prod_name_arr[i].substr(0,prod_name_arr[i].length), "i"));
 	}
 
-	for(var j=0;j<product_or_name_array.length;j++){
-		var match_object={$match:{status:"publish",foodtype:{$in:foodtype},$or:[{producttags:product_or_name_array[j]},{categorytags:product_or_name_array[j]}]}}
-		query_match.push(match_object);
+	if(city == undefined || city == "" || city.toLowerCase() == "all"){
+		for(var j=0;j<product_or_name_array.length;j++){
+			var match_object={$match:{status:"publish",$or:[{producttags:product_or_name_array[j]},{categorytags:product_or_name_array[j]}]}}
+			query_match.push(match_object);
+			
+		}
+		query_match.push({$group:{_id:{branch:"$branch.branchid",provider:"$provider.providerid"},productcatalog:{"$addToSet":{productid:"$productid",productname:"$productname",category:"$category",productdescription:"$productdescription",price:"$price",productlogo:"$productlogo",foodtype:"$foodtype",max_weight:"$max_weight",min_weight:"$min_weight",productnotavailable:"$productnotavailable",specialinstruction:"$specialinstruction",productconfiguration:"$productconfiguration"}},array:{"$addToSet":{branch:"$branch",provider:"$provider"}}}});
+		query_match.push({$unwind:"$array"});
+		query_match.push({$project:{branch:"$array.branch",provider:"$array.provider",productcatalog:1,branchid:"$array.branch.branchid",_id:0}});
+		_fetchingResult(self,query_match,5);
+	}else{
+		_getAllProvidersWhichProvidesServiceInCity(city,function(err,providerids){
+			if(err){
+				self.emit("failedToSearchProduct",{"error":{"code":"ED001","message":err}});
+			}else{
+				for(var j=0;j<product_or_name_array.length;j++){
+					var match_object={$match:{status:"publish","provider.providerid":{$in:providerids},$or:[{producttags:product_or_name_array[j]},{categorytags:product_or_name_array[j]}]}}
+					query_match.push(match_object);
+				}
+				query_match.push({$group:{_id:{branch:"$branch.branchid",provider:"$provider.providerid"},productcatalog:{"$addToSet":{productid:"$productid",productname:"$productname",category:"$category",productdescription:"$productdescription",price:"$price",productlogo:"$productlogo",foodtype:"$foodtype",max_weight:"$max_weight",min_weight:"$min_weight",productnotavailable:"$productnotavailable",specialinstruction:"$specialinstruction",productconfiguration:"$productconfiguration"}},array:{"$addToSet":{branch:"$branch",provider:"$provider"}}}});
+				query_match.push({$unwind:"$array"});
+				query_match.push({$project:{branch:"$array.branch",provider:"$array.provider",productcatalog:1,branchid:"$array.branch.branchid",_id:0}});
+
+				console.log("Query : "+JSON.stringify(query_match));
+				_fetchingResult(self,query_match,5);
+			}
+		});		
 	}
-
-	// query_match.push({$group:{_id:{branch:"$branch",provider:"$provider"},productcatalog:{"$addToSet":{productid:"$productid",productname:"$productname",category:"$category",productdescription:"$productdescription",price:"$price",productlogo:"$productlogo",foodtype:"$foodtype",max_weight:"$max_weight",min_weight:"$min_weight",productnotavailable:"$productnotavailable",specialinstruction:"$specialinstruction",productconfiguration:"$productconfiguration"}}}});
-	// query_match.push({$project:{branch:"$_id.branch",provider:"$_id.provider",productcatalog:1,_id:0}});
-
-	query_match.push({$group:{_id:{branch:"$branch.branchid",provider:"$provider.providerid"},productcatalog:{"$addToSet":{productid:"$productid",productname:"$productname",category:"$category",productdescription:"$productdescription",price:"$price",productlogo:"$productlogo",foodtype:"$foodtype",max_weight:"$max_weight",min_weight:"$min_weight",productnotavailable:"$productnotavailable",specialinstruction:"$specialinstruction",productconfiguration:"$productconfiguration"}},array:{"$addToSet":{branch:"$branch",provider:"$provider"}}}});
-	query_match.push({$unwind:"$array"});
-	query_match.push({$project:{branch:"$array.branch",provider:"$array.provider",productcatalog:1,branchid:"$array.branch.branchid",_id:0}});
-
-	_fetchingResult(self,query_match,5);
 }
 
 var _fetchingResult = function(self,query_match,count){
@@ -123,70 +165,42 @@ var _fetchingResult = function(self,query_match,count){
 			doc =__.uniq(doc,function(test1){
 			 	return test1.branchid;
 			});
-			// query_match.push({$limit:count});
-			// ProductCatalogModel.aggregate(query_match).exec(function(err,doc){
-			// 	if(err){
-			// 		self.emit("failedToSearchProduct",{"error":{"code":"ED001","message":"Error in db to search product"+err}});
-			// 	}else if(doc.length == 0){
-			// 		self.emit("failedToSearchProduct",{"error":{"message":"No product found for specified criteria"}});
-			// 	}else{
-			// 		// _successfulProductSearch(self,doc,true);
-				if(doc.length>count){
-					console.log("###############################################");
-					doc.splice(count,doc.length);
-			  		_applyLimitToProductCatalog(doc,function(err,result){
-				        if(err){
-				        	self.emit("failedToSearchProduct",{"error":{"message":+err.error.message}});
-				        }else{
-				            // _successfulProductSearch(self,result,true);
-				            _applyDiscountCodesToProductCatalog(result,function(err,result1){
-						        if(err){
-						        	self.emit("failedToSearchProduct",{"error":{"message":+err.error.message}});
-						        }else{
-						            _successfulProductSearch(self,result1,true);
-						        }
-						    })
-				        }
-				    })
-			  	}else{
-			  		console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
-			  		_applyLimitToProductCatalog(doc,function(err,result){
-						if(err){
-						   	self.emit("failedToSearchProduct",{"error":{"message":err.error.message}});
-						}else{
-						    // _successfulProductSearch(self,result,false);
-						    _applyDiscountCodesToProductCatalog(result,function(err,result1){
-								if(err){
-								   	self.emit("failedToSearchProduct",{"error":{"message":err.error.message}});
-								}else{
-								    _successfulProductSearch(self,result1,false);
-							    }
-							})
-					    }
-					})
-			  	}
-			//   	}
-			// });
+			if(doc.length>count){
+				console.log("###############################################");
+				doc.splice(count,doc.length);
+				_applyLimitToProductCatalog(doc,function(err,result){
+			        if(err){
+			        	self.emit("failedToSearchProduct",{"error":{"message":+err.error.message}});
+			        }else{
+			            // _successfulProductSearch(self,result,true);
+			            _applyDiscountCodesToProductCatalog(result,function(err,result1){
+					        if(err){
+					        	self.emit("failedToSearchProduct",{"error":{"message":+err.error.message}});
+					        }else{
+					            _successfulProductSearch(self,result1,true);
+					        }
+					    })
+			        }
+			    })
+			}else{
+				console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+				_applyLimitToProductCatalog(doc,function(err,result){
+					if(err){
+					   	self.emit("failedToSearchProduct",{"error":{"message":err.error.message}});
+					}else{
+					    // _successfulProductSearch(self,result,false);
+					    _applyDiscountCodesToProductCatalog(result,function(err,result1){
+							if(err){
+							   	self.emit("failedToSearchProduct",{"error":{"message":err.error.message}});
+							}else{
+							    _successfulProductSearch(self,result1,false);
+						    }
+						})
+				    }
+				})
+			}			
 		}else{
-			self.emit("failedToSearchProduct",{"error":{"message":"Product not found"}});
-			// doc =__.uniq(doc,function(test1){
-			//  	return test1.branchid;
-			// });
-			// // _successfulProductSearch(self,doc,false);
-			// _applyLimitToProductCatalog(doc,function(err,result){
-			// 	if(err){
-			// 	   	self.emit("failedToSearchProduct",{"error":{"message":err.error.message}});
-			// 	}else{
-			// 	    // _successfulProductSearch(self,result,false);
-			// 	    _applyDiscountCodesToProductCatalog(result,function(err,result1){
-			// 			if(err){
-			// 			   	self.emit("failedToSearchProduct",{"error":{"message":err.error.message}});
-			// 			}else{
-			// 			    _successfulProductSearch(self,result1,false);
-			// 		    }
-			// 		})
-			//     }
-			// })
+			self.emit("failedToSearchProduct",{"error":{"message":"Product not found"}});			
 	  	}
 	});
 }
@@ -272,11 +286,62 @@ function getRandomBranchIDs(arr, count) {
     return shuffled.slice(min);
 }
 
-ProductSearch.prototype.randomProductSearch = function(){
+ProductSearch.prototype.randomProductSearch = function(city){
 	var self=this;
-	_getrandomBranchIDs(self);
+	_validateRandomProductSearchData(self,city);
 }
-
+var _validateRandomProductSearchData = function(self,city){
+	if(city == undefined || city == "" || city.toLowerCase() == "all"){
+		_getrandomBranchIDs(self);
+	}else{
+		var providerids = [];
+		var query_match = [];
+		var boolean;
+		ProductProviderModel.find({"branch.deliverycharge.coverage.city":city.toLowerCase()},{providerid:1,_id:0}).exec(function(err,doc){
+			if(err){
+				self.emit("failedRandomProductSearch",{"error":{"code":"ED001","message":"Error in db to search provider "+err}});
+			}else if(doc.length==0){
+				self.emit("failedRandomProductSearch",{"error":{"message":"Sellers does not exist in "+city}});
+			}else{				
+				for(var i=0;i<doc.length;i++){
+					providerids.push(doc[i].providerid);
+				}				
+				query_match.push({$match:{status:"publish","provider.providerid":{$in:providerids}}});
+				query_match.push({$group:{_id:"$provider.providername",productcatalog:{"$addToSet":{productid:"$productid",productname:"$productname",category:"$category",productdescription:"$productdescription",price:"$price",productlogo:"$productlogo",foodtype:"$foodtype",max_weight:"$max_weight",min_weight:"$min_weight",productnotavailable:"$productnotavailable",specialinstruction:"$specialinstruction",productconfiguration:"$productconfiguration"}}}});//,array:{"$addToSet":{branch:"$branch",provider:"$provider"}}
+				query_match.push({$project:{productcatalog:1,providername:"$_id",_id:0}});
+				_getSearchResultsByQuery(query_match,function(err,doc){
+					if(err){
+						logger.emit("error","Database Error "+JSON.stringify(err));
+						self.emit("failedRandomProductSearch",{"error":{"message":"Products not found for "+city}});
+					}else{
+						doc =__.uniq(doc,function(test1){
+						 	return test1.branchid;
+						});
+						if(doc.length>5){
+							doc.splice(5,result.length);
+							boolean = true;
+						}else{
+							boolean = false;
+						}
+						_applyLimitToProductCatalog(doc,function(err,result){
+							if(err){
+							   	self.emit("failedRandomProductSearch",{"error":{"message":err.error.message}});
+							}else{
+								_applyDiscountCodesToProductCatalog(result,function(err,result1){
+									if(err){
+									   	self.emit("failedRandomProductSearch",{"error":{"message":err.error.message}});
+									}else{
+									    _successfulRandomProductSearch(self,result1,boolean);
+								    }
+								});
+						    }
+						});
+					}
+				})
+			}
+		});
+	}
+}
 var _getrandomBranchIDs = function(self){
 	ProductCatalogModel.aggregate([{$match:{status:{$ne:"deactive"}}},{$group:{_id:{branchid:"$branch.branchid"}}},{$project:{branchid:"$_id.branchid",_id:0}}]).exec(function(err,doc){
 		if(err){
@@ -579,9 +644,8 @@ var _getSearchResultsByQuery=function(query,callback){
 	});	
 }
 
-ProductSearch.prototype.searchProductByCity = function(){
+ProductSearch.prototype.searchProductByCity = function(city){
 	var self=this;
-	var city = this.product;
 	_validateSearchProductByCity(self,city);
 }
 var _validateSearchProductByCity = function(self,city){	
@@ -712,4 +776,35 @@ var _getProductsOfProviderByCategory = function(self,categoryid,providerid){
 var _successfulGetProductsOfProviderByCategory = function(self,doc){
 	logger.emit("log","_successfulGetProductsOfProviderByCategory");
 	self.emit("successfulGetProductsOfProviderByCategory",{"success":{"message":"Getting Products Of Provider By Category Successfully","doc":doc}});
+}
+
+ProductSearch.prototype.getCityInWhichProvidersProvidesService = function(){
+	var self=this;
+	_getCityInWhichProvidersProvidesService(self);
+}
+var _getCityInWhichProvidersProvidesService = function(self){
+	var providerids = [];
+	ProductCatalogModel.distinct("provider.providerid",{status:"publish"}).exec(function(err,doc){
+		if(err){
+			self.emit("failedGetCityInWhichProvidersProvidesService",{"error":{"code":"ED001","message":"Error in db "+err}});
+		}else if(doc.length==0){
+			self.emit("failedGetCityInWhichProvidersProvidesService",{"error":{"message":"Sellers does not exist"}});
+		}else{			
+			console.log("Providers : "+JSON.stringify(doc));
+			ProductProviderModel.aggregate({$match:{providerid:{$in:doc}}},{$project:{branch:1}},{"$unwind":"$branch"},{$project:{deliverycharge:"$branch.deliverycharge"}},{$unwind:"$deliverycharge"},{$group:{_id:null,city:{$addToSet:"$deliverycharge.coverage.city"}}},{$project:{city:1,_id:0}}).exec(function(err,providercity){
+				if(err){
+					self.emit("failedGetCityInWhichProvidersProvidesService",{"error":{"code":"ED001","message":"Error in db "+err}});
+				}else if(providercity.length==0){
+					self.emit("failedGetCityInWhichProvidersProvidesService",{"error":{"message":"Sellers does not exist"}});
+				}else{			
+					console.log("providercity : "+JSON.stringify(providercity));
+					_successfulGetCityInWhichProvidersProvidesService(self,providercity[0].city);
+				}
+			});
+		}
+	});
+}
+var _successfulGetCityInWhichProvidersProvidesService = function(self,doc){
+	logger.emit("log","_successfulGetCityInWhichProvidersProvidesService");
+	self.emit("successfulGetCityInWhichProvidersProvidesService",{"success":{"message":"Getting city's successfully","city":doc}});
 }

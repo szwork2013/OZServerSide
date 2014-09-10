@@ -7,7 +7,9 @@ exports.init = function (app) {
  	app.get('/api/loadmoreprovider',api.productsearchapi.loadmoreProvider);
  	app.get('/api/loadmoreproduct/:branchid',api.productsearchapi.loadmoreProduct);
  	app.get('/api/searchproduct',api.productsearchapi.randomProductSearch);
- 	app.get('/api/searchproduct/city/:city',api.productsearchapi.searchProductByCity);//Product Search By City
+
+ 	app.get('/api/city/provider/service',api.productsearchapi.getCityInWhichProvidersProvidesService);
+ 	// app.get('/api/searchproduct/city',api.productsearchapi.searchProductByCity);//Product Search By City
 
  	app.get('/api/provider/:categoryid',api.productsearchapi.getProductProviderByFourthLevelCategory);//List of providers by fourth level category
  	app.get('/api/searchproduct/provider/:providerid/category/:categoryid',api.productsearchapi.getProductsOfProviderByCategory);
