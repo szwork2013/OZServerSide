@@ -9,10 +9,11 @@ exports.init = function (app) {
  	app.get('/api/searchproduct',api.productsearchapi.randomProductSearch);
 
  	app.get('/api/city/provider/service',api.productsearchapi.getCityInWhichProvidersProvidesService);
- 	// app.get('/api/searchproduct/city',api.productsearchapi.searchProductByCity);//Product Search By City
-
- 	app.get('/api/provider/:categoryid',api.productsearchapi.getProductProviderByFourthLevelCategory);//List of providers by fourth level category
  	app.get('/api/searchproduct/provider/:providerid/category/:categoryid',api.productsearchapi.getProductsOfProviderByCategory);
+ 	
+ 	// app.get('/api/searchproduct/city',api.productsearchapi.searchProductByCity);//Product Search By City
+ 	// app.get('/api/provider/:categoryid',api.productsearchapi.getProductProviderByFourthLevelCategory);//List of providers by fourth level category
+ 	
 
  	// Admin access
  	app.post('/api/searchprovider',auth,api.productsearchapi.searchProvider);

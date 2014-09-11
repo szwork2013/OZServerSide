@@ -519,6 +519,7 @@ exports.uploadAPK=function(req,res){
     user.uploadAPK(req.user,apk);
   } 
 }
+
 exports.getCountry = function(req, res) {
   var user=new User();
   user.removeAllListeners("failedGetCountry");
@@ -535,3 +536,27 @@ exports.getCountry = function(req, res) {
   });
   user.getCountry();
 };
+
+exports.getOrderZappContactSupportNumber = function(req, res){
+  var oz_contactsupportno = CONFIG.oz_contactsupportno;
+  var user=new User();
+  user.removeAllListeners("failedGetOrderZappContactSupportNumber");
+  user.on("failedGetOrderZappContactSupportNumber",function(err){
+    logger.emit("error", err.error.message,req.user.userid);
+    //user.removeAllListeners();
+    res.send(err);
+  });
+  user.removeAllListeners("successfulGetOrderZappContactSupportNumber");
+  user.on("successfulGetOrderZappContactSupportNumber",function(result){
+    // logger.emit("info", result.success.message,req.user.userid);
+    //user.removeAllListeners();
+    res.send(result);
+  });
+  // user.getCountry();
+  console.log(""+JSON.stringify(oz_contactsupportno));
+  if(oz_contactsupportno != undefined){
+    user.emit("successfulGetOrderZappContactSupportNumber",{"success":{"message":"Getting OrderZapp Contact Support No. Successfully","oz_conatactsupport":oz_contactsupportno}});    
+  }else{
+    user.emit("failedGetOrderZappContactSupportNumber",{"error":{"message":"OrderZapp Contact Support No. Does Not Exist"}});
+  }
+}

@@ -9,9 +9,7 @@ module.exports = {
       debug:true,
       merchantKey:"kzAVMuQG8xKIiaVl",
       amazonbucket:'orderzapp/products/test',
-
       gcmapikey:"AIzaSyDunDAT6c-kge_RNzvwzXoPGljWpdpi2FI",
-
       amazon:{accessKeyId:'AKIAIA4VS3PT4IPKADWQ', secretAccessKey:'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'},
       smtp_general:{
         host: "smtp.giantleapsystems.com", // hostname
@@ -33,5 +31,6 @@ module.exports = {
         CHANNEL_ID:"WAP"
       },
       oz_adminusermail: "poonam@giantleapsystems.com",
+      oz_contactsupportno: "02067211800",
     }
   }

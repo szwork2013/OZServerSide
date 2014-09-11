@@ -42,6 +42,21 @@ var _getAllProvidersWhichProvidesServiceInCity = function(city,callback){
 	});
 }
 
+var _getSearchResultsByQuery=function(query,callback){
+	console.log("Query : "+JSON.stringify(query));
+	ProductCatalogModel.aggregate(query).exec(function(err,doc){
+		if(err){
+			callback({error:{message:"Error in db to search provider "+err}});
+			// self.emit("failedTosearchProvider",{"error":{"code":"ED001","message":"Error in db to search provider "+err}});
+		}else if(doc.length==0){
+			callback({error:{message:"Product not found"}});
+			// self.emit("failedTosearchProvider",{"error":{"message":"Seller not found"}});
+		}else{
+			callback(null,doc);
+		}
+	});	
+}
+
 ProductSearch.prototype.searchProduct = function(productsearchdata,city){
 	console.log("ProductSearch : " + productsearchdata);
 	var self=this;
@@ -618,20 +633,7 @@ var successfulsearchProvider = function(self,doc){
 	self.emit("successfulsearchProvider",{"success":{"message":"Getting Seller Details Successfully","provider":doc}});
 }
 
-var _getSearchResultsByQuery=function(query,callback){
-	console.log("Query : "+JSON.stringify(query));
-	ProductCatalogModel.aggregate(query).exec(function(err,doc){
-		if(err){
-			callback({error:{message:"Error in db to search provider "+err}});
-			// self.emit("failedTosearchProvider",{"error":{"code":"ED001","message":"Error in db to search provider "+err}});
-		}else if(doc.length==0){
-			callback({error:{message:"Product not found"}});
-			// self.emit("failedTosearchProvider",{"error":{"message":"Seller not found"}});
-		}else{
-			callback(null,doc);
-		}
-	});	
-}
+
 
 // ProductSearch.prototype.searchProductByCity = function(city){
 // 	var self=this;
@@ -711,29 +713,29 @@ var _getSearchResultsByQuery=function(query,callback){
 // 	self.emit("successfulSearchProductByCity",{"success":{"message":"Getting Search Result By City Successfully","provider":doc,"loadmoreprovider":boolean}});
 // }
 
-ProductSearch.prototype.getProductProviderByFourthLevelCategory = function(categoryid){
-	var self=this;
-	if(categoryid == undefined || categoryid == ""){
-		self.emit("failedGetProductProviderByFourthLevelCategory",{"error":{"message":"Please enter categoryid"}});
-	}else{
-		_getProductProviderByFourthLevelCategory(self,categoryid);
-	}
-}
-var _getProductProviderByFourthLevelCategory = function(self,categoryid){
-	var query = [{$match:{"category.id":categoryid}},{$project:{provider:1,_id:0}},{$group:{_id:null,providers:{$addToSet:{providerid:"$provider.providerid",providername:"$provider.providername",providerbrandname:"$provider.providerbrandname",providerlogo:"$provider.providerlogo"}}}}];
-	_getSearchResultsByQuery(query,function(err,providerlist){
-		if(err){
-			logger.emit("error","Database Error "+JSON.stringify(err));
-			self.emit("failedGetProductProviderByFourthLevelCategory",{"error":{"message":"seller(s) not found for selected category"}});
-		}else{
-			_successfulGetProductProviderByFourthLevelCategory(self,providerlist[0].providers);
-		}
-	})
-}
-var _successfulGetProductProviderByFourthLevelCategory = function(self,doc){
-	logger.emit("log","_successfulGetProductProviderByFourthLevelCategory");
-	self.emit("successfulGetProductProviderByFourthLevelCategory",{"success":{"message":"Getting Sellers List By Category Successfully","providers":doc}});
-}
+// ProductSearch.prototype.getProductProviderByFourthLevelCategory = function(categoryid){
+// 	var self=this;
+// 	if(categoryid == undefined || categoryid == ""){
+// 		self.emit("failedGetProductProviderByFourthLevelCategory",{"error":{"message":"Please enter categoryid"}});
+// 	}else{
+// 		_getProductProviderByFourthLevelCategory(self,categoryid);
+// 	}
+// }
+// var _getProductProviderByFourthLevelCategory = function(self,categoryid){
+// 	var query = [{$match:{"category.id":categoryid}},{$project:{provider:1,_id:0}},{$group:{_id:null,providers:{$addToSet:{providerid:"$provider.providerid",providername:"$provider.providername",providerbrandname:"$provider.providerbrandname",providerlogo:"$provider.providerlogo"}}}}];
+// 	_getSearchResultsByQuery(query,function(err,providerlist){
+// 		if(err){
+// 			logger.emit("error","Database Error "+JSON.stringify(err));
+// 			self.emit("failedGetProductProviderByFourthLevelCategory",{"error":{"message":"seller(s) not found for selected category"}});
+// 		}else{
+// 			_successfulGetProductProviderByFourthLevelCategory(self,providerlist[0].providers);
+// 		}
+// 	})
+// }
+// var _successfulGetProductProviderByFourthLevelCategory = function(self,doc){
+// 	logger.emit("log","_successfulGetProductProviderByFourthLevelCategory");
+// 	self.emit("successfulGetProductProviderByFourthLevelCategory",{"success":{"message":"Getting Sellers List By Category Successfully","providers":doc}});
+// }
 
 ProductSearch.prototype.getProductsOfProviderByCategory = function(categoryid,providerid){
 	var self=this;
@@ -772,8 +774,7 @@ var _getProductsOfProviderByCategory = function(self,categoryid,providerid){
 						if(err){
 						   	self.emit("failedGetProductsOfProviderByCategory",{"error":{"message":err.error.message}});
 						}else{
-						    // _successfulSearchProductByCity(self,resultWithDiscountCode,false);
-						    _successfulGetProductsOfProviderByCategory(self,resultWithDiscountCode);
+						    _successfulGetProductsOfProviderByCategory(self,resultWithDiscountCode,false);
 						}
 					});
 			    }
@@ -781,9 +782,9 @@ var _getProductsOfProviderByCategory = function(self,categoryid,providerid){
 		}
 	})
 }
-var _successfulGetProductsOfProviderByCategory = function(self,doc){
+var _successfulGetProductsOfProviderByCategory = function(self,doc,boolean){
 	logger.emit("log","_successfulGetProductsOfProviderByCategory");
-	self.emit("successfulGetProductsOfProviderByCategory",{"success":{"message":"Getting Products Of Provider By Category Successfully","provider":doc}});
+	self.emit("successfulGetProductsOfProviderByCategory",{"success":{"message":"Getting Products Of Provider By Category Successfully","provider":doc,"loadmoreprovider":boolean}});
 }
 
 ProductSearch.prototype.getCityInWhichProvidersProvidesService = function(){
