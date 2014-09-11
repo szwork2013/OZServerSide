@@ -283,8 +283,8 @@ var _createPDFInvocie=function(self,inoviceobject,branch){
      }else{
       buyername=inoviceobject.buyername;
      }
-     if(inoviceobject.mobileno){
-       htmldata=htmldata.replaceAll("{{buyermobileno}}",inoviceobject.mobileno);
+     if(inoviceobject.buyermobileno){
+       htmldata=htmldata.replaceAll("{{buyermobileno}}",inoviceobject.buyermobileno);
      }
      htmldata=htmldata.replaceAll("{{buyername}}",buyername);
      var productsobject=inoviceobject.products;
