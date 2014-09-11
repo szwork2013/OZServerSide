@@ -761,7 +761,8 @@ var _getProductsOfProviderByCategory = function(self,categoryid,providerid){
 			logger.emit("error","Database Error "+JSON.stringify(err));
 			self.emit("failedGetProductsOfProviderByCategory",{"error":{"message":"Products not found for selected category and provider"}});
 		}else{
-			_successfulGetProductsOfProviderByCategory(self,productlist[0]);
+			// console.log("Result : "+JSON.stringify(productlist));
+			_successfulGetProductsOfProviderByCategory(self,productlist);
 		}
 	})
 }

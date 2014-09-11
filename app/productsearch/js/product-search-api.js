@@ -159,6 +159,8 @@ exports.getProductsOfProviderByCategory = function(req,res){
     productsearch.on("successfulGetProductsOfProviderByCategory",function(doc){
       logger.emit("info", doc.success.message,sessionuserid);
       // console.log("L " + doc.success.doc.length);
+      doc = JSON.stringify(doc);
+      doc = JSON.parse(doc);
       res.send(doc);
     });  
     productsearch.getProductsOfProviderByCategory(categoryid,providerid); 
