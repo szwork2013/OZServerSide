@@ -1048,8 +1048,6 @@ var _getMyDeliveryAddressHistory=function(self,userid){
   DeliveryAddressModel.find({userid:userid},{_id:0,userid:0,__v:0},function(err,deliveryaddresses){
     if(err){
       self.emit("failedGetMyDeliveryAddressHistory",{error:{message:"Database Issue",code:"ED001"}})
-    }else if(deliveryaddresses.length==0){
-      self.emit("failedGetMyDeliveryAddressHistory",{error:{message:"No Delivery Address history exists"}})
     }else{
       UserModel.findOne({userid:userid},{location:1},function(err,user){
         if(err){
@@ -1064,7 +1062,7 @@ var _getMyDeliveryAddressHistory=function(self,userid){
           deliveryaddresses=JSON.stringify(deliveryaddresses);
           deliveryaddresses=JSON.parse(deliveryaddresses);
           if(user.location){
-              deliveryaddresses.push({deliveryaddressid:"billingid", address:user.location})
+              deliveryaddresses.splice(0,0,{deliveryaddressid:"billingid", address:user.location})
           }
           ///////////////////////////////////////////
           _successfullGetMYDeliveryAddressHistory(self,deliveryaddresses)
@@ -1076,7 +1074,12 @@ var _getMyDeliveryAddressHistory=function(self,userid){
   })
 }
 var _successfullGetMYDeliveryAddressHistory=function(self,deliveryaddresses){
-  self.emit("successfulGetMyDeliveryAddressHistory",{success:{message:"Getting My Delivery Address History Successfully",deliveryaddresses:deliveryaddresses}})
+  if(deliveryaddresses.length==0){
+    self.emit("failedGetMyDeliveryAddressHistory",{error:{message:"No deliveryaddresses exists"}})
+  }else{
+    self.emit("successfulGetMyDeliveryAddressHistory",{success:{message:"Getting My Delivery Address History Successfully",deliveryaddresses:deliveryaddresses}})
+  }
+  
 }
 
 User.prototype.uploadAPK = function(user,apk){
