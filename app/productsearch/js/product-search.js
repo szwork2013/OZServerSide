@@ -761,7 +761,10 @@ var _getProductsOfProviderByCategory = function(self,categoryid,providerid){
 			logger.emit("error","Database Error "+JSON.stringify(err));
 			self.emit("failedGetProductsOfProviderByCategory",{"error":{"message":"Products not found for selected category and provider"}});
 		}else{
-			_applyLimitToProductCatalog(productlist[0],function(err,limitedResult){
+			doc =__.uniq(productlist,function(test1){
+			 	return test1.branchid;
+			});
+			_applyLimitToProductCatalog(doc,function(err,limitedResult){
 				if(err){
 				  	self.emit("failedGetProductsOfProviderByCategory",{"error":{"message":err.error.message}});
 				}else{
