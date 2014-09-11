@@ -1051,9 +1051,27 @@ var _getMyDeliveryAddressHistory=function(self,userid){
     }else if(deliveryaddresses.length==0){
       self.emit("failedGetMyDeliveryAddressHistory",{error:{message:"No Delivery Address history exists"}})
     }else{
-      ///////////////////////////////////////////
-      _successfullGetMYDeliveryAddressHistory(self,deliveryaddresses)
-      //////////////////////////////////////////
+      UserModel.findOne({userid:userid},{location:1},function(err,user){
+        if(err){
+          ///////////////////////////////////////////
+         _successfullGetMYDeliveryAddressHistory(self,deliveryaddresses)
+         //////////////////////////////////////////
+        }else if(!user){
+           ///////////////////////////////////////////
+          _successfullGetMYDeliveryAddressHistory(self,deliveryaddresses)
+         //////////////////////////////////////////
+        }else{
+          deliveryaddresses=JSON.stringify(deliveryaddresses);
+          deliveryaddresses=JSON.parse(deliveryaddresses);
+          if(user.location){
+              deliveryaddresses.push({address:user.location})
+          }
+          ///////////////////////////////////////////
+          _successfullGetMYDeliveryAddressHistory(self,deliveryaddresses)
+         //////////////////////////////////////////
+        }
+      })
+      
     }
   })
 }
