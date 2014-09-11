@@ -1064,7 +1064,7 @@ var _getMyDeliveryAddressHistory=function(self,userid){
           deliveryaddresses=JSON.stringify(deliveryaddresses);
           deliveryaddresses=JSON.parse(deliveryaddresses);
           if(user.location){
-              deliveryaddresses.push({address:user.location})
+              deliveryaddresses.push({deliveryaddressid:"billingid", address:user.location})
           }
           ///////////////////////////////////////////
           _successfullGetMYDeliveryAddressHistory(self,deliveryaddresses)
