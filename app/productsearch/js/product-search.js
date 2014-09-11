@@ -166,7 +166,6 @@ var _fetchingResult = function(self,query_match,count){
 			 	return test1.branchid;
 			});
 			if(doc.length>count){
-				console.log("###############################################");
 				doc.splice(count,doc.length);
 				_applyLimitToProductCatalog(doc,function(err,result){
 			        if(err){
@@ -183,7 +182,6 @@ var _fetchingResult = function(self,query_match,count){
 			        }
 			    })
 			}else{
-				console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
 				_applyLimitToProductCatalog(doc,function(err,result){
 					if(err){
 					   	self.emit("failedToSearchProduct",{"error":{"message":err.error.message}});
@@ -227,15 +225,6 @@ var _applyDiscountCodesToProductCatalog=function(doc,callback){
 		for(var i=0;i<doc.length;i++){
 			for(var j=0;j<doc[i].productcatalog.length;j++){
 				productid_arr.push(doc[i].productcatalog[j].productid);
-				// if(doc[i].productcatalog[j].category.ancestors.length>0){
-				// 	// console.log("Category : "+JSON.stringify(doc[i].productcatalog[j].category.ancestors[0].categoryname));
-				// 	if(doc[i].productcatalog[j].category.categoryname == "Pastries"){
-				// 		console.log("cake");
-				// 		doc[i].productcatalog[j].wizard = "cake";
-				// 	}else{
-				// 		doc[i].productcatalog[j].wizard = "none";
-				// 	}
-				// }
 				doc[i].productcatalog[j].category = undefined;
 			}
 		}
@@ -644,83 +633,83 @@ var _getSearchResultsByQuery=function(query,callback){
 	});	
 }
 
-ProductSearch.prototype.searchProductByCity = function(city){
-	var self=this;
-	_validateSearchProductByCity(self,city);
-}
-var _validateSearchProductByCity = function(self,city){	
-	if(city==undefined || city==""){
-		self.emit("failedSearchProductByCity",{"error":{"message":"Please enter city"}});
-	}else{		
-		_searchProductByCity(self,city);
-	}
-}
-var _searchProductByCity = function(self,city){
-	console.log("City : "+city);
-	ProductProviderModel.find({"branch.deliverycharge.coverage.city":city.toLowerCase()},{providerid:1,_id:0}).exec(function(err,doc){
-		if(err){
-			self.emit("failedSearchProductByCity",{"error":{"code":"ED001","message":"Error in db to search provider "+err}});
-		}else if(doc.length==0){
-			self.emit("failedSearchProductByCity",{"error":{"message":"Sellers does not exist in "+city}});
-		}else{
-			var providerids = [];
-			for(var i=0;i<doc.length;i++){
-				providerids.push(doc[i].providerid);
-			}
-			console.log("providerids : "+providerids);
-			var query_match = [];
-			query_match.push({$match:{status:"publish","provider.providerid":{$in:providerids}}});
-			query_match.push({$group:{_id:{branch:"$branch.branchid",provider:"$provider.providerid"},productcatalog:{"$addToSet":{productid:"$productid",productname:"$productname",category:"$category",productdescription:"$productdescription",price:"$price",productlogo:"$productlogo",foodtype:"$foodtype",max_weight:"$max_weight",min_weight:"$min_weight",productnotavailable:"$productnotavailable",specialinstruction:"$specialinstruction",productconfiguration:"$productconfiguration"}},array:{"$addToSet":{branch:"$branch",provider:"$provider"}}}});
-			query_match.push({$unwind:"$array"});
-			query_match.push({$project:{branch:"$array.branch",provider:"$array.provider",productcatalog:1,branchid:"$array.branch.branchid",_id:0}});
+// ProductSearch.prototype.searchProductByCity = function(city){
+// 	var self=this;
+// 	_validateSearchProductByCity(self,city);
+// }
+// var _validateSearchProductByCity = function(self,city){	
+// 	if(city==undefined || city==""){
+// 		self.emit("failedSearchProductByCity",{"error":{"message":"Please enter city"}});
+// 	}else{		
+// 		_searchProductByCity(self,city);
+// 	}
+// }
+// var _searchProductByCity = function(self,city){
+// 	console.log("City : "+city);
+// 	ProductProviderModel.find({"branch.deliverycharge.coverage.city":city.toLowerCase()},{providerid:1,_id:0}).exec(function(err,doc){
+// 		if(err){
+// 			self.emit("failedSearchProductByCity",{"error":{"code":"ED001","message":"Error in db to search provider "+err}});
+// 		}else if(doc.length==0){
+// 			self.emit("failedSearchProductByCity",{"error":{"message":"Sellers does not exist in "+city}});
+// 		}else{
+// 			var providerids = [];
+// 			for(var i=0;i<doc.length;i++){
+// 				providerids.push(doc[i].providerid);
+// 			}
+// 			console.log("providerids : "+providerids);
+// 			var query_match = [];
+// 			query_match.push({$match:{status:"publish","provider.providerid":{$in:providerids}}});
+// 			query_match.push({$group:{_id:{branch:"$branch.branchid",provider:"$provider.providerid"},productcatalog:{"$addToSet":{productid:"$productid",productname:"$productname",category:"$category",productdescription:"$productdescription",price:"$price",productlogo:"$productlogo",foodtype:"$foodtype",max_weight:"$max_weight",min_weight:"$min_weight",productnotavailable:"$productnotavailable",specialinstruction:"$specialinstruction",productconfiguration:"$productconfiguration"}},array:{"$addToSet":{branch:"$branch",provider:"$provider"}}}});
+// 			query_match.push({$unwind:"$array"});
+// 			query_match.push({$project:{branch:"$array.branch",provider:"$array.provider",productcatalog:1,branchid:"$array.branch.branchid",_id:0}});
 
-			_getSearchResultsByQuery(query_match,function(err,result){
-				if(err){
-					logger.emit("error","Database Error "+JSON.stringify(err));
-				   	self.emit("failedSearchProductByCity",{"error":{"message":"No more seller(s) found"}});
-				}else{
-					if(result.length>5){
-						console.log("result : "+result.length);
-						result.splice(5,result.length);
-				  		_applyLimitToProductCatalog(result,function(err,limitedResult){
-					        if(err){
-					        	self.emit("failedSearchProductByCity",{"error":{"message":+err.error.message}});
-					        }else{
-					            _applyDiscountCodesToProductCatalog(limitedResult,function(err,resultWithDiscountCode){
-							        if(err){
-							        	self.emit("failedSearchProductByCity",{"error":{"message":+err.error.message}});
-							        }else{
-							            _successfulSearchProductByCity(self,resultWithDiscountCode,true);
-							        }
-							    })
-					        }
-					    })
-				  	}else{
-				  		console.log("result.length : "+result.length);
-				  		_applyLimitToProductCatalog(result,function(err,limitedResult){
-							if(err){
-							   	self.emit("failedSearchProductByCity",{"error":{"message":err.error.message}});
-							}else{
-							    _applyDiscountCodesToProductCatalog(limitedResult,function(err,resultWithDiscountCode){
-									if(err){
-									   	self.emit("failedSearchProductByCity",{"error":{"message":err.error.message}});
-									}else{
-									    _successfulSearchProductByCity(self,resultWithDiscountCode,false);
-								    }
-								})
-						    }
-						})
-				  	}		    
-				}
-			});			
-		}
-	});
-}
+// 			_getSearchResultsByQuery(query_match,function(err,result){
+// 				if(err){
+// 					logger.emit("error","Database Error "+JSON.stringify(err));
+// 				   	self.emit("failedSearchProductByCity",{"error":{"message":"No more seller(s) found"}});
+// 				}else{
+// 					if(result.length>5){
+// 						console.log("result : "+result.length);
+// 						result.splice(5,result.length);
+// 				  		_applyLimitToProductCatalog(result,function(err,limitedResult){
+// 					        if(err){
+// 					        	self.emit("failedSearchProductByCity",{"error":{"message":+err.error.message}});
+// 					        }else{
+// 					            _applyDiscountCodesToProductCatalog(limitedResult,function(err,resultWithDiscountCode){
+// 							        if(err){
+// 							        	self.emit("failedSearchProductByCity",{"error":{"message":+err.error.message}});
+// 							        }else{
+// 							            _successfulSearchProductByCity(self,resultWithDiscountCode,true);
+// 							        }
+// 							    })
+// 					        }
+// 					    })
+// 				  	}else{
+// 				  		console.log("result.length : "+result.length);
+// 				  		_applyLimitToProductCatalog(result,function(err,limitedResult){
+// 							if(err){
+// 							   	self.emit("failedSearchProductByCity",{"error":{"message":err.error.message}});
+// 							}else{
+// 							    _applyDiscountCodesToProductCatalog(limitedResult,function(err,resultWithDiscountCode){
+// 									if(err){
+// 									   	self.emit("failedSearchProductByCity",{"error":{"message":err.error.message}});
+// 									}else{
+// 									    _successfulSearchProductByCity(self,resultWithDiscountCode,false);
+// 								    }
+// 								})
+// 						    }
+// 						})
+// 				  	}		    
+// 				}
+// 			});			
+// 		}
+// 	});
+// }
 
-var _successfulSearchProductByCity = function(self,doc,boolean){
-	logger.emit("log","_successfulSearchProductByCity");
-	self.emit("successfulSearchProductByCity",{"success":{"message":"Getting Search Result By City Successfully","provider":doc,"loadmoreprovider":boolean}});
-}
+// var _successfulSearchProductByCity = function(self,doc,boolean){
+// 	logger.emit("log","_successfulSearchProductByCity");
+// 	self.emit("successfulSearchProductByCity",{"success":{"message":"Getting Search Result By City Successfully","provider":doc,"loadmoreprovider":boolean}});
+// }
 
 ProductSearch.prototype.getProductProviderByFourthLevelCategory = function(categoryid){
 	var self=this;
@@ -762,8 +751,11 @@ var _validateProductsOfProviderByCategory = function(self,categoryid,providerid)
 var _getProductsOfProviderByCategory = function(self,categoryid,providerid){
 	var query_match = [];
 	query_match.push({$match:{"provider.providerid":providerid,"category.id":categoryid}});
-	query_match.push({$group:{_id:"$provider.providername",productcatalog:{"$addToSet":{productid:"$productid",productname:"$productname",category:"$category",productdescription:"$productdescription",price:"$price",productlogo:"$productlogo",foodtype:"$foodtype",max_weight:"$max_weight",min_weight:"$min_weight",productnotavailable:"$productnotavailable",specialinstruction:"$specialinstruction",productconfiguration:"$productconfiguration"}}}});//,array:{"$addToSet":{branch:"$branch",provider:"$provider"}}
-	query_match.push({$project:{productcatalog:1,providername:"$_id",_id:0}});
+	query_match.push({$group:{_id:{branch:"$branch.branchid",provider:"$provider.providerid"},productcatalog:{"$addToSet":{productid:"$productid",productname:"$productname",category:"$category",productdescription:"$productdescription",price:"$price",productlogo:"$productlogo",foodtype:"$foodtype",max_weight:"$max_weight",min_weight:"$min_weight",productnotavailable:"$productnotavailable",specialinstruction:"$specialinstruction",productconfiguration:"$productconfiguration"}},array:{"$addToSet":{branch:"$branch",provider:"$provider"}}}});
+	query_match.push({$unwind:"$array"});
+	query_match.push({$project:{branch:"$array.branch",provider:"$array.provider",productcatalog:1,branchid:"$array.branch.branchid",_id:0}});
+	// query_match.push({$group:{_id:"$provider.providername",productcatalog:{"$addToSet":{productid:"$productid",productname:"$productname",category:"$category",productdescription:"$productdescription",price:"$price",productlogo:"$productlogo",foodtype:"$foodtype",max_weight:"$max_weight",min_weight:"$min_weight",productnotavailable:"$productnotavailable",specialinstruction:"$specialinstruction",productconfiguration:"$productconfiguration"}}}});//,array:{"$addToSet":{branch:"$branch",provider:"$provider"}}
+	// query_match.push({$project:{productcatalog:1,providername:"$_id",_id:0}});
 	_getSearchResultsByQuery(query_match,function(err,productlist){
 		if(err){
 			logger.emit("error","Database Error "+JSON.stringify(err));

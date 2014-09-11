@@ -225,9 +225,9 @@ var _successfulGetAllProducts=function(self,products){
 Discount.prototype.updateDiscount= function(sessionuser,discountid) {
 	var self=this;
 	var discountdata=self.discount;
-	//////////////////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////
 	_validateUpdateDiscountData(self,sessionuser,discountdata,discountid);
-	//////////////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////
 };
 var _validateUpdateDiscountData=function(self,sessionuser,discountdata,discountid){
 	console.log("discountdata"+JSON.stringify(discountdata));
@@ -249,19 +249,19 @@ var _validateUpdateDiscountData=function(self,sessionuser,discountdata,discounti
 	}else if(discountdata.discountcode != undefined || discountdata.createddate!=undefined || discountdata.status!=undefined  || discountdata.products!=undefined){
 		self.emit("failedUpdateDiscount",{"error":{"code":"AV001","message":"You cannot change discount details [discount code, status, createdate, products]"}});
 	}else{
-		//////////////////////////////////////////////////////////////////////////
-		_isValidProviderToUpdateDiscount(self,discountdata,sessionuser,discountid)
-		///////////////////////////////////////////////////////////////////////////	
+		///////////////////////////////////////////////////////////////////////////
+		_isValidProviderToUpdateDiscount(self,discountdata,sessionuser,discountid);
+		///////////////////////////////////////////////////////////////////////////
 	}
 }
 
 var _isValidProviderToUpdateDiscount=function(self,discountdata,sessionuser,discountid){
-  DiscountModel.findOne({discountid:discountid},{discountid:1,providerid:1,branchid:1},function(err,discount){
+  DiscountModel.findOne({discountid:discountid},{discountid:1,providerid:1,branchid:1,products:1},function(err,discount){
   	if(err){
       logger.emit("error","Database Error:_isValidBranchIdForAddDiscount"+err,sessionuser.userid);
-		  self.emit("failedUpdateDiscount",{"error":{"message":"Database Error"}})
+		  	self.emit("failedUpdateDiscount",{"error":{"message":"Database Error"}});
   	}else if(!discount){
-      self.emit("failedUpdateDiscount",{"error":{"message":"Discount does not exists"}})
+      		self.emit("failedUpdateDiscount",{"error":{"message":"Discount does not exists"}});
   	}else{
   		UserModel.findOne({userid:sessionuser.userid,"provider.providerid":discount.providerid,"provider.isOwner":true},function(err,userprovideradmin){
   			if(err){
@@ -271,18 +271,63 @@ var _isValidProviderToUpdateDiscount=function(self,discountdata,sessionuser,disc
   				self.emit("failedUpdateDiscount",{"error":{"message":"Only users with admin role can update discount details"}})
   			}else{
   				//////////////////////////////////////////////////////////
-        	_updateDiscount(self,discountid,discountdata,sessionuser);
-	        /////////////////////////////////////////////////////////
+  				_isValidStartDateExpiryDateToUpdateDiscount(self,discountid,discountdata,sessionuser,discount);	        	
+		        //////////////////////////////////////////////////////////
   			}
   		})
     }
   })
  }
+var _isValidStartDateExpiryDateToUpdateDiscount = function(self,discountid,discountdata,sessionuser,discount){
+	DiscountModel.aggregate({$match:{discountid:{$ne:discountid},products:{$in:discount.products}}},{$project:{discountid:1,providerid:1,branchid:1,products:1,startdate:1,expirydate:1}},function(err,otherDiscounts){
+	  	if(err){
+	      	logger.emit("error","Database Error:_isValidBranchIdForAddDiscount"+err,sessionuser.userid);
+			self.emit("failedUpdateDiscount",{"error":{"message":"Database Error"}});
+	  	}else if(otherDiscounts==0){
+	      	////////////////////////////////////////////////////////
+	  		_updateDiscount(self,discountid,discountdata,sessionuser);
+	  		////////////////////////////////////////////////////////
+	  	}else{
+	  		for(var i=0;i<otherDiscounts.length;i++){
+	  			var startdate = new Date(discountdata.startdate);
+		  		var newStartDate = startdate.getFullYear()+"/"+(startdate.getMonth()+1)+"/"+startdate.getDate();
+				var newTestStartDate = Date.parse(newStartDate);
+
+				var expirydate = new Date(discountdata.expirydate);
+		  		var newEndDate = expirydate.getFullYear()+"/"+(expirydate.getMonth()+1)+"/"+expirydate.getDate();
+				var newTestEndDate = Date.parse(newEndDate);
+
+				var otherDiscountsStartDate = new Date(otherDiscounts[i].startdate);
+		  		var oldStart = otherDiscountsStartDate.getFullYear()+"/"+(otherDiscountsStartDate.getMonth()+1)+"/"+otherDiscountsStartDate.getDate();
+				var oldStartDate = Date.parse(oldStart);
+
+				var otherDiscountsEndDate = new Date(otherDiscounts[i].expirydate);
+		  		var oldEnd = otherDiscountsEndDate.getFullYear()+"/"+(otherDiscountsEndDate.getMonth()+1)+"/"+otherDiscountsEndDate.getDate();
+				var oldEndDate = Date.parse(oldEnd);
+                
+				console.log("newTestStartDate : "+newTestStartDate+" oldStartDate : "+oldStartDate+" oldEndDate : "+oldEndDate);
+				if(newTestStartDate >= oldStartDate && newTestStartDate <= oldEndDate){
+					self.emit("failedUpdateDiscount",{"error":{"message":"You cannot select this startdate as the product which is assigned to this discount code is already being applied to other discount code and the startdate of that discount code is conflicting with the startdate of this discount code"}});
+					break;
+		  		}else if(newTestEndDate >= oldStartDate && newTestEndDate <= oldEndDate){
+		  			self.emit("failedUpdateDiscount",{"error":{"message":"You cannot select this expirydate as the product which is assigned to this discount code is already being applied to other discount code and the expirydate of that discount code is conflicting with the expirydate of this discount code"}});
+		  			break;
+		  		}else if(newTestStartDate <= oldStartDate && newTestEndDate >= oldEndDate){
+		  			self.emit("failedUpdateDiscount",{"error":{"message":"You cannot select this startdate/expirydate as the product which is assigned to this discount code is already being applied to other discount code and the startdate/expirydate of that discount code is conflicting with the startdate/expirydate of this discount code"}});
+		  			break;
+		  		}else{
+		  			////////////////////////////////////////////////////////
+			  		_updateDiscount(self,discountid,discountdata,sessionuser);
+			  		////////////////////////////////////////////////////////
+		  		}		  		
+	  		}	  		
+	    }
+  	})
+}
 var _updateDiscount=function(self,discountid,discountdata,user){
 	// discountdata.providerid=providerid;
 	// discountdata.branchid=branchid;
-	// discountdata.percent=parseInt(discountdata.percent);
-	
+	// discountdata.percent=parseInt(discountdata.percent);	
 	// discountdata.discountcode=discountdata.discountcode.toUpperCase();
 	discountdata.updatedby=user.userid;
 	discountdata.updatedate=new Date();
@@ -331,14 +376,13 @@ var _isValidBranchIdForAddProductToDiscount=function(self,sessionuser,discountid
   					self.emit("failedAddProductsToDiscountCode",err)
 	  			}else{  	
 	  			   if(validproducts.length==0){
-	  			   	 //////////////////////////////////////////////////////////////////////
-					 _addProductsToDiscountCode(self,discountid,sessionuser,validproducts,branchid,[])
-					 /////////////////////////////////////////////////////////
+	  			   		//////////////////////////////////////////////////////////////////////////////////
+					 	_addProductsToDiscountCode(self,discountid,sessionuser,validproducts,branchid,[]);
+					 	//////////////////////////////////////////////////////////////////////////////////
 	  			   }else{
-	  			   	/////////////////////////////////////////////////////////////////////////////////////////////
-  				
-				    _checkDiscountApplyToProductAddToDiscount(self,discountid,sessionuser,validproducts,branchid);
-			   	 	/////////////////////////////////////////////////////////////////////////////////////////////	
+	  			   		/////////////////////////////////////////////////////////////////////////////////////////////  				
+				    	_checkDiscountApplyToProductAddToDiscount(self,discountid,sessionuser,validproducts,branchid);
+			   	 		/////////////////////////////////////////////////////////////////////////////////////////////	
 	  			   }			
 	  				
 	  			}
@@ -361,7 +405,7 @@ var _checkDiscountApplyToProductAddToDiscount=function(self,discountid,sessionus
 				}else{
 					console.log("alreadydiscountappliedproducts.length : "+alreadydiscountappliedproducts.length +" products.length : "+products.length);
 					if(alreadydiscountappliedproducts.length==products.length){
-						self.emit("failedAddProductsToDiscountCode",{"error":{"message":"Discount code is already applied to products"}}) 	
+						self.emit("failedAddProductsToDiscountCode",{"error":{"message":"Discount code is already applied to products"}});
 					}else{
 					 	var alreadyappliedproductids=[];
 					 	for(var i=0;i<alreadydiscountappliedproducts.length;i++){
@@ -369,7 +413,7 @@ var _checkDiscountApplyToProductAddToDiscount=function(self,discountid,sessionus
 					 	}
 					 	logger.emit("log","alreadyappliedproductids"+alreadyappliedproductids);
 					 		// logger.emit("log","discountdata"+JSON.stringify(discountdata));
-					 	products=__.difference(products,alreadyappliedproductids);
+					 	products = __.difference(products,alreadyappliedproductids);
 					 	// logger.emit("log","discountdata"+discountdata.products);
 						////////////////////////////////////////////////////////////////////////////////////////////////////
 						_addProductsToDiscountCode(self,discountid,sessionuser,products,branchid,alreadyappliedproductids);
@@ -388,11 +432,9 @@ var _addProductsToDiscountCode=function(self,discountid,sessionuser,products,bra
 		}else if(addproductsstatus==0){
 			self.emit("failedAddProductsToDiscountCode",{"error":{"message":"Incorrect Discount id"}});
 		}else{
-
-			//////////////////////////////////////
-			_successfullManageProductToDiscountCode(self,alreadyappliedproductids)
-			////////////////////////////////////		
-
+			///////////////////////////////////////////////////////////////////////
+			_successfullManageProductToDiscountCode(self,alreadyappliedproductids);
+			///////////////////////////////////////////////////////////////////////
 		}
 	})
 }
@@ -471,7 +513,6 @@ var _isValidProviderToGetDiscountedProducts=function(self,userid,branchid,discou
 	})
 }
 var _getDiscountedProductList = function(self,userid,branchid,discountid){
-	console.log("");
 	DiscountModel.findOne({status:{$ne:"deactive"},discountid:discountid},{_id:0,products:1,percent:1},function(err,discountdata){
 	  	if(err){
 	      	logger.emit("error","Database Error:_getDiscountedProductList "+err,sessionuser.userid);
@@ -500,7 +541,6 @@ var _getDiscountedProductData = function(self,discountdata){
 	    }
   	})
 }
-
 var _successfulGetDiscountedProducts=function(self,products){
 	self.emit("successfulGetDiscountedProducts",{success:{message:"Getting Discounted Products Successfully","products":products}});
 }
