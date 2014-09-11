@@ -761,8 +761,20 @@ var _getProductsOfProviderByCategory = function(self,categoryid,providerid){
 			logger.emit("error","Database Error "+JSON.stringify(err));
 			self.emit("failedGetProductsOfProviderByCategory",{"error":{"message":"Products not found for selected category and provider"}});
 		}else{
-			// console.log("Result : "+JSON.stringify(productlist));
-			_successfulGetProductsOfProviderByCategory(self,productlist);
+			_applyLimitToProductCatalog(productlist[0],function(err,limitedResult){
+				if(err){
+				  	self.emit("failedGetProductsOfProviderByCategory",{"error":{"message":err.error.message}});
+				}else{
+				    _applyDiscountCodesToProductCatalog(limitedResult,function(err,resultWithDiscountCode){
+						if(err){
+						   	self.emit("failedGetProductsOfProviderByCategory",{"error":{"message":err.error.message}});
+						}else{
+						    // _successfulSearchProductByCity(self,resultWithDiscountCode,false);
+						    _successfulGetProductsOfProviderByCategory(self,resultWithDiscountCode);
+						}
+					});
+			    }
+			});
 		}
 	})
 }
