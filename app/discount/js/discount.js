@@ -405,7 +405,7 @@ var _checkDiscountApplyToProductAddToDiscount=function(self,discountid,sessionus
 				}else{
 					console.log("alreadydiscountappliedproducts.length : "+alreadydiscountappliedproducts.length +" products.length : "+products.length);
 					if(alreadydiscountappliedproducts.length==products.length){
-						self.emit("failedAddProductsToDiscountCode",{"error":{"message":"Discount code is already applied to products"}});
+						self.emit("failedAddProductsToDiscountCode",{"error":{"message":"The selected products is previously applied with other discount code"}});
 					}else{
 					 	var alreadyappliedproductids=[];
 					 	for(var i=0;i<alreadydiscountappliedproducts.length;i++){
@@ -439,7 +439,7 @@ var _addProductsToDiscountCode=function(self,discountid,sessionuser,products,bra
 	})
 }
 var _successfullManageProductToDiscountCode=function(self,alreadyappliedproductids){
-	self.emit("successfulAddProductsToDiscountCode",{success:{message:"Product managed for Discount successfully",alreadyappliedproductids:alreadyappliedproductids}})
+	self.emit("successfulAddProductsToDiscountCode",{success:{message:"Discount code successfully applied to selected products",alreadyappliedproductids:alreadyappliedproductids}})
 }
 
 Discount.prototype.removeProductsFromDiscountCode= function(sessionuser,discountid,products,branchid) {

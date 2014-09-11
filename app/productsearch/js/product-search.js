@@ -767,7 +767,7 @@ var _getProductsOfProviderByCategory = function(self,categoryid,providerid){
 }
 var _successfulGetProductsOfProviderByCategory = function(self,doc){
 	logger.emit("log","_successfulGetProductsOfProviderByCategory");
-	self.emit("successfulGetProductsOfProviderByCategory",{"success":{"message":"Getting Products Of Provider By Category Successfully","doc":doc}});
+	self.emit("successfulGetProductsOfProviderByCategory",{"success":{"message":"Getting Products Of Provider By Category Successfully","provider":doc}});
 }
 
 ProductSearch.prototype.getCityInWhichProvidersProvidesService = function(){
