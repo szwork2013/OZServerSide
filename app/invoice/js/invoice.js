@@ -95,22 +95,22 @@ var _createJSONForInvoice=function(self,suborderid){
           var provider=branch[0]
           var branch=branch[0].branch;
           console.log("provider"+JSON.stringify(provider));
-          UserModel.findOne({userid:selleruserid},{email:1,firstname:1,lastname:1},function(err,selleruser){
-            if(err){
-              self.emit("failedCreateInvoice",{error:{message:"Database Error",code:"ED001"}})
-              logger.emit("error","Database Error :_createJSONForInvoice"+err)
-            }else if(!selleruser){
-              self.emit("failedCreateInvoice",{error:{message:"No Authorize To Create Invoice"}})
-              logger.emit("error","Incorrect User")
-            }else{
+          // UserModel.findOne({userid:selleruserid},{email:1,firstname:1,lastname:1},function(err,selleruser){
+          //   if(err){
+          //     self.emit("failedCreateInvoice",{error:{message:"Database Error",code:"ED001"}})
+          //     logger.emit("error","Database Error :_createJSONForInvoice"+err)
+          //   }else if(!selleruser){
+          //     self.emit("failedCreateInvoice",{error:{message:"No Authorize To Create Invoice"}})
+          //     logger.emit("error","Incorrect User")
+          //   }else{
               var contacts=branch.contact_supports;
-              var selleremail=selleruser.email;
-              console.log("selleruser"+selleruser.email);
+             
               console.log("contact_supports"+contacts)
               var inoviceobject={orderid:suborder.suborderid,suborderid:suborder.suborderid,invoicedate:order.createdate,orderdate:order.createdate,tinno:provider.tax.tino,billing_address:suborder.billing_address,delivery_address:suborder.delivery_address,deliverytype:suborder.deliverytype}
               var products=[];
               inoviceobject.invoiceno=Math.floor(Math.random()*1000000)
               inoviceobject.buyername=order.consumer.name;
+              inoviceobject.buyermobileno=order.consumer.mobileno;
               // console.log("suborder products"+order.suborder[i].products)
               var productprovider=JSON.stringify(suborder.productprovider);
               productprovider=JSON.parse(productprovider)
@@ -151,8 +151,8 @@ var _createJSONForInvoice=function(self,suborderid){
               // _SubOrderInvoiceCreation(suborders,++value,order);
               ////////////////////////
               // invoicearray.push(inoviceobject);
-            }
-          })
+          //   }
+          // })
         }
     })
   }
@@ -282,6 +282,9 @@ var _createPDFInvocie=function(self,inoviceobject,branch){
       buyername=" ";
      }else{
       buyername=inoviceobject.buyername;
+     }
+     if(inoviceobject.mobileno){
+       htmldata=htmldata.replaceAll("{{buyermobileno}}",inoviceobject.mobileno);
      }
      htmldata=htmldata.replaceAll("{{buyername}}",buyername);
      var productsobject=inoviceobject.products;
