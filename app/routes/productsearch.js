@@ -1,5 +1,5 @@
 var api = require("../api/api.js");
-var auth=require('../common/js/security');
+var auth = require('../common/js/security');
 
 exports.init = function (app) {
 	// console.log("api call");	
@@ -10,7 +10,7 @@ exports.init = function (app) {
 
  	app.get('/api/city/provider/service',api.productsearchapi.getCityInWhichProvidersProvidesService);
  	app.get('/api/searchproduct/provider/:providerid/category/:categoryid',api.productsearchapi.getProductsOfProviderByCategory);
- 	
+
  	// app.get('/api/searchproduct/city',api.productsearchapi.searchProductByCity);//Product Search By City
  	// app.get('/api/provider/:categoryid',api.productsearchapi.getProductProviderByFourthLevelCategory);//List of providers by fourth level category
  	

@@ -392,9 +392,9 @@ var _getLevelFourCategoryWithProviders = function(self,city,query){
 			self.emit("failedGetLevelFourCategory",{"error":{"code":"AV001","message":"Fourth level category with providers does not exist"}});
 		}else{
 			console.log(JSON.stringify(doc));
-			///////////////////////////////////////////
+			//////////////////////////////////////////
 	  		_successfulGetLevelFourCategory(self,doc);
-	  		////////////////////////////////////////////
+	  		//////////////////////////////////////////
 	  	}
 	});
 }
