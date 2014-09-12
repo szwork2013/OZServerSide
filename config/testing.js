@@ -31,6 +31,6 @@ module.exports = {
         CHANNEL_ID:"WAP"
       },
       oz_adminusermail: "poonam@giantleapsystems.com",
-      oz_contactsupportno: "02067211800",
+      oz_contactsupportno: ["02067211800"],
     }
   }

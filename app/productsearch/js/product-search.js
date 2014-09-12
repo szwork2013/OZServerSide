@@ -303,7 +303,7 @@ var _validateRandomProductSearchData = function(self,city){
 		var boolean;
 		_getAllProvidersWhichProvidesServiceInCity(city.toLowerCase(),function(err,providerids){
 			if(err){
-				self.emit("failedToSearchProduct",{"error":{"code":"ED001","message":err}});
+				self.emit("failedRandomProductSearch",{"error":{"code":"ED001","message":err}});
 			}else{
 				query_match.push({$match:{status:"publish","provider.providerid":{$in:providerids}}});
 				query_match.push({$group:{_id:{branch:"$branch.branchid",provider:"$provider.providerid"},productcatalog:{"$addToSet":{productid:"$productid",productname:"$productname",category:"$category",productdescription:"$productdescription",price:"$price",productlogo:"$productlogo",foodtype:"$foodtype",max_weight:"$max_weight",min_weight:"$min_weight",productnotavailable:"$productnotavailable",specialinstruction:"$specialinstruction",productconfiguration:"$productconfiguration"}},array:{"$addToSet":{branch:"$branch",provider:"$provider"}}}});
