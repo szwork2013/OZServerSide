@@ -298,7 +298,6 @@ var _validateRandomProductSearchData = function(self,city){
 	if(city == undefined || city == "" || city.toLowerCase() == "all"){
 		_getrandomBranchIDs(self);
 	}else{
-		// var providerids = [];
 		var query_match = [];
 		var boolean;
 		_getAllProvidersWhichProvidesServiceInCity(city.toLowerCase(),function(err,providerids){
@@ -309,8 +308,7 @@ var _validateRandomProductSearchData = function(self,city){
 				query_match.push({$group:{_id:{branch:"$branch.branchid",provider:"$provider.providerid"},productcatalog:{"$addToSet":{productid:"$productid",productname:"$productname",category:"$category",productdescription:"$productdescription",price:"$price",productlogo:"$productlogo",foodtype:"$foodtype",max_weight:"$max_weight",min_weight:"$min_weight",productnotavailable:"$productnotavailable",specialinstruction:"$specialinstruction",productconfiguration:"$productconfiguration"}},array:{"$addToSet":{branch:"$branch",provider:"$provider"}}}});
 				query_match.push({$unwind:"$array"});
 				query_match.push({$project:{branch:"$array.branch",provider:"$array.provider",productcatalog:1,branchid:"$array.branch.branchid",_id:0}});
-				// query_match.push({$group:{_id:"$provider.providername",productcatalog:{"$addToSet":{productid:"$productid",productname:"$productname",category:"$category",productdescription:"$productdescription",price:"$price",productlogo:"$productlogo",foodtype:"$foodtype",max_weight:"$max_weight",min_weight:"$min_weight",productnotavailable:"$productnotavailable",specialinstruction:"$specialinstruction",productconfiguration:"$productconfiguration"}}}});//,array:{"$addToSet":{branch:"$branch",provider:"$provider"}}
-				// query_match.push({$project:{productcatalog:1,providername:"$_id",_id:0}});
+				
 				_getSearchResultsByQuery(query_match,function(err,doc){
 					if(err){
 						logger.emit("error","Database Error "+JSON.stringify(err));
@@ -320,7 +318,7 @@ var _validateRandomProductSearchData = function(self,city){
 						 	return test1.branchid;
 						});
 						if(doc.length>5){
-							doc.splice(5,result.length);
+							doc.splice(5,doc.length);
 							boolean = true;
 						}else{
 							boolean = false;
@@ -341,22 +339,11 @@ var _validateRandomProductSearchData = function(self,city){
 					}
 				});
 			}
-		});	
-		// ProductProviderModel.find({"branch.deliverycharge.coverage.city":city.toLowerCase()},{providerid:1,_id:0}).exec(function(err,doc){
-		// 	if(err){
-		// 		self.emit("failedRandomProductSearch",{"error":{"code":"ED001","message":"Error in db to search provider "+err}});
-		// 	}else if(doc.length==0){
-		// 		self.emit("failedRandomProductSearch",{"error":{"message":"Sellers does not exist in "+city}});
-		// 	}else{
-		// 		for(var i=0;i<doc.length;i++){
-		// 			providerids.push(doc[i].providerid);
-		// 		}				
-		// 	}
-		// });
+		});
 	}
 }
 var _getrandomBranchIDs = function(self){
-	ProductCatalogModel.aggregate([{$match:{status:{$ne:"deactive"}}},{$group:{_id:{branchid:"$branch.branchid"}}},{$project:{branchid:"$_id.branchid",_id:0}}]).exec(function(err,doc){
+	ProductCatalogModel.aggregate([{$match:{status:"publish"}},{$group:{_id:{branchid:"$branch.branchid"}}},{$project:{branchid:"$_id.branchid",_id:0}}]).exec(function(err,doc){
 		if(err){
 			self.emit("failedRandomProductSearch",{"error":{"code":"ED001","message":"Error in db to search random product"+err}});
 		}else if(doc.length==0){
@@ -368,12 +355,12 @@ var _getrandomBranchIDs = function(self){
 				arr.push(doc[i].branchid);
 			}
 			console.log("arr : "+arr);
-			if(arr.length<5){
+			if(arr.length<=5){
 				_randomProductSearch(self,arr,false);
 			}else{
 				var branchids = getRandomBranchIDs(arr,5);
 				_randomProductSearch(self,branchids,true);
-			}	  		
+			}
 	  	}
 	});
 }

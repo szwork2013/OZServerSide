@@ -101,7 +101,7 @@ var _checkDiscountCodeAlreadyExistForBranchProvider = function(self,discountdata
 		  	self.emit("failedAddDiscount",{"error":{"message":"Database Error"}})
 		}else if(discount){
 			console.log("DISCOUNT : "+JSON.stringify(discount));
-			self.emit("failedAddDiscount",{"error":{"message":"Discount code with same percent already exists"}});
+			self.emit("failedAddDiscount",{"error":{"message":"Discount code already exists"}});
 		}else{
 			console.log("DISCOUNT 1: "+JSON.stringify(discount));
 			_addDiscount(self,discountdata,userid,providerid,branchid);
@@ -557,7 +557,25 @@ var _isValidProviderToDeleteDiscount=function(self,userid,providerid,branchid,di
 	  	if(err){
 	  		self.emit("failedDeleteDiscount",err);
 	  	}else{
-	  		_deleteDiscount(self,userid,providerid,branchid,discountid);
+	  		_isValidConditionToDeleteDiscount(self,userid,providerid,branchid,discountid);
+	  	}
+	})
+}
+var _isValidConditionToDeleteDiscount = function(self,userid,providerid,branchid,discountid){
+	DiscountModel.findOne({discountid:discountid},function(err,discount){
+	  	if(err){
+	  		logger.emit("error","Database Error _removeProductFromDiscount");
+	  		self.emit("failedDeleteDiscount",{error:{code:"ED001",message:"Database Error"}});
+	  	}else if(discount){
+	  		if(discount.expirydate < new Date()){
+	  			_deleteDiscount(self,userid,providerid,branchid,discountid);
+	  		}else if(discount.products.length>0 && discount.expirydate >= new Date()){
+	  			self.emit("failedDeleteDiscount",{error:{message:"You cannot delete this discountcode as there exists products assign to this code, to delete this discountcode please remove all the products assign to it and then try again"}});
+	  		}else{
+	  			_deleteDiscount(self,userid,providerid,branchid,discountid);
+	  		}
+	  	}else{
+	  		self.emit("failedDeleteDiscount",{error:{message:"Incorrect Discount id"}});
 	  	}
 	})
 }

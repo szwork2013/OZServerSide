@@ -19,7 +19,7 @@ exports.init = function (app) {
     app.post('/api/verifyproviderrequest',api.userapi.confirmjoinproviderrequest);
     app.get('/api/logout',auth,api.userapi.signOutSessions);
     app.get('/api/productrecommend/:productid',auth,api.userapi.productRecommend);
-    app.get('/api/orderzapp/contactsupport',auth,api.userapi.getOrderZappContactSupportNumber);
+    app.get('/api/orderzapp/contactsupport',api.userapi.getOrderZappContactSupportNumber);
 
     //Api's for Admin Screen
     app.get('/api/usersorders/count',auth,api.userapi.userordersCount);
