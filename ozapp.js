@@ -49,6 +49,7 @@ app.use(logger({path: "./logfile.txt"}));
 app.use(cookieParser("hhsid"));
 app.use(bodyParser());
 //app.use(express.json());
+app.disable('etag');
 //app.use(express.urlencoded());
 app.use(multer({ dest: './tmp/uploads/' }));
 // app.use(express.methodOverride());

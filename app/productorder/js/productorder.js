@@ -810,7 +810,7 @@ var _getAllOrdersForBranch=function(self,branchid,userid,ordertype){
 		 if(ordertype.toLowerCase()=="failed"){
 			query=[{$unwind:"$suborder"},{$match:{"suborder.productprovider.branchid":branchid,"payment.mode":{ $regex: 'paytm', $options: 'i' },"payment.STATUS":{$ne:{ $regex: 'TXN_SUCCESS', $options: 'i' }}}},{$sort:{createdate:-1}},{$limit:10}]
 		}else{//all failed and passed order
-			query=[{$unwind:"$suborder"},{$match:{"suborder.productprovider.branchid":branchid,}},{$sort:{createdate:-1}},{$limit:10}]
+			query=[{$unwind:"$suborder"},{$match:{"suborder.productprovider.branchid":branchid,$or:[{"payment.mode":{ $regex:'cod',$options:'i'}},{"payment.STATUS":{ $regex: 'TXN_SUCCESS', $options: 'i' }}]}},{$sort:{createdate:-1}},{$limit:10}]
 		}
 	}
 	//{$group:{_id:{providername:"$suborder.productprovider.providername"},order:{$addToSet:{orderid:"$orderid",total_order_price:"$total_order_price",createdate:"$createdate",status:"$status",order_placeddate:"$order_placeddate",suborder:"$suborder",payment_method:"$payment_method",consumer:"$consumer"}}}},{$project:{providername:"$_id.providername",order:"$order",_id:0}}
