@@ -777,7 +777,7 @@ var _validateProductsOfProviderByCategory = function(self,categoryid,providerid)
 }
 var _getProductsOfProviderByCategory = function(self,categoryid,providerid){
 	var query_match = [];
-	query_match.push({$match:{"provider.providerid":providerid,"category.id":categoryid}});
+	query_match.push({$match:{status:"publish","provider.providerid":providerid,"category.id":categoryid}});
 	query_match.push({$group:{_id:{branch:"$branch.branchid",provider:"$provider.providerid"},productcatalog:{"$addToSet":{productid:"$productid",productname:"$productname",category:"$category",productdescription:"$productdescription",price:"$price",productlogo:"$productlogo",foodtype:"$foodtype",max_weight:"$max_weight",min_weight:"$min_weight",productnotavailable:"$productnotavailable",specialinstruction:"$specialinstruction",productconfiguration:"$productconfiguration"}},array:{"$addToSet":{branch:"$branch",provider:"$provider"}}}});
 	query_match.push({$unwind:"$array"});
 	query_match.push({$project:{branch:"$array.branch",provider:"$array.provider",productcatalog:1,branchid:"$array.branch.branchid",_id:0}});

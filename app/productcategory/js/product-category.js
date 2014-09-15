@@ -360,6 +360,7 @@ ProductCategory.prototype.getLevelFourCategoryWithProviders = function(city) {
 	_validateGetLevelFourCategoryWithProviders(self,city);
 	//////////////////////////////////////////////////////
 };
+
 var _validateGetLevelFourCategoryWithProviders = function(self,city){
 	var query;
 	if(city == undefined || city == "" || city.toLowerCase() == "all"){
@@ -380,9 +381,9 @@ var _validateGetLevelFourCategoryWithProviders = function(self,city){
 				_getLevelFourCategoryWithProviders(self,city,query);
 			}
 		});		
-	}
-	
+	}	
 }
+
 var _getLevelFourCategoryWithProviders = function(self,city,query){		
 	ProductCatalogModel.aggregate(query).exec(function(err,doc){
 		if(err){
