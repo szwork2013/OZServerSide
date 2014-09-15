@@ -100,7 +100,7 @@ var _addSubCategory = function(self,subcategory,categoryid,session_userid){
 
 var _checkSubCategoryNameAlreadyExistOrNot = function(self,subcategory,category_data){
 	// Check SubCategoryname already exist or not
-	CategoryModel.findOne({status:"active",categoryname:new RegExp(subcategory.categoryname, "i")},function(err,c_name){
+	CategoryModel.findOne({status:"active",slug:subcategory.categoryname.toLowerCase()},function(err,c_name){
 		if(err){
 			logger.emit("error","Error in db to getCategory name");
 			self.emit("failedAddSubCategory",{"error":{"code":"ED001","message":"Database Error"}});
