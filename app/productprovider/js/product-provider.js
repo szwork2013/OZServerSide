@@ -1053,21 +1053,30 @@ var _validateDeliveryTimingSlotData=function(self,branchdata,sessionuser,provide
 }
 var _isValidProductProvider=function(self,branchdata,sessionuser,providerid){
 	console.log("sessionuser : "+sessionuser.userid+" providerid : "+providerid);
-	ProductProviderModel.findOne({"user.userid":sessionuser.userid,providerid:providerid},function(err,productprovider){
+	UserModel.findOne({userid:sessionuser.userid,"provider.providerid":providerid},{provider:1},function(err,userprovider){
 		if(err){
-			logger.emit("error","Database Error:_isValidServiceProvider"+err,sessionuser.userid);
-			self.emit("failedAddBranch",{"error":{"message":"Database Error"}})
-		}else if(!productprovider){
-			self.emit("failedAddBranch",{"error":{"message":"Incorrect or unauthorized seller id"}});
+			logger.emit('error',"Database Error fun:_isValidProductProvider"+err,sessionuser.userid)
+		  self.emit("failedAddBranch",{"error":{"code":"ED001","message":"Database Error"}});			
+		}else if(!userprovider){
+			self.emit("failedAddBranch",{"error":{"message":"Not Authorized to Add Branch"}});			
 		}else{
-			if(productprovider.status == "accept"){
-				////////////////////////////////////////////////////
-				_checkBranchCodeIsAlreadyExist(self,branchdata,sessionuser,productprovider)
-				//////////////////////////////////////////////////
-			}else{
-				self.emit("failedAddBranch",{"error":{"message":"Your seller account is not yet activated, please contact OrderZapp support team"}});				
-			}
-		}
+			ProductProviderModel.findOne({providerid:providerid},function(err,productprovider){
+				if(err){
+					logger.emit("error","Database Error:_isValidServiceProvider"+err,sessionuser.userid);
+					self.emit("failedAddBranch",{"error":{"message":"Database Error"}})
+				}else if(!productprovider){
+					self.emit("failedAddBranch",{"error":{"message":"Incorrect or unauthorized seller id"}});
+				}else{
+					if(productprovider.status == "accept"){
+						////////////////////////////////////////////////////
+						_checkBranchCodeIsAlreadyExist(self,branchdata,sessionuser,productprovider)
+						//////////////////////////////////////////////////
+					}else{
+						self.emit("failedAddBranch",{"error":{"message":"Your seller account is not yet activated, please contact OrderZapp support team"}});				
+					}
+				}
+			})
+	  }
 	})
 }
 var _checkBranchCodeIsAlreadyExist=function(self,branchdata,sessionuser,productprovider){
