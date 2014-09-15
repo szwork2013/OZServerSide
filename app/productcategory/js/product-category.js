@@ -369,9 +369,9 @@ var _validateGetLevelFourCategoryWithProviders = function(self,city){
 		var providerids = [];
 		ProductProvider.find({"branch.deliverycharge.coverage.city":city.toLowerCase()},{providerid:1,_id:0}).exec(function(err,doc){
 			if(err){
-				self.emit("failedSearchProductByCity",{"error":{"code":"ED001","message":"Error in db to search provider "+err}});
+				self.emit("failedGetLevelFourCategory",{"error":{"code":"ED001","message":"Error in db to search provider "+err}});
 			}else if(doc.length==0){
-				self.emit("failedSearchProductByCity",{"error":{"message":"Sellers does not exist in "+city}});
+				self.emit("failedGetLevelFourCategory",{"error":{"message":"Sellers does not exist in "+city}});
 			}else{				
 				for(var i=0;i<doc.length;i++){
 					providerids.push(doc[i].providerid);
