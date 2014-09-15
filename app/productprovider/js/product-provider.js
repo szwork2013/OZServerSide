@@ -1952,7 +1952,7 @@ var _publishAndUnpublishBranch=function(self,providerid,branchid,action){
 	})
 }
 var _publishAndUnpublishAllProductsOfBranch=function(self,providerid,branchid,action){
-  	ProductCatalogModel.update({"branch.branchid":branchid},{$set:{status:action}},function(err,productupdatestatus){
+  	ProductCatalogModel.update({"branch.branchid":branchid},{$set:{status:action}},{multi:true},function(err,productupdatestatus){
 		if(err){
 			logger.emit('error',"Database Error fun:_publishAndUnpublishAllProductsOfBranch"+err,user.userid);
 		  self.emit("failedPublishUnpublishBranch",{"error":{"code":"ED001","message":"Database Error"}});			
