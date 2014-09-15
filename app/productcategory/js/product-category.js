@@ -376,7 +376,7 @@ var _validateGetLevelFourCategoryWithProviders = function(self,city){
 				for(var i=0;i<doc.length;i++){
 					providerids.push(doc[i].providerid);
 				}
-				query = [{$match:{status:"publish","provider.providerid":{$in:providerids}}},{$project:{categoryname:'$category.categoryname',categoryid:'$category.id',provider:1,_id:0}},{$group:{_id:{categoryid:"$categoryid",categoryname:"$categoryname"},provider:{$addToSet:{providerid:"$provider.providerid",providername:"$provider.providername"}}}},{$project:{categoryid:"$_id.categoryid",categoryname:"$_id.categoryname",provider:1,_id:0}}]
+				query = [{$match:{status:"publish","provider.providerid":{$in:providerids}}},{$project:{categoryname:'$category.categoryname',categoryid:'$category.id',provider:1,_id:0}},{$group:{_id:{categoryid:"$categoryid",categoryname:"$categoryname"},provider:{$addToSet:{providerid:"$provider.providerid",providername:"$provider.providername",providerbrandname:"$provider.providerbrandname"}}}},{$project:{categoryid:"$_id.categoryid",categoryname:"$_id.categoryname",provider:1,_id:0}}]
 				_getLevelFourCategoryWithProviders(self,city,query);
 			}
 		});		
