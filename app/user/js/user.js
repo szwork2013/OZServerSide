@@ -1100,7 +1100,7 @@ var _usersCount = function(self){
   })  
 }
 var _ordersCount = function(self,obj){
-  OrderModel.count().exec(function(err,orders){
+  OrderModel.find({$or:[{"payment.mode":{ $regex:'cod',$options:'i'}},{"payment.STATUS":{ $regex: 'TXN_SUCCESS', $options: 'i' }}]}).count().exec(function(err,orders){
     if(err){
       logger.emit("error","Error in db to get user count "+err);
       self.emit("failedGetUserOrdersCount",{"error":{"code":"ED001","message":"Error in db to get orders count"}});
@@ -1127,17 +1127,38 @@ var _getMyDeliveryAddressHistory=function(self,userid){
   DeliveryAddressModel.find({userid:userid},{_id:0,userid:0,__v:0},function(err,deliveryaddresses){
     if(err){
       self.emit("failedGetMyDeliveryAddressHistory",{error:{message:"Database Issue",code:"ED001"}})
-    }else if(deliveryaddresses.length==0){
-      self.emit("failedGetMyDeliveryAddressHistory",{error:{message:"No Delivery Address history exists"}})
     }else{
-      ///////////////////////////////////////////
-      _successfullGetMYDeliveryAddressHistory(self,deliveryaddresses)
-      //////////////////////////////////////////
+      UserModel.findOne({userid:userid},{location:1},function(err,user){
+        if(err){
+          ///////////////////////////////////////////
+         _successfullGetMYDeliveryAddressHistory(self,deliveryaddresses)
+         //////////////////////////////////////////
+        }else if(!user){
+           ///////////////////////////////////////////
+          _successfullGetMYDeliveryAddressHistory(self,deliveryaddresses)
+         //////////////////////////////////////////
+        }else{
+          deliveryaddresses=JSON.stringify(deliveryaddresses);
+          deliveryaddresses=JSON.parse(deliveryaddresses);
+          if(user.location){
+              deliveryaddresses.splice(0,0,{deliveryaddressid:"billingid", address:user.location})
+          }
+          ///////////////////////////////////////////
+          _successfullGetMYDeliveryAddressHistory(self,deliveryaddresses)
+         //////////////////////////////////////////
+        }
+      })
+      
     }
   })
 }
 var _successfullGetMYDeliveryAddressHistory=function(self,deliveryaddresses){
-  self.emit("successfulGetMyDeliveryAddressHistory",{success:{message:"Getting My Delivery Address History Successfully",deliveryaddresses:deliveryaddresses}})
+  if(deliveryaddresses.length==0){
+    self.emit("failedGetMyDeliveryAddressHistory",{error:{message:"No deliveryaddresses exists"}})
+  }else{
+    self.emit("successfulGetMyDeliveryAddressHistory",{success:{message:"Getting My Delivery Address History Successfully",deliveryaddresses:deliveryaddresses}})
+  }
+  
 }
 
 User.prototype.uploadAPK = function(user,apk){

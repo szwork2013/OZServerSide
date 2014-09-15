@@ -18,6 +18,7 @@ var events = require("events");
 var logger = require("../../common/js/logger");
 var S = require("string");
 var __=require("underscore");
+var UserModel=require("../../user/js/user-model")
 
 var ProductSearch = function(productsearchdata) {
 	this.product = productsearchdata;
@@ -589,7 +590,7 @@ var _validateSearchProviderData = function(self,providername){
 	if(providername==undefined || providername==""){
 		self.emit("failedTosearchProvider",{"error":{"message":"Please enter seller name"}});
 	}else if(!providername.match(letters)){
-		self.emit("failedTosearchProvider",{"error":{"message":"Please enter product name in alphabets only"}});
+		self.emit("failedTosearchProvider",{"error":{"message":"Please enter providername  in alphabets only"}});
 	}else{
 		// var name_arr = [];
 		// if(S(providername).contains(",")){
@@ -609,18 +610,46 @@ var _validateSearchProviderData = function(self,providername){
 		query.providername = {$in:provider_name_arr};
 		console.log("provider_name_arr "+ provider_name_arr);
 		console.log("query "+ JSON.stringify(query));
-		/***********SEARCH FROM PRODUCTS PROVIDER MODEL**********/
-		ProductProviderModel.aggregate([{$unwind:"$branch"},{$match:query},{$group:{_id:{providerid:"$providerid",providername:"$providername",providerlogo:"$providerlogo"},branch:{$addToSet:{branchid:"$branch.branchid",branchname:"$branch.branchname"}}}},{$project:{providerid:"$_id.providerid",providername:"$_id.providername",providerlogo:"$_id.providerlogo",branches:"$branch",_id:0}}]).exec(function(err,doc){
+		ProductProviderModel.find(query,{providerid:1,providername:1,providerlogo:1,user:1,branch:1},function(err,providers){
 			if(err){
 				self.emit("failedTosearchProvider",{"error":{"code":"ED001","message":"Error in db to search provider "+err}});
-			}else if(doc.length==0){
+			}else if(providers.length==0){
 				self.emit("failedTosearchProvider",{"error":{"message":"Seller not found"}});
 			}else{
-				//////////////////////////////////
-				successfulsearchProvider(self,doc);
-				//////////////////////////////////
-			}
-		});
+					var resultarray=[];
+					var useridsarray=[];
+					for(var i=0;i<providers.length;i++){
+						useridsarray.push(providers[i].user.userid)
+						var result={providerid:providers[i].providerid,providername:providers[i].providername,providerlogo:providers[i].providerlogo,userid:providers[i].user.userid};
+						var branches=[];
+						for(var j=0;j<providers[i].branch.length;j++){
+							branches.push({branchid:providers[i].branch[j].branchid,branchname:providers[i].branch[j].branchname})
+						}
+						result.branches=branches
+						resultarray.push(result)
+					};
+					UserModel.find({userid:{$in:useridsarray}},{userid:1,firstname:1,mobileno:1},function(err,users){
+						if(err){
+							self.emit("failedTosearchProvider",{"error":{"code":"ED001","message":"Error in db to search provider "+err}});
+						}else if(users.length==0){
+							self.emit("failedTosearchProvider",{"error":{"message":"Seller user details not exist"}});
+						}else{
+							users=JSON.stringify(users);
+							users=JSON.parse(users);
+							
+							for(var i=0;i<resultarray.length;i++){
+								var user= __.findWhere(users, {userid:resultarray[i].userid}); 
+								resultarray[i].user=user;
+								
+							};
+							//////////////////////////////////
+							successfulsearchProvider(self,resultarray);
+							//////////////////////////////////
+						}
+					})
+				}
+			})
+		
 	}
 }
 

@@ -778,21 +778,23 @@ var ordertoken=new OrderTokenModel({_userId:user.userid,orderid:orderno});
 // 	self.emit("successfulGetAllMyOrder",{success:{message:"Getting my orders successfully",orders:orders}});
 // }
 
-Order.prototype.getAllOrderDetailsForBranch = function(branchid,type,userid){
+Order.prototype.getAllOrderDetailsForBranch = function(branchid,type,userid,ordertype){
 	var self = this;
 	///////////////////////////////////////////////////////////////
-	_valdateGetAllOrderDetailsForBranch(self,branchid,type,userid);
+	_valdateGetAllOrderDetailsForBranch(self,branchid,type,userid,ordertype);
 	///////////////////////////////////////////////////////////////
 }
 
-var _valdateGetAllOrderDetailsForBranch = function(self,branchid,type,userid){
+var _valdateGetAllOrderDetailsForBranch = function(self,branchid,type,userid,ordertype){
 	if(type == undefined){
 		self.emit("failedGetAllOrdersForAllProviders",{"error":{"message":"Please enter type"}});
 	}else if(["order","product"].indexOf(type.toLowerCase())<0){
 		self.emit("failedGetAllOrdersForAllProviders",{"error":{"code":"AV001","message":"type should be order or product"}});
 	}else{
 		if(type == "order"){
-			_getAllOrdersForBranch(self,branchid,userid);
+			
+				_getAllOrdersForBranch(self,branchid,userid,ordertype);	
+			
 		}else if(type == "product"){
 			_getAllProductOrdersForBranch(self,branchid,userid);
 		}else{
@@ -801,15 +803,41 @@ var _valdateGetAllOrderDetailsForBranch = function(self,branchid,type,userid){
 	}
 }
 
-var _getAllOrdersForBranch=function(self,branchid,userid){
+var _getAllOrdersForBranch=function(self,branchid,userid,ordertype){
 	console.log("_getAllOrdersForBranch");
+	var query=[{$unwind:"$suborder"},{$match:{"suborder.productprovider.branchid":branchid,$or:[{"payment.mode":{ $regex:'cod',$options:'i'}},{"payment.STATUS":{ $regex: 'TXN_SUCCESS', $options: 'i' }}]}},{$sort:{createdate:-1}},{$limit:10}]
+
+	if(ordertype==undefined){
+		query=[{$unwind:"$suborder"},{$match:{"suborder.productprovider.branchid":branchid,$or:[{"payment.mode":{ $regex:'cod',$options:'i'}},{"payment.STATUS":{ $regex: 'TXN_SUCCESS', $options: 'i' }}]}},{$sort:{createdate:-1}},{$limit:10}]
+	}else{
+		 if(ordertype.toLowerCase()=="failed"){
+			query=[{$unwind:"$suborder"},{$match:{"suborder.productprovider.branchid":branchid,"payment.mode":{ $regex: 'paytm', $options: 'i' },"payment.STATUS":{$ne:{ $regex: 'TXN_SUCCESS', $options: 'i' }}}},{$sort:{createdate:-1}},{$limit:10}]
+		}else{//all failed and passed order
+			query=[{$unwind:"$suborder"},{$match:{"suborder.productprovider.branchid":branchid,$or:[{"payment.mode":{ $regex:'cod',$options:'i'}},{"payment.STATUS":{ $regex: 'TXN_SUCCESS', $options: 'i' }}]}},{$sort:{createdate:-1}},{$limit:10}]
+		}
+	}
 	//{$group:{_id:{providername:"$suborder.productprovider.providername"},order:{$addToSet:{orderid:"$orderid",total_order_price:"$total_order_price",createdate:"$createdate",status:"$status",order_placeddate:"$order_placeddate",suborder:"$suborder",payment_method:"$payment_method",consumer:"$consumer"}}}},{$project:{providername:"$_id.providername",order:"$order",_id:0}}
-	OrderModel.aggregate([{$unwind:"$suborder"},{$match:{"suborder.productprovider.branchid":branchid}},{$sort:{createdate:-1}},{$limit:10}]).exec(function(err,orders){
+	OrderModel.aggregate(query).exec(function(err,orders){
 		if(err){
 			self.emit("failedGetAllOrdersForAllProviders",{"error":{"code":"ED001","message":"Database Error : "+err}});
 		}else if(orders.length==0){
+
 			self.emit("failedGetAllOrdersForAllProviders",{"error":{"message":"Order does not exist"}});
 		}else{
+			orders=JSON.stringify(orders);
+			orders=JSON.parse(orders);
+			if(ordertype){
+				if(ordertype.toLowerCase()=="failed"){
+					for(var i=0;i<orders.length;i++){
+						if(!orders[i].payment.STATUS){
+								orders[i].orderfailedreason="Transaction cancelled by User";	
+						}else{
+								orders[i].orderfailedreason=orders[i].payment.RESPMSG;
+						}
+					}
+				}
+			}
+		
 			//////////////////////////////////////////////
 			_successfulGetAllOrdersForBranch(self,orders);
 			//////////////////////////////////////////////
@@ -820,6 +848,7 @@ var _getAllOrdersForBranch=function(self,branchid,userid){
 var _getAllProductOrdersForBranch=function(self,branchid,userid){
 	console.log("_getAllProductOrdersForBranch");
 	// var oldQuery = [{$unwind:"$suborder"},{$match:{"suborder.status":"accepted","suborder.productprovider.branchid":branchid}},{$project:{deliverydate:"$suborder.deliverydate",products:"$suborder.products"}},{$unwind:"$products"},{$group:{_id:{deliverydate:"$deliverydate"},products:{$push:{productname:"$products.productname",productcode:"$products.productcode",qty:"$products.qty",uom:"$products.uom",orderprice:"$products.orderprice",currency:"$products.currency"}}}},{$project:{deliverydate:"$_id.deliverydate",products:"$products",_id:0}},{$sort:{deliverydate:1}}]
+	//here only come whose order is accepted
 	var newQuery = [{$unwind:"$suborder"},{$match:{"suborder.status":"accepted","suborder.productprovider.branchid":branchid}},{$project:{deliverydate:"$suborder.deliverydate",products:"$suborder.products",suborderid:"$suborder.suborderid"}},{$unwind:"$products"},{$group:{_id:{deliverydate:"$deliverydate",productid:"$products.productid",productname:"$products.productname",uom:"$products.uom",productcode:"$products.productcode"},totalqty:{$sum:"$products.qty"},productdetails:{$push:{qty:"$products.qty",suborderid:"$suborderid"}}}},{$project:{productdetails:1,totalqty:1,deliverydate:"$_id.deliverydate",productid:"$_id.productid",productname:"$_id.productname",uom:"$_id.uom",productcode:"$_id.productcode",_id:0}},{$group:{_id:{deliverydate:"$deliverydate"},products:{$push:{productid:"$productid",productname:"$productname",totalqty:"$totalqty",uom:"$uom",productcode:"$productcode",productdetails:"$productdetails"}}}},{$project:{deliverydate:"$_id.deliverydate",products:1,_id:0}},{$sort:{deliverydate:1}}];
 	OrderModel.aggregate(newQuery).exec(function(err,products){
 		if(err){
@@ -842,33 +871,60 @@ var _successfulGetAllProductOrdersForBranch=function(self,products){
 	self.emit("successfulGetAllOrdersForAllProviders",{success:{message:"Getting product order details successfully",doc:products}});
 }
 
-Order.prototype.loadMoreOrders = function(orderid,userid){
+Order.prototype.loadMoreOrders = function(orderid,userid,ordertype){
 	var self = this;
+
 	/////////////////////////////////////////
-	_getDateTimeOfOrder(self,orderid,userid);
+	_getDateTimeOfOrder(self,orderid,userid,ordertype);
 	/////////////////////////////////////////
 }
-var _getDateTimeOfOrder=function(self,orderid,userid){
-	console.log("_getDateTimeOfOrder");
-	OrderModel.findOne({orderid:orderid},{createdate:1,suborder:1,_id:0}).exec(function(err,order){
+var _getDateTimeOfOrder=function(self,orderid,userid,ordertype){
+
+	
+	// console.log("_getDateTimeOfOrder");
+	OrderModel.findOne({orderid:orderid},{createdate:1,suborder:1,_id:0,payment:1}).exec(function(err,order){
 		if(err){
 			self.emit("failedLoadMoreOrders",{"error":{"code":"ED001","message":"Database Error : "+err}});
 		}else if(!order){
 			self.emit("failedLoadMoreOrders",{"error":{"message":"Incorrect order id"}});
 		}else{
 			////////////////////////////
-			_loadMoreOrders(self,orderid,order);
+			_loadMoreOrders(self,orderid,order,ordertype);
 			////////////////////////////
 		}
 	});
 }
-var _loadMoreOrders = function(self,orderid,order){	
-	OrderModel.aggregate([{$unwind:"$suborder"},{$match:{orderid:{$ne:orderid},"suborder.productprovider.branchid":order.suborder[0].productprovider.branchid}},{$sort:{createdate:-1}},{$match:{createdate:{$lte:order.createdate}}},{$limit:10}]).exec(function(err,orders){
+var _loadMoreOrders = function(self,orderid,order,ordertype){	
+	var query;
+	if(ordertype==undefined){
+		query=[{$unwind:"$suborder"},{$match:{orderid:{$ne:orderid},"suborder.productprovider.branchid":order.suborder[0].productprovider.branchid}},{$sort:{createdate:-1}},{$match:{createdate:{$lte:order.createdate}}},{$limit:10}]
+	}else{
+		 if(ordertype.toLowerCase()=="passed"){
+		  	query=[{$unwind:"$suborder"},{$match:{orderid:{$ne:orderid},$or:[{"payment.mode":{ $regex:'cod',$options:'i'}},{"payment.STATUS":{ $regex: 'TXN_SUCCESS', $options: 'i' }}],"suborder.productprovider.branchid":order.suborder[0].productprovider.branchid}},{$sort:{createdate:-1}},{$match:{createdate:{$lte:order.createdate}}},{$limit:10}]
+		 }else{
+		 	  query=[{$unwind:"$suborder"},{$match:{orderid:{$ne:orderid},"payment.mode":{ $regex: 'paytm', $options: 'i' },"payment.STATUS":{$ne:{ $regex: 'TXN_SUCCESS', $options: 'i' }},"suborder.productprovider.branchid":order.suborder[0].productprovider.branchid}},{$sort:{createdate:-1}},{$match:{createdate:{$lte:order.createdate}}},{$limit:10}]
+		 }
+	}
+	OrderModel.aggregate(query).exec(function(err,orders){
 		if(err){
 			self.emit("failedLoadMoreOrders",{"error":{"code":"ED001","message":"Database Error : "+err}});
 		}else if(orders.length==0){
 			self.emit("failedLoadMoreOrders",{"error":{"message":"No more orders found"}});
 		}else{
+			orders=JSON.stringify(orders);
+			orders=JSON.parse(orders);
+			if(ordertype){
+				if(ordertype.toLowerCase()=="failed"){
+					for(var i=0;i<orders.length;i++){
+						if(!orders[i].payment.STATUS){
+								orders[i].orderfailedreason="Transaction cancelled by User";	
+						}else{
+								orders[i].orderfailedreason=orders[i].payment.RESPMSG;
+						}
+					}
+				}
+			}
+		
 			///////////////////////////////////////
 			_successfulLoadMoreOrders(self,orders);
 			///////////////////////////////////////

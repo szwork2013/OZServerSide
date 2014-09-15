@@ -36,7 +36,8 @@ var cookieParser = require('cookie-parser')
 var bodyParser = require('body-parser')
 var logger = require('express-logger');
 var CONFIG=require("config").OrderZapp;
-// var errorHandler = require('express-error-handler');
+
+var errorHandler = require('express-error-handler');
 // app.use(function(req, res, next) {
 
 //   res.on('header', function() {
@@ -50,6 +51,7 @@ app.use(logger({path: "./logfile.txt"}));
 app.use(cookieParser("hhsid"));
 app.use(bodyParser());
 //app.use(express.json());
+app.disable('etag');
 //app.use(express.urlencoded());
 app.use(multer({ dest: './tmp/uploads/' }));
 // app.use(express.methodOverride());
