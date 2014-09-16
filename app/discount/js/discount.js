@@ -78,9 +78,21 @@ var _validateDiscountData=function(self,discountdata,userid,providerid,branchid)
 	}else if(discountdata.expirydate==undefined || discountdata.expirydate==""){
 		self.emit("failedAddDiscount",{"error":{"code":"AV001","message":"Please enter discount expirydate"}});
 	}else{
-		//////////////////////////////////////////////////////////////////////////
-		_isValidProviderToAddDiscount(self,discountdata,userid,providerid,branchid)
-		///////////////////////////////////////////////////////////////////////////	
+		var startdate = new Date(discountdata.startdate);
+		var newStartDate = startdate.getFullYear()+"/"+(startdate.getMonth()+1)+"/"+startdate.getDate();
+		var newTestStartDate = Date.parse(newStartDate);
+
+		var expirydate = new Date(discountdata.expirydate);
+		var newEndDate = expirydate.getFullYear()+"/"+(expirydate.getMonth()+1)+"/"+expirydate.getDate();
+		var newTestEndDate = Date.parse(newEndDate);
+
+		if(newTestStartDate <= newTestEndDate){
+			//////////////////////////////////////////////////////////////////////////
+			_isValidProviderToAddDiscount(self,discountdata,userid,providerid,branchid)
+			///////////////////////////////////////////////////////////////////////////	
+		}else{
+			self.emit("failedAddDiscount",{"error":{"code":"AV001","message":"Please enter valid startdate/expirydate"}});
+		}		
 	}
 }
 var _isValidProviderToAddDiscount=function(self,discountdata,userid,providerid,branchid){
@@ -249,9 +261,21 @@ var _validateUpdateDiscountData=function(self,sessionuser,discountdata,discounti
 	}else if(discountdata.discountcode != undefined || discountdata.createddate!=undefined || discountdata.status!=undefined  || discountdata.products!=undefined){
 		self.emit("failedUpdateDiscount",{"error":{"code":"AV001","message":"You cannot change discount details [discount code, status, createdate, products]"}});
 	}else{
-		///////////////////////////////////////////////////////////////////////////
-		_isValidProviderToUpdateDiscount(self,discountdata,sessionuser,discountid);
-		///////////////////////////////////////////////////////////////////////////
+		var startdate = new Date(discountdata.startdate);
+		var newStartDate = startdate.getFullYear()+"/"+(startdate.getMonth()+1)+"/"+startdate.getDate();
+		var newTestStartDate = Date.parse(newStartDate);
+
+		var expirydate = new Date(discountdata.expirydate);
+		var newEndDate = expirydate.getFullYear()+"/"+(expirydate.getMonth()+1)+"/"+expirydate.getDate();
+		var newTestEndDate = Date.parse(newEndDate);
+
+		if(newTestStartDate <= newTestEndDate){
+			///////////////////////////////////////////////////////////////////////////
+			_isValidProviderToUpdateDiscount(self,discountdata,sessionuser,discountid);
+			///////////////////////////////////////////////////////////////////////////
+		}else{
+			self.emit("failedUpdateDiscount",{"error":{"code":"AV001","message":"Please enter valid startdate/expirydate"}});
+		}
 	}
 }
 
