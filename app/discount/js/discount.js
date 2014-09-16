@@ -563,18 +563,17 @@ var _isValidProviderToDeleteDiscount=function(self,userid,providerid,branchid,di
 }
 var _isValidConditionToDeleteDiscount = function(self,userid,providerid,branchid,discountid){
 	
-	var expirydate = discount.expirydate.getFullYear()+"/"+(discount.expirydate.getMonth()+1)+"/"+discount.expirydate.getDate();
-	var testexpirydate = Date.parse(expirydate);
-	var currentdate = new Date();
-	var newDate = currentdate.getFullYear()+"/"+(currentdate.getMonth()+1)+"/"+currentdate.getDate();
-	var testcurrentdate = Date.parse(newDate);
-
-	console.log("testexpirydate : "+testexpirydate + " testcurrentdate : "+testcurrentdate);
 	DiscountModel.findOne({discountid:discountid},function(err,discount){
 	  	if(err){
 	  		logger.emit("error","Database Error _removeProductFromDiscount");
 	  		self.emit("failedDeleteDiscount",{error:{code:"ED001",message:"Database Error"}});
 	  	}else if(discount){
+	  		var expirydate = discount.expirydate.getFullYear()+"/"+(discount.expirydate.getMonth()+1)+"/"+discount.expirydate.getDate();
+			var testexpirydate = Date.parse(expirydate);
+			var currentdate = new Date();
+			var newDate = currentdate.getFullYear()+"/"+(currentdate.getMonth()+1)+"/"+currentdate.getDate();
+			var testcurrentdate = Date.parse(newDate);
+			console.log("testexpirydate : "+testexpirydate + " testcurrentdate : "+testcurrentdate);
 	  		if(discount.expirydate < new Date()){
 	  			_deleteDiscount(self,userid,providerid,branchid,discountid);
 	  		}else if(discount.products.length>0 && discount.expirydate >= new Date()){
