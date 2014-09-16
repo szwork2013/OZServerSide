@@ -367,7 +367,7 @@ var _validateGetLevelFourCategoryWithProviders = function(self,city){
 		_getLevelFourCategoryWithProviders(self,city,query);
 	}else{
 		var providerids = [];
-		ProductProvider.find({$or:[{"branch.deliverycharge.coverage.city":city.toLowerCase()},{"pickupaddresses.addresses.city":city.toLowerCase()}]},{providerid:1,_id:0}).exec(function(err,doc){
+		ProductProvider.find({$or:[{"branch.deliverycharge.coverage.city":new RegExp(city, "i")},{"pickupaddresses.addresses.city":new RegExp(city, "i")}]},{providerid:1,_id:0}).exec(function(err,doc){
 			if(err){
 				self.emit("failedGetLevelFourCategory",{"error":{"code":"ED001","message":"Error in db to search provider "+err}});
 			}else if(doc.length==0){
@@ -376,6 +376,7 @@ var _validateGetLevelFourCategoryWithProviders = function(self,city){
 				for(var i=0;i<doc.length;i++){
 					providerids.push(doc[i].providerid);
 				}
+				console.log("providerids : @@@ "+providerids);
 				query = [{$match:{status:"publish","provider.providerid":{$in:providerids}}},{$project:{categoryname:'$category.categoryname',categoryid:'$category.id',provider:1,_id:0}},{$group:{_id:{categoryid:"$categoryid",categoryname:"$categoryname"},provider:{$addToSet:{providerid:"$provider.providerid",providername:"$provider.providername",providerbrandname:"$provider.providerbrandname"}}}},{$project:{categoryid:"$_id.categoryid",categoryname:"$_id.categoryname",provider:1,_id:0}}]
 				_getLevelFourCategoryWithProviders(self,city,query);
 			}
@@ -391,7 +392,7 @@ var _getLevelFourCategoryWithProviders = function(self,city,query){
 		}else if(doc.length==0){
 			self.emit("failedGetLevelFourCategory",{"error":{"code":"AV001","message":"Fourth level category with providers does not exist"}});
 		}else{
-			console.log(JSON.stringify(doc));
+			// console.log(JSON.stringify(doc));
 			//////////////////////////////////////////
 	  		_successfulGetLevelFourCategory(self,doc);
 	  		//////////////////////////////////////////
