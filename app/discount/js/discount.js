@@ -574,9 +574,9 @@ var _isValidConditionToDeleteDiscount = function(self,userid,providerid,branchid
 			var newDate = currentdate.getFullYear()+"/"+(currentdate.getMonth()+1)+"/"+currentdate.getDate();
 			var testcurrentdate = Date.parse(newDate);
 			console.log("testexpirydate : "+testexpirydate + " testcurrentdate : "+testcurrentdate);
-	  		if(discount.expirydate < new Date()){
+	  		if(testexpirydate < testcurrentdate){
 	  			_deleteDiscount(self,userid,providerid,branchid,discountid);
-	  		}else if(discount.products.length>0 && discount.expirydate >= new Date()){
+	  		}else if(discount.products.length>0 && testexpirydate >= testcurrentdate){
 	  			self.emit("failedDeleteDiscount",{error:{message:"You cannot delete this discountcode as there exists products assign to this code, to delete this discountcode please remove all the products assign to it and then try again"}});
 	  		}else if(discount.products.length>0 && testexpirydate == testcurrentdate){
 	  			self.emit("failedDeleteDiscount",{error:{message:"You cannot delete this discountcode as there exists products assign to this code, to delete this discountcode please remove all the products assign to it and then try again"}});
