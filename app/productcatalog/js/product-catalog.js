@@ -683,7 +683,11 @@ var _getProductCatalog = function(self,branchid,productid){
 		}else{
 			product = JSON.stringify(product);
 			product = JSON.parse(product);
-			DiscountModel.aggregate([{$unwind:"$products"},{$match:{status:"active",products:productid,startdate:{$lte:new Date()},expirydate:{$gte:new Date()}}},{$project:{products:1,discountcode:1,percent:1,_id:0}}]).exec(function(err,discountcodes){
+			var currentdate = new Date();
+			var newcurrentdate = currentdate.getFullYear()+"/"+(currentdate.getMonth()+1)+"/"+currentdate.getDate();
+			var newcurrentdate = new Date(newcurrentdate);
+			console.log("newcurrentdate "+newcurrentdate);
+			DiscountModel.aggregate([{$unwind:"$products"},{$match:{status:"active",products:productid,startdate:{$lte:newcurrentdate},expirydate:{$gte:newcurrentdate}}},{$project:{products:1,discountcode:1,percent:1,_id:0}}]).exec(function(err,discountcodes){
 				if(err){
 					logger.emit("log","_getAllProductCatalog "+err);
 					self.emit("failedGetProductCatalog",{"error":{"code":"ED001","message":"Database Error"}});
@@ -758,7 +762,11 @@ var _applyDiscountToAllProducts = function(self,product){
 		productid_arr.push(product[i].productid);
 	};
 	console.log("productid_arr : "+JSON.stringify(productid_arr));
-	DiscountModel.aggregate([{$unwind:"$products"},{$match:{status:"active",products:{$in:productid_arr},startdate:{$lte:new Date()},expirydate:{$gte:new Date()}}},{$project:{products:1,discountcode:1,percent:1,_id:0}}]).exec(function(err,discountcodes){
+	var currentdate = new Date();
+	var newcurrentdate = currentdate.getFullYear()+"/"+(currentdate.getMonth()+1)+"/"+currentdate.getDate();
+	var newcurrentdate = new Date(newcurrentdate);
+	console.log("newcurrentdate "+newcurrentdate);
+	DiscountModel.aggregate([{$unwind:"$products"},{$match:{status:"active",products:{$in:productid_arr},startdate:{$lte:newcurrentdate},expirydate:{$gte:newcurrentdate}}},{$project:{products:1,discountcode:1,percent:1,_id:0}}]).exec(function(err,discountcodes){
 		if(err){
 			logger.emit("log","_getAllProductCatalog "+err);
 			self.emit("failedGetAllProductCatalog",{"error":{"code":"ED001","message":"Database Error"}});
