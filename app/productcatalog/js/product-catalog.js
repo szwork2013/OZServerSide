@@ -250,21 +250,23 @@ var _addProductCatalog = function(self,branchid,providerid,productcatalog,doc,us
 			logger.emit("error","Database Error:_addProductCatalog"+err,sessionuser.userid);
 			self.emit("failedAddProductCatalog",{"error":{"code":"ED001","message":"Database Error"}});
 		}else{
-			if(productlogo!=undefined){
+		
 	            ///////////////////////////////////////////////////////////////////
 		     	_addProductLogo(providerid,prod_catalog.productid,user,productlogo,function(err,result){
 		     		if(err){
 		     			logger.emit("error","productlogo not uploaded");
+		     			self.emit("failedAddProductCatalog",{"error":{"message":"Product Logo not Uploaded"}});
 		     		}else{
+		     			////////////////////////////////////////////////////////////////////////////////
+						_successfullAddProductCatalog(self,prod_catalog);
+						/////////////////////////////////////////////////
 		     			logger.emit("log","productlogo added with product details");
 		     		}
 		     	});
-            }
+            
             ////////////////////////////////////////////////////////////////////////////////
             _isBranchExistInLeadTimeModel(branchid,providerid,productdata,prod_catalog);
-			////////////////////////////////////////////////////////////////////////////////
-			_successfullAddProductCatalog(self,prod_catalog);
-			/////////////////////////////////////////////////
+			
 		}
 	})
 }
