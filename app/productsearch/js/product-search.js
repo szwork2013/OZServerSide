@@ -825,14 +825,23 @@ var _getCityInWhichProvidersProvidesService = function(self){
 			self.emit("failedGetCityInWhichProvidersProvidesService",{"error":{"message":"Sellers does not exist"}});
 		}else{			
 			console.log("Providers : "+JSON.stringify(doc));
-			ProductProviderModel.aggregate({$match:{providerid:{$in:doc}}},{$project:{branch:1}},{"$unwind":"$branch"},{$project:{deliverycharge:"$branch.deliverycharge"}},{$unwind:"$deliverycharge"},{$group:{_id:null,city:{$addToSet:"$deliverycharge.coverage.city"}}},{$project:{city:1,_id:0}}).exec(function(err,providercity){
+			// var oldQuery = [{$match:{providerid:{$in:doc}}},{$project:{branch:1}},{"$unwind":"$branch"},{$project:{deliverycharge:"$branch.deliverycharge"}},{$unwind:"$deliverycharge"},{$group:{_id:null,city:{$addToSet:"$deliverycharge.coverage.city"}}},{$project:{city:1,_id:0}}];
+			var newQuery = [{$match:{providerid:{$in:doc}}},{$project:{branch:1,"pickupaddresses.addresses":1}},{"$unwind":"$branch"},{$project:{deliverycharge:"$branch.deliverycharge",pickupaddresses:"$pickupaddresses.addresses"}},{$unwind:"$deliverycharge"},{$unwind:"$pickupaddresses"},{$group:{_id:null,citydeliverycharge:{$addToSet:"$deliverycharge.coverage.city"},cityfrompickupaddress:{$addToSet:"$pickupaddresses.city"}}},{$project:{citydeliverycharge:1,cityfrompickupaddress:1,_id:0}}];
+			ProductProviderModel.aggregate(newQuery).exec(function(err,providercity){
 				if(err){
 					self.emit("failedGetCityInWhichProvidersProvidesService",{"error":{"code":"ED001","message":"Error in db "+err}});
 				}else if(providercity.length==0){
 					self.emit("failedGetCityInWhichProvidersProvidesService",{"error":{"message":"Sellers does not exist"}});
 				}else{			
 					console.log("providercity : "+JSON.stringify(providercity));
-					_successfulGetCityInWhichProvidersProvidesService(self,providercity[0].city);
+					var citydeliverycharge = providercity[0].citydeliverycharge;
+					var cityfrompickupaddress = providercity[0].cityfrompickupaddress;
+					var city1 = __.union(citydeliverycharge,cityfrompickupaddress);
+					city =__.uniq(city1,function(test_city){
+					 	return test_city.toLowerCase();
+					});
+					console.log("city : "+city);
+					_successfulGetCityInWhichProvidersProvidesService(self,city);
 				}
 			});
 		}
