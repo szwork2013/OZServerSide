@@ -838,7 +838,7 @@ var _getCityInWhichProvidersProvidesService = function(self){
 					self.emit("failedGetCityInWhichProvidersProvidesService",{"error":{"message":"Sellers does not exist"}});
 				}else{			
 					console.log("providercity : "+JSON.stringify(providercity));
-					var citydeliverycharge = [];//providercity[0].citydeliverycharge;
+					var citydeliverycharge = providercity[0].citydeliverycharge;
 					var cityfrompickupaddress = providercity[0].cityfrompickupaddress;
 					var city1 = __.union(citydeliverycharge,cityfrompickupaddress);
 					city =__.uniq(city1,function(test_city){
