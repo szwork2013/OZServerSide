@@ -996,8 +996,8 @@ exports.getPickupAddressesByBranch=function(req,res){
     res.send(err);
   });
   productprovider.removeAllListeners("successfulGetPickupAddressByBranch");
-  productprovider.on("failedGetPickupAddressByBranch",function(result){
-    console.log("err"+result.error)
+  productprovider.on("successfulGetPickupAddressByBranch",function(result){
+    // console.log("err"+result.error)
     res.send(result);
   });
   productprovider.getPickupAddressesByBranch("user",providerid,branchid);
