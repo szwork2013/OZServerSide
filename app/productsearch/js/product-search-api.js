@@ -146,6 +146,7 @@ exports.searchProvider = function(req,res){
 exports.getProductsOfProviderByCategory = function(req,res){
   var categoryid = req.params.categoryid;
   var providerid = req.params.providerid;
+  var city = req.query.city;
   console.log("categoryid " +categoryid+" providerid "+providerid);  
   var productsearch = new ProductSearch();
   var sessionuserid;// = req.user.userid;
@@ -163,7 +164,7 @@ exports.getProductsOfProviderByCategory = function(req,res){
       doc = JSON.parse(doc);
       res.send(doc);
     });  
-    productsearch.getProductsOfProviderByCategory(categoryid,providerid); 
+    productsearch.getProductsOfProviderByCategory(categoryid,providerid,city); 
 }
 
 exports.getCityInWhichProvidersProvidesService = function(req,res){

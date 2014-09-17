@@ -18,7 +18,7 @@ var events = require("events");
 var logger = require("../../common/js/logger");
 var S = require("string");
 var __=require("underscore");
-var UserModel=require("../../user/js/user-model")
+var UserModel=require("../../user/js/user-model");
 
 var ProductSearch = function(productsearchdata) {
 	this.product = productsearchdata;
@@ -27,18 +27,21 @@ var ProductSearch = function(productsearchdata) {
 ProductSearch.prototype = new events.EventEmitter;
 module.exports = ProductSearch;
 
-var _getAllProvidersWhichProvidesServiceInCity = function(city,callback){
-	ProductProviderModel.find({"branch.deliverycharge.coverage.city":city.toLowerCase()},{providerid:1,_id:0}).exec(function(err,doc){
+var _getAllProviderBranchesWhichProvidesServiceInCity = function(city,callback){
+	// {$or:[{"branch.deliverycharge.coverage.city":new RegExp(city, "i")},{"pickupaddresses.addresses.city":new RegExp(city, "i")}]},{providerid:1,_id:0}
+	var newQuery = [{$unwind:"$branch"},{$match:{$or:[{"branch.deliverycharge.coverage.city":new RegExp(city, "i")},{"branch.location.city":new RegExp(city, "i")}]}},{$group:{_id:null,branchids:{$addToSet:"$branch.branchid"}}}];
+	ProductProviderModel.aggregate(newQuery).exec(function(err,doc){
 		if(err){
 			callback({error:{message:"Error in db to search provider"}});
 		}else if(doc.length==0){
 			callback({error:{message:"Sellers does not provide service in "+city}});
 		}else{
-			var providerids = [];
-			for(var i=0;i<doc.length;i++){
-				providerids.push(doc[i].providerid);
-			}
-			callback(null,providerids);
+			// var providerids = [];
+			// for(var i=0;i<doc.length;i++){
+			// 	providerids.push(doc[i].providerid);
+			// }
+			console.log("Doc : "+JSON.stringify(doc));
+			callback(null,doc[0].branchids);
 		}
 	});
 }
@@ -111,12 +114,13 @@ var _searchProductProviderArea = function(self,productsearchdata,city){
 		
 		_fetchingResult(self,query_match,5);
 	}else{
-		_getAllProvidersWhichProvidesServiceInCity(city,function(err,providerids){
+		_getAllProviderBranchesWhichProvidesServiceInCity(city,function(err,branchids){
+			console.log("branchids : "+branchids);
 			if(err){
 				self.emit("failedToSearchProduct",{"error":{"code":"ED001","message":err}});
 			}else{
 				for(var j=0;j<product_or_name_array.length;j++){
-					var match_object={$match:{status:"publish","provider.providerid":{$in:providerids},$or:[{producttags:product_or_name_array[j]},{categorytags:product_or_name_array[j]},{providertags:product_or_name_array[j]},{locationtags:product_or_name_array[j]}]}}
+					var match_object={$match:{status:"publish","branch.branchid":{$in:branchids},$or:[{producttags:product_or_name_array[j]},{categorytags:product_or_name_array[j]},{providertags:product_or_name_array[j]},{locationtags:product_or_name_array[j]}]}}
 					query_match.push(match_object);
 				}
 				query_match.push({$group:{_id:{branch:"$branch.branchid",provider:"$provider.providerid"},productcatalog:{"$addToSet":{productid:"$productid",productname:"$productname",category:"$category",productdescription:"$productdescription",price:"$price",productlogo:"$productlogo",foodtype:"$foodtype",max_weight:"$max_weight",min_weight:"$min_weight",productnotavailable:"$productnotavailable",specialinstruction:"$specialinstruction",productconfiguration:"$productconfiguration"}},array:{"$addToSet":{branch:"$branch",provider:"$provider"}}}});
@@ -153,12 +157,12 @@ var _searchProduct = function(self,productsearchdata,city){
 		query_match.push({$project:{branch:"$array.branch",provider:"$array.provider",productcatalog:1,branchid:"$array.branch.branchid",_id:0}});
 		_fetchingResult(self,query_match,5);
 	}else{
-		_getAllProvidersWhichProvidesServiceInCity(city,function(err,providerids){
+		_getAllProviderBranchesWhichProvidesServiceInCity(city,function(err,branchids){
 			if(err){
 				self.emit("failedToSearchProduct",{"error":{"code":"ED001","message":err}});
 			}else{
 				for(var j=0;j<product_or_name_array.length;j++){
-					var match_object={$match:{status:"publish","provider.providerid":{$in:providerids},$or:[{producttags:product_or_name_array[j]},{categorytags:product_or_name_array[j]}]}}
+					var match_object={$match:{status:"publish","branch.branchid":{$in:branchids},$or:[{producttags:product_or_name_array[j]},{categorytags:product_or_name_array[j]}]}}
 					query_match.push(match_object);
 				}
 				query_match.push({$group:{_id:{branch:"$branch.branchid",provider:"$provider.providerid"},productcatalog:{"$addToSet":{productid:"$productid",productname:"$productname",category:"$category",productdescription:"$productdescription",price:"$price",productlogo:"$productlogo",foodtype:"$foodtype",max_weight:"$max_weight",min_weight:"$min_weight",productnotavailable:"$productnotavailable",specialinstruction:"$specialinstruction",productconfiguration:"$productconfiguration"}},array:{"$addToSet":{branch:"$branch",provider:"$provider"}}}});
@@ -305,11 +309,11 @@ var _validateRandomProductSearchData = function(self,city){
 	}else{
 		var query_match = [];
 		var boolean;
-		_getAllProvidersWhichProvidesServiceInCity(city.toLowerCase(),function(err,providerids){
+		_getAllProviderBranchesWhichProvidesServiceInCity(city,function(err,branchids){
 			if(err){
 				self.emit("failedRandomProductSearch",{"error":{"code":"ED001","message":err}});
 			}else{
-				query_match.push({$match:{status:"publish","provider.providerid":{$in:providerids}}});
+				query_match.push({$match:{status:"publish","branch.branchid":{$in:branchids}}});
 				query_match.push({$group:{_id:{branch:"$branch.branchid",provider:"$provider.providerid"},productcatalog:{"$addToSet":{productid:"$productid",productname:"$productname",category:"$category",productdescription:"$productdescription",price:"$price",productlogo:"$productlogo",foodtype:"$foodtype",max_weight:"$max_weight",min_weight:"$min_weight",productnotavailable:"$productnotavailable",specialinstruction:"$specialinstruction",productconfiguration:"$productconfiguration"}},array:{"$addToSet":{branch:"$branch",provider:"$provider"}}}});
 				query_match.push({$unwind:"$array"});
 				query_match.push({$project:{branch:"$array.branch",provider:"$array.provider",productcatalog:1,branchid:"$array.branch.branchid",_id:0}});
@@ -766,27 +770,40 @@ var successfulsearchProvider = function(self,doc){
 // 	self.emit("successfulGetProductProviderByFourthLevelCategory",{"success":{"message":"Getting Sellers List By Category Successfully","providers":doc}});
 // }
 
-ProductSearch.prototype.getProductsOfProviderByCategory = function(categoryid,providerid){
+ProductSearch.prototype.getProductsOfProviderByCategory = function(categoryid,providerid,city){
 	var self=this;
-	_validateProductsOfProviderByCategory(self,categoryid,providerid);
+	_validateProductsOfProviderByCategory(self,categoryid,providerid,city);
 }
-var _validateProductsOfProviderByCategory = function(self,categoryid,providerid){
+var _validateProductsOfProviderByCategory = function(self,categoryid,providerid,city){
 	if(categoryid == undefined || categoryid == ""){
 		self.emit("failedGetProductsOfProviderByCategory",{"error":{"message":"Please enter categoryid"}});
 	}else if(providerid == undefined || providerid == ""){
 		self.emit("failedGetProductsOfProviderByCategory",{"error":{"message":"Please enter providerid"}});
 	}else{
-		_getProductsOfProviderByCategory(self,categoryid,providerid);	
+		console.log("City : "+city);
+		var query_match = [];
+		if(city == undefined || city == "" || city.toLowerCase() == "all"){
+			query_match.push({$match:{status:"publish","provider.providerid":providerid,"category.id":categoryid}});
+			_getProductsOfProviderByCategory(self,query_match);
+		}else{
+			_getAllProviderBranchesWhichProvidesServiceInCity(city,function(err,branchids){
+				console.log(" branchids : "+branchids);
+				if(err){
+					console.log("Database Error : "+err);
+					self.emit("failedGetProductsOfProviderByCategory",{"error":{"code":"ED001","message":err}});
+				}else{
+					query_match.push({$match:{status:"publish","branch.branchid":{$in:branchids},"category.id":categoryid}});
+					_getProductsOfProviderByCategory(self,query_match);
+				}
+			});
+		}		
 	}	
 }
-var _getProductsOfProviderByCategory = function(self,categoryid,providerid){
-	var query_match = [];
-	query_match.push({$match:{status:"publish","provider.providerid":providerid,"category.id":categoryid}});
+var _getProductsOfProviderByCategory = function(self,query_match){	
 	query_match.push({$group:{_id:{branch:"$branch.branchid",provider:"$provider.providerid"},productcatalog:{"$addToSet":{productid:"$productid",productname:"$productname",category:"$category",productdescription:"$productdescription",price:"$price",productlogo:"$productlogo",foodtype:"$foodtype",max_weight:"$max_weight",min_weight:"$min_weight",productnotavailable:"$productnotavailable",specialinstruction:"$specialinstruction",productconfiguration:"$productconfiguration"}},array:{"$addToSet":{branch:"$branch",provider:"$provider"}}}});
 	query_match.push({$unwind:"$array"});
 	query_match.push({$project:{branch:"$array.branch",provider:"$array.provider",productcatalog:1,branchid:"$array.branch.branchid",_id:0}});
-	// query_match.push({$group:{_id:"$provider.providername",productcatalog:{"$addToSet":{productid:"$productid",productname:"$productname",category:"$category",productdescription:"$productdescription",price:"$price",productlogo:"$productlogo",foodtype:"$foodtype",max_weight:"$max_weight",min_weight:"$min_weight",productnotavailable:"$productnotavailable",specialinstruction:"$specialinstruction",productconfiguration:"$productconfiguration"}}}});//,array:{"$addToSet":{branch:"$branch",provider:"$provider"}}
-	// query_match.push({$project:{productcatalog:1,providername:"$_id",_id:0}});
+	
 	_getSearchResultsByQuery(query_match,function(err,productlist){
 		if(err){
 			logger.emit("error","Database Error "+JSON.stringify(err));
@@ -829,8 +846,8 @@ var _getCityInWhichProvidersProvidesService = function(self){
 			self.emit("failedGetCityInWhichProvidersProvidesService",{"error":{"message":"Sellers does not exist"}});
 		}else{			
 			console.log("Providers : "+JSON.stringify(doc));
-			// var oldQuery = [{$match:{providerid:{$in:doc}}},{$project:{branch:1}},{"$unwind":"$branch"},{$project:{deliverycharge:"$branch.deliverycharge"}},{$unwind:"$deliverycharge"},{$group:{_id:null,city:{$addToSet:"$deliverycharge.coverage.city"}}},{$project:{city:1,_id:0}}];
-			var newQuery = [{$match:{providerid:{$in:doc}}},{$project:{branch:1,"pickupaddresses.addresses":1}},{"$unwind":"$branch"},{$project:{deliverycharge:"$branch.deliverycharge",pickupaddresses:"$pickupaddresses.addresses"}},{$unwind:"$deliverycharge"},{$unwind:"$pickupaddresses"},{$group:{_id:null,citydeliverycharge:{$addToSet:"$deliverycharge.coverage.city"},cityfrompickupaddress:{$addToSet:"$pickupaddresses.city"}}},{$project:{citydeliverycharge:1,cityfrompickupaddress:1,_id:0}}];
+			// var oldQuery = [{$match:{providerid:{$in:doc}}},{$project:{branch:1,"pickupaddresses.addresses":1}},{"$unwind":"$branch"},{$project:{deliverycharge:"$branch.deliverycharge",pickupaddresses:"$pickupaddresses.addresses"}},{$unwind:"$deliverycharge"},{$unwind:"$pickupaddresses"},{$group:{_id:null,citydeliverycharge:{$addToSet:"$deliverycharge.coverage.city"},cityfrompickupaddress:{$addToSet:"$pickupaddresses.city"}}},{$project:{citydeliverycharge:1,cityfrompickupaddress:1,_id:0}}];
+			var newQuery = [{$match:{providerid:{$in:doc}}},{$project:{branch:1}},{"$unwind":"$branch"},{$project:{deliverycharge:"$branch.deliverycharge",branchlocation:"$branch.location"}},{$unwind:"$deliverycharge"},{$group:{_id:null,citydeliverycharge:{$addToSet:"$deliverycharge.coverage.city"},cityfrombranchlocation:{$addToSet:"$branchlocation.city"}}},{$project:{citydeliverycharge:1,cityfrombranchlocation:1,_id:0}}];
 			ProductProviderModel.aggregate(newQuery).exec(function(err,providercity){
 				if(err){
 					self.emit("failedGetCityInWhichProvidersProvidesService",{"error":{"code":"ED001","message":"Error in db "+err}});
@@ -839,11 +856,10 @@ var _getCityInWhichProvidersProvidesService = function(self){
 				}else{			
 					console.log("providercity : "+JSON.stringify(providercity));
 
-
 					var citydeliverycharge = providercity[0].citydeliverycharge;
+					var cityfrombranchlocation = providercity[0].cityfrombranchlocation;
 
-					var cityfrompickupaddress = providercity[0].cityfrompickupaddress;
-					var city1 = __.union(citydeliverycharge,cityfrompickupaddress);
+					var city1 = __.union(citydeliverycharge,cityfrombranchlocation);
 					city =__.uniq(city1,function(test_city){
 					 	return test_city.toLowerCase();
 					});
