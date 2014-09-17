@@ -2728,6 +2728,7 @@ var _successfulGetPickupAddress=function(self,doc){
 }
 ProductProvider.prototype.getPickupAddressesByBranch = function(user,providerid,branchid) {
 	var self=this;
+	
 	//////////////////////////////////////////
 	_getPickupAddressesByBranch(self,user,providerid,branchid);
 	//////////////////////////////////////////
@@ -2740,10 +2741,21 @@ var _getPickupAddressesByBranch = function(self,user,providerid,branchid){
 			self.emit("failedGetPickupAddressByBranch",{"error":{"code":"ED001","message":"Database ErrorError"}});
 		}else if(doc.length!=0){
 			var pickupaddresses=doc[0];
-			pickupaddresses=__.where(pickupaddresses.pickupaddress, {city:new RegExp(pickupaddresses.city,'i')});
+			pickupaddresses=JSON.stringify(pickupaddresses);
+			pickupaddresses=JSON.parse(pickupaddresses);
+			var city=pickupaddresses.city;
+			pickupaddresses=__.filter(pickupaddresses.pickupaddress, function(address){
+				return new RegExp(city,'i').test(address.city)
+			});
+			if(pickupaddresses.length==0){
+				self.emit("failedGetPickupAddressByBranch",{"error":{"message":"Pickup addresses does not exists"}});
+			}else{
 			//////////////////////////////////////////
 			_successfulGetPickupAddressByBranch(self,pickupaddresses)
-			///////////////////////////////////////////
+			///////////////////////////////////////////	
+			}
+			
+			
 		}else{
 			self.emit("failedGetPickupAddressByBranch",{"error":{"message":"Incorrect seller id"}});
 		}
