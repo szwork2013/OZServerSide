@@ -639,17 +639,16 @@ var _validateSearchProviderData = function(self,providername){
 					UserModel.find({userid:{$in:useridsarray}},{userid:1,firstname:1,mobileno:1},function(err,users){
 						if(err){
 							self.emit("failedTosearchProvider",{"error":{"code":"ED001","message":"Error in db to search provider "+err}});
-						}else if(users.length==0){
-							self.emit("failedTosearchProvider",{"error":{"message":"Seller user details not exist"}});
 						}else{
-							users=JSON.stringify(users);
-							users=JSON.parse(users);
+							if(users.length!=0){
+								users=JSON.stringify(users);
+							  users=JSON.parse(users);
+								for(var i=0;i<resultarray.length;i++){
+									var user= __.findWhere(users, {userid:resultarray[i].userid}); 
+									resultarray[i].user=user;
+								};	
+							}
 							
-							for(var i=0;i<resultarray.length;i++){
-								var user= __.findWhere(users, {userid:resultarray[i].userid}); 
-								resultarray[i].user=user;
-								
-							};
 							//////////////////////////////////
 							successfulsearchProvider(self,resultarray);
 							//////////////////////////////////
