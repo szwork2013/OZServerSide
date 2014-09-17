@@ -285,9 +285,9 @@ var _getAllAreasByCity = function(self,city,result){
 	console.log(result);
 	var query;	
 	if(result == "jsonarray"){
-		query = [{$unwind:"$area"},{$match:{city:city}},{$group:{_id:"",area:{$addToSet:{area:"$area",zipcode:"$zipcode",city:"$city"}}}}];
+		query = [{$unwind:"$area"},{$match:{city:new RegExp('^'+city, "i")}},{$group:{_id:"",area:{$addToSet:{area:"$area",zipcode:"$zipcode",city:"$city"}}}}];
 	}else{
-		query = [{$unwind:"$area"},{$match:{city:city}},{$group:{_id:"$city",area:{$addToSet:"$area"}}}];
+		query = [{$unwind:"$area"},{$match:{city:new RegExp('^'+city, "i")}},{$group:{_id:"$city",area:{$addToSet:"$area"}}}];
 	}	
 	LocationModel.aggregate(query).exec(function(err,doc){
 		if(err){
