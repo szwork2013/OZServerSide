@@ -14,6 +14,7 @@ exports.init = function (app) {
  	app.post('/api/pickupaddress/:providerid',auth,api.productproviderapi.addPickupAddresses);
  	app.put('/api/pickupaddress/:providerid/:addressid',auth,api.productproviderapi.updatePickupAddresses); 	
  	app.get('/api/pickupaddress/:providerid',auth,api.productproviderapi.getPickupAddresses);
+ 	app.get('/api/pickupaddress/:providerid/:branchid',auth,api.productproviderapi.getPickupAddressesByBranch);
  	app.delete('/api/pickupaddress/:providerid/:addressid',auth,api.productproviderapi.deletePickupAddresses);
 
  	app.post("/api/branchpolicy/:providerid/:branchid",auth,api.productproviderapi.addProviderPolicy);
