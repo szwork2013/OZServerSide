@@ -2735,7 +2735,7 @@ ProductProvider.prototype.getPickupAddressesByBranch = function(user,providerid,
 }
 
 var _getPickupAddressesByBranch = function(self,user,providerid,branchid){
-	ProductProviderModel.aggregate({$match:{providerid:providerid}},{$unwind:"$branch"},{$match:{"branch.branchid":branchid}},{$project:{pickupaddress:"$pickupaddresses.addresses",city:"$branch.location.city"}},function(err,doc){
+	ProductProviderModel.aggregate({$match:{providerid:providerid}},{$unwind:"$branch"},{$match:{"branch.branchid":branchid}},{$project:{pickupaddress:"$pickupaddresses.addresses",location:"$branch.location"}},function(err,doc){
 		if(err){
 			logger.emit('error',"Database ErrorError  _getPickupAddresses"+err);
 			self.emit("failedGetPickupAddressByBranch",{"error":{"code":"ED001","message":"Database ErrorError"}});
@@ -2743,10 +2743,14 @@ var _getPickupAddressesByBranch = function(self,user,providerid,branchid){
 			var pickupaddresses=doc[0];
 			pickupaddresses=JSON.stringify(pickupaddresses);
 			pickupaddresses=JSON.parse(pickupaddresses);
-			var city=pickupaddresses.city;
+			var city=pickupaddresses.location.city;
+			var branchaddress=pickupaddresses.location;
 			pickupaddresses=__.filter(pickupaddresses.pickupaddress, function(address){
 				return new RegExp(city,'i').test(address.city)
 			});
+			if(pickupaddresses.length==0){
+				pickupaddresses.push(branchaddress);
+			}
 			if(pickupaddresses.length==0){
 				self.emit("failedGetPickupAddressByBranch",{"error":{"message":"Pickup addresses does not exists"}});
 			}else{
