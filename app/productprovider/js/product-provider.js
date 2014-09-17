@@ -2726,6 +2726,32 @@ var _getPickupAddresses = function(self,user,providerid){
 var _successfulGetPickupAddress=function(self,doc){
 	self.emit("successfulGetPickupAddress",{"success":{"message":"Getting Pickup Address Successfully","addresses":doc}});
 }
+ProductProvider.prototype.getPickupAddressesByBranch = function(user,providerid,branchid) {
+	var self=this;
+	//////////////////////////////////////////
+	_getPickupAddressesByBranch(self,user,providerid,branchid);
+	//////////////////////////////////////////
+}
+
+var _getPickupAddressesByBranch = function(self,user,providerid,branchid){
+	ProductProviderModel.aggregate({$match:{providerid:providerid}},{$unwind:"$branch"},{$match:{"branch.branchid":branchid}},{$project:{pickupaddress:"$pickupaddresses.addresses",city:"$branch.location.city"}},function(err,doc){
+		if(err){
+			logger.emit('error',"Database ErrorError  _getPickupAddresses"+err);
+			self.emit("failedGetPickupAddressByBranch",{"error":{"code":"ED001","message":"Database ErrorError"}});
+		}else if(doc.length!=0){
+			var pickupaddresses=doc[0];
+			pickupaddresses=__.where(pickupaddresses.pickupaddress, {city:new RegExp(pickupaddresses.city,'i')});
+			//////////////////////////////////////////
+			_successfulGetPickupAddressByBranch(self,pickupaddresses)
+			///////////////////////////////////////////
+		}else{
+			self.emit("failedGetPickupAddressByBranch",{"error":{"message":"Incorrect seller id"}});
+		}
+	})
+}
+var _successfulGetPickupAddressByBranch=function(self,doc){
+	self.emit("successfulGetPickupAddressByBranch",{"success":{"message":"Getting Pickup Address Successfully","addresses":doc}});
+}
 
 ProductProvider.prototype.deletePickupAddresses = function(user,providerid,addressid) {
 	var self=this;
