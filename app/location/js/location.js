@@ -118,7 +118,7 @@ var _getAllCountries = function(self,key,value,user){
 	});
 }
 var _getAllStatesForSpecificCountry = function(self,key,value,user){
-	LocationModel.aggregate({$match:{country:value}},{$group:{_id:"$country",states:{$addToSet:"$state"}}},{$project:{country:"$_id",states:"$states",_id:0}}).exec(function(err,doc){
+	LocationModel.aggregate({$match:{country:new RegExp('^'+value, "i")}},{$group:{_id:"$country",states:{$addToSet:"$state"}}},{$project:{country:"$_id",states:"$states",_id:0}}).exec(function(err,doc){
 		if(err){
 			logger.emit("error","Database Error : _getAllStatesForSpecificCountry " + err);
 			self.emit("failedGetLocationDetails",{"error":{"code":"ED001","message":"Database Error"}});
@@ -130,7 +130,7 @@ var _getAllStatesForSpecificCountry = function(self,key,value,user){
 	});
 }
 var _getAllcityForSpecificState = function(self,key,value,user){	
-	LocationModel.aggregate({$match:{state:value}},{$group:{_id:"$state",city:{$addToSet:"$city"}}},{$project:{state:"$_id",city:"$city",_id:0}}).exec(function(err,doc){
+	LocationModel.aggregate({$match:{state:new RegExp('^'+value, "i")}},{$group:{_id:"$state",city:{$addToSet:"$city"}}},{$project:{state:"$_id",city:"$city",_id:0}}).exec(function(err,doc){
 		if(err){
 			logger.emit("error","Database Error : _getAllcityForSpecificState " + err);
 			self.emit("failedGetLocationDetails",{"error":{"code":"ED001","message":"Database Error"}});
@@ -142,7 +142,7 @@ var _getAllcityForSpecificState = function(self,key,value,user){
 	});
 }
 var _getAllZipcodesForSpecificCity = function(self,key,value,user){
-	LocationModel.aggregate({$match:{city:value}},{$group:{_id:"$city",zipcode:{$addToSet:"$zipcode"}}}).exec(function(err,doc){
+	LocationModel.aggregate({$match:{city:new RegExp('^'+value, "i")}},{$group:{_id:"$city",zipcode:{$addToSet:"$zipcode"}}}).exec(function(err,doc){
 		if(err){
 			logger.emit("error","Database Error : _getAllZipcodesForSpecificCity " + err);
 			self.emit("failedGetLocationDetails",{"error":{"code":"ED001","message":"Database Error"}});

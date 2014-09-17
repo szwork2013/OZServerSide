@@ -53,7 +53,7 @@ var _getSearchResultsByQuery=function(query,callback){
 			callback({error:{message:"Error in db to search provider "+err}});
 			// self.emit("failedTosearchProvider",{"error":{"code":"ED001","message":"Error in db to search provider "+err}});
 		}else if(doc.length==0){
-			callback({error:{message:"Product not found"}});
+			callback({error:{message:"Products not found"}});
 			// self.emit("failedTosearchProvider",{"error":{"message":"Seller not found"}});
 		}else{
 			callback(null,doc);
