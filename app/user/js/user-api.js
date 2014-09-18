@@ -533,11 +533,11 @@ exports.getCountry = function(req, res) {
 };
 
 exports.getOrderZappContactSupportNumber = function(req, res){
-  var oz_contactsupportno = CONFIG.oz_contactsupportno;
+  var oz_contactsupportno = CONFIG.oz_contactsupport;
   var user=new User();
   user.removeAllListeners("failedGetOrderZappContactSupportNumber");
   user.on("failedGetOrderZappContactSupportNumber",function(err){
-    logger.emit("error", err.error.message,req.user.userid);
+    // logger.emit("error", err.error.message,req.user.userid);
     //user.removeAllListeners();
     res.send(err);
   });
@@ -550,7 +550,7 @@ exports.getOrderZappContactSupportNumber = function(req, res){
   // user.getCountry();
   console.log(""+JSON.stringify(oz_contactsupportno));
   if(oz_contactsupportno != undefined){
-    user.emit("successfulGetOrderZappContactSupportNumber",{"success":{"message":"Getting OrderZapp Contact Support No. Successfully","oz_conatactsupport":oz_contactsupportno}});    
+    user.emit("successfulGetOrderZappContactSupportNumber",{"success":{"message":"Getting OrderZapp Contact Support No. Successfully","oz_contactsupport":oz_contactsupportno}});    
   }else{
     user.emit("failedGetOrderZappContactSupportNumber",{"error":{"message":"OrderZapp Contact Support No. Does Not Exist"}});
   }
