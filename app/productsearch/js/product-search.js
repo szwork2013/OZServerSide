@@ -791,7 +791,7 @@ var _validateProductsOfProviderByCategory = function(self,categoryid,providerid,
 					console.log("Database Error : "+err);
 					self.emit("failedGetProductsOfProviderByCategory",{"error":{"code":"ED001","message":err}});
 				}else{
-					query_match.push({$match:{status:"publish","branch.branchid":{$in:branchids},"category.id":categoryid}});
+					query_match.push({$match:{status:"publish","provider.providerid":providerid,"branch.branchid":{$in:branchids},"category.id":categoryid}});
 					_getProductsOfProviderByCategory(self,query_match);
 				}
 			});
