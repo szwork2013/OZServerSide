@@ -645,7 +645,7 @@ var _isAuthorizeUserToGetMemberDetails=function(self,sessionuser,providerid,bran
 			}else if(!smstemplate){
 				logger.emit("error","SMS template not found for productprovidermemberremove in lang"+user.preffered_lang)
 			}else{
-							   				
+					smstemplate=smstemplate.template;		   				
 				self.emit("sendsmsnotificationforremovingmember",user,branch,groupdata,smstemplate)
 			}
 		})

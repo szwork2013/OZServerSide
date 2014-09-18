@@ -658,7 +658,7 @@ User.prototype.sendPasswordSetting = function(mobileno) {
   }
 };
 var _sendPasswordSetting=function(self,mobileno){
-  UserModel.findOne({mobileno:mobileno},{mobileno:1,userid:1},function(err,user){
+  UserModel.findOne({mobileno:mobileno},{mobileno:1,userid:1,preffered_lang:1},function(err,user){
     if(err){
       logger.emit("error","sendPasswordSetting"+err)
       self.emit("failedSendPasswordSetting",{"error":{"code":"ED001","message":"Database Issue"}});
@@ -679,7 +679,7 @@ var _createOTPForPasswordSettings=function(self,user){
       self.emit("failedUserRegistration",{"error":{"code":"ED001","message":"Database Issue"}});
     }else if(otpdata){
         var tempname="password";
-        var lang="EN"; 
+        var lang=user.preffered_lang;
         //////////////////////////////////////////////////////////////////////
         _sendPasswordOtpToMobileNumber(self,user.mobileno,otpdata.otp,tempname,lang)
         ////////////////////////////////////////////////////////////////////////
@@ -764,7 +764,7 @@ var _sendNewPassWord=function(self,user){
       logger.emit("error","Database error:/_sendNewPassWord"+err);
       self.emit("failedresetPasswordRequest",{"error":{"message":err.error.message}})             
     }else{
-      UserModel.update({userid:user.userid},{$set:{password:hashpassword}},function(err,passwordchangestatus){
+      UserModel.update({userid:user.userid},{$set:{password:hashpassword,verified:true}},function(err,passwordchangestatus){
         if(err){
           logger.emit("error","Database error:/_sendNewPassWord"+err);
           self.emit("failedresetPasswordRequest",{"error":{"code":"ED001","message":"Database Error"}})             
