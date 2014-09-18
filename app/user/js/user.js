@@ -839,7 +839,7 @@ var _regenerateotp=function(self,user){
         var tempname="otp";
         var lang=user.preffered_lang; 
         ////////////////////////
-        _sendOTPToMobileNumber(user.mobileno,otpdata.otp,tempname,lang,function(result){
+        _sendOTPToMobileNumber(user.mobileno,otpdata.otp,tempname,lang,user,function(result){
           if(result.error!=undefined){
             self.emit("failedregenerateotp",result);
           }else{
