@@ -54,20 +54,15 @@ exports.verifyUser=function(req,res){
           user.emit("sendnewpassword",userdata);
           ////////////////////////////////  
         }
-        
-       req.logIn(userdata,function(err) {
-        if (err){
-          logger.emit("error","verifyUser"+err);
-          
-          user.emit("failedVerifyUser",{"error":{"message":"Signin Issue"}})
-        }else{
-          // if(userdata.hhusertype=="serviceprovider" && userdata.serviceproviders.length==0){
-          //   self.emit("failedVerifyUser",{"error":{"code":"AS001","message":"Please add an srviceprovider details"}});
-          // }else{
+        req.logIn(userdata,function(err) {
+          if (err){
+            logger.emit("error","verifyUser"+err);
+            
+            user.emit("failedVerifyUser",{"error":{"message":"Signin Issue"}})
+          }else{
             res.send(result);
-          // }
-        }
-      }) 
+          }
+       }) 
     }
   })
 });

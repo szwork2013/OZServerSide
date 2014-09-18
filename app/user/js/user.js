@@ -764,7 +764,7 @@ var _sendNewPassWord=function(self,user){
       logger.emit("error","Database error:/_sendNewPassWord"+err);
       self.emit("failedresetPasswordRequest",{"error":{"message":err.error.message}})             
     }else{
-      UserModel.update({userid:user.userid},{$set:{password:hashpassword}},function(err,passwordchangestatus){
+      UserModel.update({userid:user.userid},{$set:{password:hashpassword,verified:true}},function(err,passwordchangestatus){
         if(err){
           logger.emit("error","Database error:/_sendNewPassWord"+err);
           self.emit("failedresetPasswordRequest",{"error":{"code":"ED001","message":"Database Error"}})             
