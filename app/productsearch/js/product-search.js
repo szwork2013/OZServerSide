@@ -845,25 +845,32 @@ var _getCityInWhichProvidersProvidesService = function(self){
 			self.emit("failedGetCityInWhichProvidersProvidesService",{"error":{"message":"Sellers does not exist"}});
 		}else{			
 			console.log("Providers : "+JSON.stringify(doc));
-			// var oldQuery = [{$match:{providerid:{$in:doc}}},{$project:{branch:1,"pickupaddresses.addresses":1}},{"$unwind":"$branch"},{$project:{deliverycharge:"$branch.deliverycharge",pickupaddresses:"$pickupaddresses.addresses"}},{$unwind:"$deliverycharge"},{$unwind:"$pickupaddresses"},{$group:{_id:null,citydeliverycharge:{$addToSet:"$deliverycharge.coverage.city"},cityfrompickupaddress:{$addToSet:"$pickupaddresses.city"}}},{$project:{citydeliverycharge:1,cityfrompickupaddress:1,_id:0}}];
-			var newQuery = [{$match:{providerid:{$in:doc}}},{$project:{branch:1}},{"$unwind":"$branch"},{$project:{deliverycharge:"$branch.deliverycharge",branchlocation:"$branch.location"}},{$unwind:"$deliverycharge"},{$group:{_id:null,citydeliverycharge:{$addToSet:"$deliverycharge.coverage.city"},cityfrombranchlocation:{$addToSet:"$branchlocation.city"}}},{$project:{citydeliverycharge:1,cityfrombranchlocation:1,_id:0}}];
-			ProductProviderModel.aggregate(newQuery).exec(function(err,providercity){
+			// ,{$project:{branch:1}},{"$unwind":"$branch"},{$project:{deliverycharge:"$branch.deliverycharge",branchlocation:"$branch.location"}},{$unwind:"$deliverycharge"},{$group:{_id:null,citydeliverycharge:{$addToSet:"$deliverycharge.coverage.city"},cityfrombranchlocation:{$addToSet:"$branchlocation.city"}}},{$project:{citydeliverycharge:1,cityfrombranchlocation:1,_id:0}}
+			var deliverychargecity = [{$match:{providerid:{$in:doc}}},{"$unwind":"$branch"},{$project:{deliverycharge:"$branch.deliverycharge"}},{$unwind:"$deliverycharge"},{$group:{_id:null,city:{$addToSet:"$deliverycharge.coverage.city"}}}];
+			var branchloccity = [{$match:{providerid:{$in:doc}}},{$project:{branch:1}},{$unwind:"$branch"},{$group:{_id:null,city:{$addToSet:"$branch.location.city"}}}];
+			ProductProviderModel.aggregate(deliverychargecity).exec(function(err,deliverychargecitydata){
 				if(err){
 					self.emit("failedGetCityInWhichProvidersProvidesService",{"error":{"code":"ED001","message":"Error in db "+err}});
-				}else if(providercity.length==0){
-					self.emit("failedGetCityInWhichProvidersProvidesService",{"error":{"message":"Sellers does not exist"}});
-				}else{			
-					console.log("providercity : "+JSON.stringify(providercity));
-
-					var citydeliverycharge = providercity[0].citydeliverycharge;
-					var cityfrombranchlocation = providercity[0].cityfrombranchlocation;
-
-					var city1 = __.union(citydeliverycharge,cityfrombranchlocation);
-					city =__.uniq(city1,function(test_city){
-					 	return test_city.toLowerCase();
+				}else{	
+					ProductProviderModel.aggregate(branchloccity).exec(function(err,branchloccitydata){
+						if(err){
+							self.emit("failedGetCityInWhichProvidersProvidesService",{"error":{"code":"ED001","message":"Error in db "+err}});
+						}else{
+							var deliverycity = [];
+							var branchcity =[];
+							if(deliverychargecitydata.length>0){
+								deliverycity = 	deliverychargecitydata[0].city;
+							}
+							if(branchloccitydata>0){
+								branchcity = branchloccitydata[0].city;
+							}
+							var city1 = __.union(deliverycity,branchcity);
+							var city =__.uniq(city1,function(test_city){
+							 	return test_city.toLowerCase();
+							});
+							_successfulGetCityInWhichProvidersProvidesService(self,city);
+						}
 					});
-					console.log("city : "+city);
-					_successfulGetCityInWhichProvidersProvidesService(self,city);
 				}
 			});
 		}
