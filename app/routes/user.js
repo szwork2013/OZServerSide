@@ -15,9 +15,11 @@ exports.init = function (app) {
 	app.post('/api/resetpassword',api.userapi.resetPasswordRequest);
 	app.post('/api/regenerateverificationtoken',api.userapi.regenerateotp);
 	app.get('/api/countrycode',api.userapi.getCountryCodes);
+    app.get('/api/country',api.userapi.getCountry);
     app.post('/api/verifyproviderrequest',api.userapi.confirmjoinproviderrequest);
     app.get('/api/logout',auth,api.userapi.signOutSessions);
     app.get('/api/productrecommend/:productid',auth,api.userapi.productRecommend);
+    app.get('/api/orderzapp/contactsupport',api.userapi.getOrderZappContactSupportNumber);
 
     //Api's for Admin Screen
     app.get('/api/usersorders/count',auth,api.userapi.userordersCount);
@@ -30,6 +32,7 @@ exports.init = function (app) {
 
     //feedback form
     app.post("/api/feedback",auth,api.commonapi.giveFeedback);
-    app.get('/api/feedback',auth,api.commonapi.getAllFeedback)
+    app.get('/api/feedback',auth,api.commonapi.getAllFeedback);
+    app.get('/api/loademailtemplates',api.emailtemplateapi.loadEmailTemplate);
     
 }

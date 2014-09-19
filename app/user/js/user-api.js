@@ -54,20 +54,15 @@ exports.verifyUser=function(req,res){
           user.emit("sendnewpassword",userdata);
           ////////////////////////////////  
         }
-        
-       req.logIn(userdata,function(err) {
-        if (err){
-          logger.emit("error","verifyUser"+err);
-          
-          user.emit("failedVerifyUser",{"error":{"message":"Signin Issue"}})
-        }else{
-          // if(userdata.hhusertype=="serviceprovider" && userdata.serviceproviders.length==0){
-          //   self.emit("failedVerifyUser",{"error":{"code":"AS001","message":"Please add an srviceprovider details"}});
-          // }else{
+        req.logIn(userdata,function(err) {
+          if (err){
+            logger.emit("error","verifyUser"+err);
+            
+            user.emit("failedVerifyUser",{"error":{"message":"Signin Issue"}})
+          }else{
             res.send(result);
-          // }
-        }
-      }) 
+          }
+       }) 
     }
   })
 });
@@ -193,7 +188,7 @@ exports.signin = function(req, res) {
 }
 passport.use( new LocalStrategy({ usernameField: 'mobileno', passwordField: 'password'},
   function(mobileno, password, done) {
-    userModel.findOne({$or:[{mobileno:mobileno.toLowerCase()},{username:mobileno.toLowerCase()}],status:"active"},{password:1,mobileno:1,username:1,verified:1,isAdmin:1,usertype:1}, function(err, user) {
+    userModel.findOne({$or:[{mobileno:mobileno.toLowerCase()},{username:mobileno.toLowerCase()}],status:"active"},{password:1,mobileno:1,username:1,verified:1,isAdmin:1,usertype:1,countrycode:1}, function(err, user) {
       if (err){
         console.log("error",err)
        return done(err); 
@@ -518,4 +513,45 @@ exports.uploadAPK=function(req,res){
   }else{
     user.uploadAPK(req.user,apk);
   } 
+}
+
+exports.getCountry = function(req, res) {
+  var user=new User();
+  user.removeAllListeners("failedGetCountry");
+  user.on("failedGetCountry",function(err){
+    logger.emit("error", err.error.message,req.user.userid);
+    //user.removeAllListeners();
+    res.send(err);
+  });
+  user.removeAllListeners("successfulGetCountry");
+  user.on("successfulGetCountry",function(result){
+    // logger.emit("info", result.success.message,req.user.userid);
+    //user.removeAllListeners();
+    res.send(result);
+  });
+  user.getCountry();
+};
+
+exports.getOrderZappContactSupportNumber = function(req, res){
+  var oz_contactsupportno = CONFIG.oz_contactsupport;
+  var user=new User();
+  user.removeAllListeners("failedGetOrderZappContactSupportNumber");
+  user.on("failedGetOrderZappContactSupportNumber",function(err){
+    // logger.emit("error", err.error.message,req.user.userid);
+    //user.removeAllListeners();
+    res.send(err);
+  });
+  user.removeAllListeners("successfulGetOrderZappContactSupportNumber");
+  user.on("successfulGetOrderZappContactSupportNumber",function(result){
+    // logger.emit("info", result.success.message,req.user.userid);
+    //user.removeAllListeners();
+    res.send(result);
+  });
+  // user.getCountry();
+  console.log(""+JSON.stringify(oz_contactsupportno));
+  if(oz_contactsupportno != undefined){
+    user.emit("successfulGetOrderZappContactSupportNumber",{"success":{"message":"Getting OrderZapp Contact Support No. Successfully","oz_contactsupport":oz_contactsupportno}});    
+  }else{
+    user.emit("failedGetOrderZappContactSupportNumber",{"error":{"message":"OrderZapp Contact Support No. Does Not Exist"}});
+  }
 }

@@ -13,11 +13,13 @@
 var app=require("../../../ozapp");
 var CONFIG = require("config").OrderZapp;
 var MobileDetect = require('mobile-detect');
+var __=require("underscore");
 auth = function (req, res, next) {
 	if (req.isAuthenticated()) {
 	  	// console.log("test"+req.user);
 	  	return next();
 	}
+	
 	//app.set("userid","");
 	// req.session.destroy();
 	res.send({"error":{"code":"AL001","message":"Please login to continue this operation"}});

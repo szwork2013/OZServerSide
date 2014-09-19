@@ -3,6 +3,7 @@ var logger=require("../../common/js/logger");
 var CategoryModel = require("../../productcategory/js/product-category-model");
 var ProductProviderModel = require("../../productprovider/js/productprovider-model");
 var ProductCatalogModel = require("./product-catalog-model");
+var DiscountModel = require("../../discount/js/discount-model");
 var UserModel=require("../../user/js/user-model");
 var fs=require("fs");
 var path=require("path");
@@ -11,7 +12,9 @@ var CONFIG=require("config").OrderZapp;
 var amazonbucket=CONFIG.amazonbucket;
 var isNumeric = require("isnumeric");
 var exec = require('child_process').exec;
+
 AWS.config.update(CONFIG.amazon)
+
 AWS.config.update({region:'ap-southeast-1'});
 var s3bucket = new AWS.S3();
 var S=require("string");
@@ -247,21 +250,23 @@ var _addProductCatalog = function(self,branchid,providerid,productcatalog,doc,us
 			logger.emit("error","Database Error:_addProductCatalog"+err,sessionuser.userid);
 			self.emit("failedAddProductCatalog",{"error":{"code":"ED001","message":"Database Error"}});
 		}else{
-			if(productlogo!=undefined){
+		
 	            ///////////////////////////////////////////////////////////////////
 		     	_addProductLogo(providerid,prod_catalog.productid,user,productlogo,function(err,result){
 		     		if(err){
 		     			logger.emit("error","productlogo not uploaded");
+		     			self.emit("failedAddProductCatalog",{"error":{"message":"Product Logo not Uploaded"}});
 		     		}else{
+		     			////////////////////////////////////////////////////////////////////////////////
+						_successfullAddProductCatalog(self,prod_catalog);
+						/////////////////////////////////////////////////
 		     			logger.emit("log","productlogo added with product details");
 		     		}
 		     	});
-            }
+            
             ////////////////////////////////////////////////////////////////////////////////
             _isBranchExistInLeadTimeModel(branchid,providerid,productdata,prod_catalog);
-			////////////////////////////////////////////////////////////////////////////////
-			_successfullAddProductCatalog(self,prod_catalog);
-			/////////////////////////////////////////////////
+			
 		}
 	})
 }
@@ -678,9 +683,37 @@ var _getProductCatalog = function(self,branchid,productid){
 		}else if(!product){
 			self.emit("failedGetProductCatalog",{"error":{"message":"Wrong branchid or productid"}});
 		}else{
-			///////////////////////////////////////////
-			_successfullGetProuctCatalog(self,product);
-			///////////////////////////////////////////
+			product = JSON.stringify(product);
+			product = JSON.parse(product);
+			var currentdate = new Date();
+			var newcurrentdate = currentdate.getFullYear()+"/"+(currentdate.getMonth()+1)+"/"+currentdate.getDate();
+			var newcurrentdate = new Date(newcurrentdate);
+			console.log("newcurrentdate "+newcurrentdate);
+			DiscountModel.aggregate([{$unwind:"$products"},{$match:{status:"active",products:productid,startdate:{$lte:newcurrentdate},expirydate:{$gte:newcurrentdate}}},{$project:{products:1,discountcode:1,percent:1,_id:0}}]).exec(function(err,discountcodes){
+				if(err){
+					logger.emit("log","_getAllProductCatalog "+err);
+					self.emit("failedGetProductCatalog",{"error":{"code":"ED001","message":"Database Error"}});
+				}else if(discountcodes.length>0){
+					
+					discount = __.find(discountcodes, function(obj) { return obj.products == product.productid});
+					
+		            if(discount != undefined){
+		                product.discount = {code:discount.discountcode,percent:discount.percent,discountedprice:product.price.value*(1-discount.percent/100)}; 
+		                console.log("product s: "+JSON.stringify(product));
+		            }else{
+		                product.discount = {code:"none",percent:"none",discountedprice:"none"}; 
+		            }					
+					///////////////////////////////////////////
+					_successfullGetProuctCatalog(self,product);
+					///////////////////////////////////////////
+				}else{								
+					product.discount = {code:"none",percent:"none",discountedprice:"none"};
+					///////////////////////////////////////////
+					_successfullGetProuctCatalog(self,product);
+					///////////////////////////////////////////
+			  	}
+			});
+			
 		}
 	})
 }
@@ -717,10 +750,46 @@ var _getAllProductCatalog = function(self,branchid,providerid){
 		}else if(product==0){
 			self.emit("failedGetAllProductCatalog",{"error":{code:"BP001","message":"Product does not exists"}});
 		}else{
-			/////////////////////////////////////////////
-			_successfulGetAllProductCatalog(self,product);
-			/////////////////////////////////////////////
+			//////////////////////////////////////////
+			_applyDiscountToAllProducts(self,product);			
+			//////////////////////////////////////////
 		}
+	});
+}
+var _applyDiscountToAllProducts = function(self,product){
+	product = JSON.stringify(product);
+	product = JSON.parse(product);
+	var productid_arr = [];	
+	for (var i = 0; i < product.length; i++) {
+		productid_arr.push(product[i].productid);
+	};
+	console.log("productid_arr : "+JSON.stringify(productid_arr));
+	var currentdate = new Date();
+	var newcurrentdate = currentdate.getFullYear()+"/"+(currentdate.getMonth()+1)+"/"+currentdate.getDate();
+	var newcurrentdate = new Date(newcurrentdate);
+	console.log("newcurrentdate "+newcurrentdate);
+	DiscountModel.aggregate([{$unwind:"$products"},{$match:{status:"active",products:{$in:productid_arr},startdate:{$lte:newcurrentdate},expirydate:{$gte:newcurrentdate}}},{$project:{products:1,discountcode:1,percent:1,_id:0}}]).exec(function(err,discountcodes){
+		if(err){
+			logger.emit("log","_getAllProductCatalog "+err);
+			self.emit("failedGetAllProductCatalog",{"error":{"code":"ED001","message":"Database Error"}});
+		}else if(discountcodes.length>0){
+			console.log("discountcodes : "+JSON.stringify(discountcodes));
+			for(var i=0;i<product.length;i++){
+				discount = __.find(discountcodes, function(obj) { return obj.products == product[i].productid});
+				console.log("discount : "+JSON.stringify(discount));
+                if(discount != undefined){
+                    product[i].discount = {code:discount.discountcode,percent:discount.percent,discountedprice:product[i].price.value*(1-discount.percent/100)}; 
+                }else{
+                    product[i].discount = {code:"none",percent:"none",discountedprice:"none"}; 
+                }					
+			}
+			_successfulGetAllProductCatalog(self,product);
+		}else{
+			for(var i=0;i<product.length;i++){				
+				product[i].discount = {code:"none",percent:"none",discountedprice:"none"};
+			}
+			_successfulGetAllProductCatalog(self,product);
+	  	}
 	});
 }
 var _successfulGetAllProductCatalog=function(self,product){

@@ -100,7 +100,7 @@ var _addSubCategory = function(self,subcategory,categoryid,session_userid){
 
 var _checkSubCategoryNameAlreadyExistOrNot = function(self,subcategory,category_data){
 	// Check SubCategoryname already exist or not
-	CategoryModel.findOne({status:"active",categoryname:new RegExp(subcategory.categoryname, "i")},function(err,c_name){
+	CategoryModel.findOne({status:"active",slug:subcategory.categoryname.toLowerCase()},function(err,c_name){
 		if(err){
 			logger.emit("error","Error in db to getCategory name");
 			self.emit("failedAddSubCategory",{"error":{"code":"ED001","message":"Database Error"}});
@@ -352,4 +352,55 @@ var _getAllLevelOneCategory = function(self,session_userid){
 var _successfullGetAllProductCategory = function(self,doc){
 	logger.emit("log","_successfullGetAllProductCategory");
 	self.emit("successfulGetAllLevelOneCategory", {"success":{"message":"Getting First Level Category","category":doc}});
+}
+
+ProductCategory.prototype.getLevelFourCategoryWithProviders = function(city) {
+	var self=this;
+	//////////////////////////////////////////////////////
+	_validateGetLevelFourCategoryWithProviders(self,city);
+	//////////////////////////////////////////////////////
+};
+var _validateGetLevelFourCategoryWithProviders = function(self,city){
+	var query;
+	if(city == undefined || city == "" || city.toLowerCase() == "all"){
+		query = [{$match:{status:"publish"}},{$project:{categoryname:'$category.categoryname',categoryid:'$category.id',provider:1,_id:0}},{$group:{_id:{categoryid:"$categoryid",categoryname:"$categoryname"},provider:{$addToSet:{providerid:"$provider.providerid",providername:"$provider.providername",providerbrandname:"$provider.providerbrandname"}}}},{$project:{categoryid:"$_id.categoryid",categoryname:"$_id.categoryname",provider:1,_id:0}}];
+		_getLevelFourCategoryWithProviders(self,city,query);
+	}else{
+		var providerids = [];
+		// {$or:[{"branch.deliverycharge.coverage.city":new RegExp(city, "i")},{"pickupaddresses.addresses.city":new RegExp(city, "i")}]},{providerid:1,_id:0}
+		var newQuery = [{$unwind:"$branch"},{$match:{$or:[{"branch.deliverycharge.coverage.city":new RegExp(city, "i")},{"branch.location.city":new RegExp(city, "i")}]}},{$group:{_id:null,branchids:{$addToSet:"$branch.branchid"}}}];
+		ProductProvider.aggregate(newQuery).exec(function(err,doc){
+			if(err){
+				self.emit("failedGetLevelFourCategory",{"error":{"code":"ED001","message":"Error in db to search provider "+err}});
+			}else if(doc.length==0){
+				self.emit("failedGetLevelFourCategory",{"error":{"message":"Sellers does not exist in "+city}});
+			}else{
+				var branchids = doc[0].branchids;
+
+				query = [{$match:{status:"publish","branch.branchid":{$in:branchids}}},{$project:{categoryname:'$category.categoryname',categoryid:'$category.id',provider:1,_id:0}},{$group:{_id:{categoryid:"$categoryid",categoryname:"$categoryname"},provider:{$addToSet:{providerid:"$provider.providerid",providername:"$provider.providername",providerbrandname:"$provider.providerbrandname"}}}},{$project:{categoryid:"$_id.categoryid",categoryname:"$_id.categoryname",provider:1,_id:0}}]
+				_getLevelFourCategoryWithProviders(self,city,query);
+			}
+		});		
+	}
+	
+}
+var _getLevelFourCategoryWithProviders = function(self,city,query){		
+	ProductCatalogModel.aggregate(query).exec(function(err,doc){
+		if(err){
+			logger.emit("error","Database Error : " + err);
+			self.emit("failedGetLevelFourCategory",{"error":{"code":"ED001","message":"Database Error"}});
+		}else if(doc.length==0){
+			self.emit("failedGetLevelFourCategory",{"error":{"code":"AV001","message":"Fourth level category with providers does not exist"}});
+		}else{
+			// console.log(JSON.stringify(doc));
+			//////////////////////////////////////////
+	  		_successfulGetLevelFourCategory(self,doc);
+	  		//////////////////////////////////////////
+	  	}
+	});
+}
+
+var _successfulGetLevelFourCategory = function(self,doc){
+	logger.emit("log","_successfulGetLevelFourCategory");
+	self.emit("successfulGetLevelFourCategory", {"success":{"message":"Getting fourth level category with providers successfully","doc":doc}});
 }

@@ -1952,7 +1952,7 @@ var _publishAndUnpublishBranch=function(self,providerid,branchid,action){
 	})
 }
 var _publishAndUnpublishAllProductsOfBranch=function(self,providerid,branchid,action){
-  	ProductCatalogModel.update({"branch.branchid":branchid},{$set:{status:action}},function(err,productupdatestatus){
+  	ProductCatalogModel.update({"branch.branchid":branchid},{$set:{status:action}},{multi:true},function(err,productupdatestatus){
 		if(err){
 			logger.emit('error',"Database Error fun:_publishAndUnpublishAllProductsOfBranch"+err,user.userid);
 		  self.emit("failedPublishUnpublishBranch",{"error":{"code":"ED001","message":"Database Error"}});			
@@ -2725,6 +2725,48 @@ var _getPickupAddresses = function(self,user,providerid){
 }
 var _successfulGetPickupAddress=function(self,doc){
 	self.emit("successfulGetPickupAddress",{"success":{"message":"Getting Pickup Address Successfully","addresses":doc}});
+}
+ProductProvider.prototype.getPickupAddressesByBranch = function(user,providerid,branchid) {
+	var self=this;
+	
+	//////////////////////////////////////////
+	_getPickupAddressesByBranch(self,user,providerid,branchid);
+	//////////////////////////////////////////
+}
+
+var _getPickupAddressesByBranch = function(self,user,providerid,branchid){
+	ProductProviderModel.aggregate({$match:{providerid:providerid}},{$unwind:"$branch"},{$match:{"branch.branchid":branchid}},{$project:{pickupaddress:"$pickupaddresses.addresses",location:"$branch.location"}},function(err,doc){
+		if(err){
+			logger.emit('error',"Database ErrorError  _getPickupAddresses"+err);
+			self.emit("failedGetPickupAddressByBranch",{"error":{"code":"ED001","message":"Database ErrorError"}});
+		}else if(doc.length!=0){
+			var pickupaddresses=doc[0];
+			pickupaddresses=JSON.stringify(pickupaddresses);
+			pickupaddresses=JSON.parse(pickupaddresses);
+			var city=pickupaddresses.location.city;
+			var branchaddress=pickupaddresses.location;
+			pickupaddresses=__.filter(pickupaddresses.pickupaddress, function(address){
+				return new RegExp(city,'i').test(address.city)
+			});
+			if(pickupaddresses.length==0){
+				pickupaddresses.push(branchaddress);
+			}
+			if(pickupaddresses.length==0){
+				self.emit("failedGetPickupAddressByBranch",{"error":{"message":"Pickup addresses does not exists"}});
+			}else{
+			//////////////////////////////////////////
+			_successfulGetPickupAddressByBranch(self,pickupaddresses)
+			///////////////////////////////////////////	
+			}
+			
+			
+		}else{
+			self.emit("failedGetPickupAddressByBranch",{"error":{"message":"Incorrect seller id"}});
+		}
+	})
+}
+var _successfulGetPickupAddressByBranch=function(self,doc){
+	self.emit("successfulGetPickupAddressByBranch",{"success":{"message":"Getting Pickup Address Successfully","addresses":doc}});
 }
 
 ProductProvider.prototype.deletePickupAddresses = function(user,providerid,addressid) {

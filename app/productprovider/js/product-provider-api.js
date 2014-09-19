@@ -963,6 +963,8 @@ exports.updatePickupAddresses=function(req,res){
 
 exports.getPickupAddresses=function(req,res){
  var providerid=req.params.providerid;
+ 
+ 
  var productprovider = new ProductProvider();
  productprovider.removeAllListeners("failedGetPickupAddress");
   productprovider.on("failedGetPickupAddress",function(err){
@@ -978,6 +980,27 @@ exports.getPickupAddresses=function(req,res){
     res.send(result);
   });
   productprovider.getPickupAddresses("user",providerid);
+}
+exports.getPickupAddressesByBranch=function(req,res){
+ var providerid=req.params.providerid;
+ var branchid=req.params.branchid;
+ 
+ var productprovider = new ProductProvider();
+ productprovider.removeAllListeners("failedGetPickupAddressByBranch");
+  productprovider.on("failedGetPickupAddressByBranch",function(err){
+    if(err.error.code!="ED001"){
+     logger.emit("error", err.error.message); 
+    }
+    
+    // //user.removeAllListeners();
+    res.send(err);
+  });
+  productprovider.removeAllListeners("successfulGetPickupAddressByBranch");
+  productprovider.on("successfulGetPickupAddressByBranch",function(result){
+    // console.log("err"+result.error)
+    res.send(result);
+  });
+  productprovider.getPickupAddressesByBranch("user",providerid,branchid);
 }
 
 exports.deletePickupAddresses=function(req,res){

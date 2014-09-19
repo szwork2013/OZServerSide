@@ -38,6 +38,7 @@ var punycode=require("punycode");
 // var LocationModel=require("./location-model");
  var SMSHistoryModel=require("./sms-history-model");
  var FeedbackModel=require("./feedback-model");
+ var EmailTemplateModel=require('./email-template-model');
 //   var StateLangModel=require("./state-lang-model"); 
 function trim(stringToTrim) {
 	return stringToTrim.replace(/^\s+|\s+$/g,"");
@@ -459,12 +460,12 @@ exports.LongCodeResponse=function(req,res){
 SendMessage=function(message,mnumber,callback){
 	SMSProviderModel.findOne({active:true},function(err,smsprovider){
 		if(err){
+			callback("error");
 			logger.error("error in finding smsprovider model");
 		} else if(!smsprovider){
-			logger.error("SMS Provider does't find");
-			
+			callback("error");
+			logger.error("SMS Provider doesn't find");
 		}else{
-			
 			var langdetectresult=lngDetector.detect(message,1);
 			__addToSMSHistory(mnumber,message);
 			var url=smsprovider.url;
@@ -475,51 +476,38 @@ SendMessage=function(message,mnumber,callback){
 			if(langdetectresult[0][0]!="english"){
 				url+="&msgType=UC";
 			}	
-			
 			getUnicodeMessage(message,function(err,translatemessage){
 				if(err){
-
+					callback("error")
+					logger.emit("error","Error in Converting to Unicode Message");
 				}else{
-
-			if(langdetectresult[0][0]=="english"){
-				url+="&"+messagekey+"="+message;
-			}else{
-				url+="&"+messagekey+"="+translatemessage;
-			}
-            console.log("url:"+url);
-			// console.log("parameter:"+parameter+",messagekey"+messagekey);
-			// console.log("url"+url);
-			request({ uri:url }, function (error, response, body) {
-		  		if(!response){
-		  			logger.error("Please Check Your Internet Connection");
-		  			callback("failure");
-		  			//res.send({"technical":"pleas check Your Internet Connection"});
-		  		}else{
-
-
-			  		if (error && response.statusCode !== 200) {
-			  			logger.error('Error sending SMS');
-			  		}
-		  			console.log(response.body);
-		  			var resoponsetext = S(response.body);
-		  			if(resoponsetext.contains("Accepted")) {
-		  				// logger.log("SMS RESPONSE");
-			  			callback("success");
-			  		}else if(resoponsetext.contains("Status=0")){
-			  			// logger.log("SMS RESPONSE");
-			  			callback("success");
-			  		} else {
-			  			logger.error("SMS RESPONSE");
-			  			callback("failure");
-			 	 	}
-		 	
-		}
+					if(langdetectresult[0][0]=="english"){
+						url+="&"+messagekey+"="+message;
+					}else{
+						url+="&"+messagekey+"="+translatemessage;
+					}
+          console.log("url:"+url);
+					request({ uri:url }, function (error, response, body) {
+		  			if(!response){
+		  				logger.error("Please Check Your Internet Connection");
+		  				callback("failure");
+		  			}else{
+							if (error && response.statusCode !== 200) {
+			  				logger.error('Error sending SMS');
+			  			}
+		  				console.log(response.body);
+		  				var resoponsetext = S(response.body);
+		  				if(resoponsetext.contains("Accepted")) {
+		  					callback("success");
+			  			}else if(resoponsetext.contains("Status=0")){
+			  				callback("success");
+			  			}else {
+			  				callback("failure");
+			 	 			}
+			 	 		}
+					})
+				}
 			})
-
-			   }
-
-		    })
-
 		}
 	})
 }

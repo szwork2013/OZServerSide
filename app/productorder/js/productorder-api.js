@@ -60,6 +60,7 @@ exports.getAllOrderDetailsForBranch = function(req,res){
   var branchid = req.params.branchid;
   var providerid = req.query.providerid;
   var type = req.query.type;
+  var ordertype=req.query.ordertype;
   var userid = req.user.userid;
   order.removeAllListeners("failedGetAllOrdersForAllProviders");
     order.on("failedGetAllOrdersForAllProviders",function(err){
@@ -82,17 +83,17 @@ exports.getAllOrderDetailsForBranch = function(req,res){
       if(provider_arr.indexOf(providerid)<0){
         order.emit("failedGetAllOrdersForAllProviders",{"error":{"message":"Only authorized users can get all order details"}});
       }else{
-        order.getAllOrderDetailsForBranch(branchid,type,userid);
+        order.getAllOrderDetailsForBranch(branchid,type,userid,ordertype);
       }
     }else{
-      order.getAllOrderDetailsForBranch(branchid,type,userid);
+      order.getAllOrderDetailsForBranch(branchid,type,userid,ordertype);
     }    
 }
 
 exports.loadMoreOrders = function(req,res){
   var order = new Order();
   var orderid = req.params.orderid;
-  var type = req.query.type;
+  var ordertype = req.query.ordertype;
   var userid = req.user.userid;
   order.removeAllListeners("failedLoadMoreOrders");
     order.on("failedLoadMoreOrders",function(err){
@@ -109,7 +110,7 @@ exports.loadMoreOrders = function(req,res){
     if(req.user.isAdmin==false){
       order.emit("failedLoadMoreOrders",{"error":{"message":"Only authorized users can get all order details"}});
     }else{
-      order.loadMoreOrders(orderid,userid);
+      order.loadMoreOrders(orderid,userid,ordertype);
     }    
 }
 
