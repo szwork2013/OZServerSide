@@ -26,7 +26,7 @@ exports.init = function (app) {
 	app.get('/api/suborderstatuscount/:providerid/:branchid',auth,api.orderapi.getBranchSubOrderStatusWiseCount)
 	app.get('/api/suborderstatuscount/:providerid',auth,api.orderapi.getProviderSubOrderStatusWiseCount)
 	
-	app.get('/api/invoice/:branchid/:suborderid',auth,api.invoiceapi.createInvoice)
+	app.get('/api/invoice/:branchid/:suborderid',auth,api.invoiceapi.createInvoice);
 	app.post('/api/confirmorder',auth,api.orderapi.confirmOrderByWeb)
 	app.get('/api/paytmconfiguration',auth,api.commonapi.getPayTMConfiguration)
 	app.post('/api/cancelorder/:orderid',auth,api.orderapi.cancelOrderByConsumer);
