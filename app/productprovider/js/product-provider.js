@@ -23,6 +23,7 @@ AWS.config.update(CONFIG.amazon);
 AWS.config.update({region:'ap-southeast-1'});
 var s3bucket = new AWS.S3();
 var isNumeric = require("isnumeric");
+var nodeExcel = require('excel-export');
 var OrderProcessConfigModel=require('./order-process-config-model');
 var ProductProvider = function(productproviderdata) {
   this.productprovider=productproviderdata;
@@ -3096,4 +3097,346 @@ var _getSellersPaymentPercent = function(self,sellers){
 }
 var _successfulGetSellersPayableInfo=function(self,doc){
 	self.emit("successfulGetSellersPayableInfo",{"success":{"message":"Sellers Payable Information Getting Successfully","doc":doc}});
+}
+ProductProvider.prototype.getPayableRefundableExcelSheetForProvider = function(providerid,transactiondate) {
+	var self = this;
+	/////////////////////////////
+	_validateGetPayableRefundableExcelSheetForProvider(self,providerid,transactiondate)
+	////////////////////////////
+}
+function getGlsPaymentPercent(providerid,callback){
+		ProductProviderModel.findOne({providerid:providerid},{providerid:1,providername:1,providerbrandname:1,trial:1},function(err,productprovider){
+			if(err){
+				callback({error:{code:"ED001",message:"Database Issue"}})
+			}else if(!productprovider){
+					callback({error:{message:"Providerid is Wrong"}})
+			}else{
+				var trial=productprovider.trial;
+				var startdate=trial.startdate;
+				var expirydate=trial.expirydate;
+				startdate=new Date(startdate.getFullYear()+"/"+(startdate.getMonth()+1)+"/"+startdate.getDate());
+				expirydate=new Date(expirydate.getFullYear()+"/"+(expirydate.getMonth()+1)+"/"+expirydate.getDate());
+				var transactiondateinms=Date.parse(transactiondate);
+				var startdateinms=Date.parse(startdate);
+				var expirydateinms=Date.parse(expirydate);
+				GlsPaymentPercentModel.findOne({providerid:1},function(err,providerglspayment){
+					if(err){
+						callback({error:{code:"ED001",message:"Database Issue"}})
+					}else if(!providerglspayment){
+						callback({error:{message:"Gls Payment not defined for "+productprovider.providername}})
+					}else{
+						var glspercent=providerglspayment.percent;
+						if(transactiondate>=startdateinms && transactiondate<=expirydateinms){
+							//tria plan applied then oz fees 0
+							glspercent=0;
+						}
+						productprovider=JSON.stringify(productprovider);
+						productprovider=JSON.parse(productprovider);
+						productprovider.glspercent=glspercent;
+						callback(null,productprovider)
+					}
+				})
+			}
+		})
+}
+var beforeCellWrite=function(){
+  
+  return function(row, cellData, eOpt){
+  	console.log("row"+JSON.stringify(eOpt));
+  	var cellvalueNumric=isNumeric(cellData);
+  	var originDate = new Date(Date.UTC(1899,11,30));
+  	 var date=new Date(cellData)
+  	 date.setHours(date.getHours() + 5);
+  	 date.setMinutes(date.getHours() + 30);
+  	 
+  	if(cellvalueNumric){
+
+  		eOpt.cellType="number";
+
+  		// eOpt.Font.Name="Arial";
+  		return parseFloat(cellData)
+  	}else if(date.getDate()){
+  		eOpt.cellType="date";
+  		console.log("calling to date");
+  		return (date-originDate)/(24 * 60 * 60 * 1000);
+  	}else{
+  		eOpt.styleIndex=2;
+  		console.log("styleIndex");
+  	}
+  	return cellData;
+	} 
+}()
+var getExcelSheet=function(createdordersettlement,cancelledordersttlement,cancellandcreatedordersttlement,totalsettlement,vendor,transactiondate,callback){
+	//this example for 4 order created,1 cancelled by vendor and 1 cancelled by conusmer(assumtion all order value:500)
+	//example for date 26/08/14
+			createdordersettlement=[{noofcreatedorders:4,totalordervalue:2000,totaltransactioncost:50,totalsettlementcost:1950}];
+			cancelledordersttlement=
+			[
+			{noofcancelledorders:1,totalordervalue:-500,totaltransactioncost:-12.5,totalsettlementcost:-512.5},
+			{noofcancelledorders:1,totalordervalue:-500,totaltransactioncost: 12.5,totalsettlementcost:-487.5},
+			];
+			cancellandcreatedordersttlement=[
+				{orderid:1,suborderid:12,orderdate:transactiondate,ordervalue:500,transactioncost:-12.5,settlementamount:487.5,status:""},
+				{orderid:2,suborderid:22,orderdate:transactiondate,ordervalue:500,transactioncost:-12.5,settlementamount:487.5,status:""},
+				{orderid:3,suborderid:32,orderdate:transactiondate,ordervalue:500,transactioncost:-12.5,settlementamount:487.5,status:""},
+				{orderid:4,suborderid:42,orderdate:transactiondate,ordervalue:500,transactioncost:-12.5,settlementamount:487.5,status:""},
+				{orderid:5,suborderid:52,orderdate:transactiondate,ordervalue:-500,transactioncost:-12.5,settlementamount:-512.5,status:"cancelled"},
+				{orderid:1,suborderid:12,orderdate:transactiondate,ordervalue:-500,transactioncost:12.5,settlementamount:-487.5,status:"cancelledbyconsumer"}
+			]
+			var prevunsettledbal=0;
+			totalsettlement=950;
+			vendor={vednorname:vendor.providername,transactiondate:transactiondate}
+			var conf={};
+
+			conf.cols=[
+				{
+        	caption:'',
+        	type:'string',
+        	width:17,
+        	beforeCellWrite:beforeCellWrite
+        },{
+        	caption:'',
+        	type:'string',
+        	width:14,
+        	beforeCellWrite:beforeCellWrite
+        },{
+        	caption:'',
+        	type:'string',
+        	width:20,
+        	beforeCellWrite:beforeCellWrite
+        },{
+        	caption:'',
+        	type:'string',
+        	width:20,
+        	beforeCellWrite:beforeCellWrite
+        },{
+        	caption:'',
+        	type:'string',
+        	width:20,
+        	beforeCellWrite:beforeCellWrite
+        },{
+        	caption:'',
+        	type:'string',
+        	width:20,
+        	beforeCellWrite:beforeCellWrite
+        },
+        {
+        	caption:'',
+        	type:'string',
+        	width:20,
+        	beforeCellWrite:beforeCellWrite
+        }];
+        var excelrows=[];
+        excelrows.push(["DAILY TRANSACTION REPORT(ORDERZAPP)","","","","","",""]);
+        excelrows.push(["","","","","","",""]);
+       	excelrows.push(["Vendor Name",vendor.vednorname,"","","","","",""])
+        excelrows.push(["Date:",vendor.transactiondate,"","","","",""]);
+        excelrows.push(["","","","","","",""]);
+        excelrows.push(["Created Orders","Order Value","Transaction Cost(2.5%)","Settlement Cost","Previous Balance","Final Settlement",""]);
+        for(var j=0;j<createdordersettlement.length;j++){
+          if(j=0){
+          	excelrows.push([createdordersettlement[j].noofcreatedorders,createdordersettlement[j].totalordervalue,createdordersettlement[j].totaltransactioncost,createdordersettlement[j].totalsettlementcost,prevunsettledbal,totalsettlement,""]); 
+          }else{
+ 						excelrows.push([createdordersettlement[j].noofcreatedorders,createdordersettlement[j].totalordervalue,createdordersettlement[j].totaltransactioncost,createdordersettlement[j].totalsettlementcost,"","",""]);          	
+          }    	
+        	
+        }
+        // excelrows.push([createdordersettlement.noofcreatedorders,createdordersettlement.totalordervalue,createdordersettlement.totaltransactioncost,createdordersettlement.totalsettlementcost,prevunsettledbal,totalsettlement,""]); 
+        excelrows.push(["","","","","","",""]);
+        excelrows.push(["Cancelled Orders","Order Value","Transaction Cost(2.5%)","Settlement Cost","","",""]);
+        for(var j=0;j<cancelledordersttlement.length;j++){
+        	excelrows.push([cancelledordersttlement[j].noofcancelledorders,cancelledordersttlement[j].totalordervalue,cancelledordersttlement[j].totaltransactioncost,cancelledordersttlement[j].totalsettlementcost,"","",""]); 
+        }
+      
+     		excelrows.push(["","","","","","",""]);
+     		excelrows.push(["","","","","","",""]);
+     		excelrows.push(["","","","","","",""]);
+     		excelrows.push(["Details Wise Report","","","","","",""]);
+     		excelrows.push(["Order No","Suborder No","Order Date","Order Value","Transaction Cost","Settlement Amount","Status"]);
+     		for(var i=0;i<cancellandcreatedordersttlement.length;i++){
+     			var excelrow=[];
+     			for(var j in cancellandcreatedordersttlement[i]){
+     				excelrow.push(cancellandcreatedordersttlement[i][j])
+     			}
+     			excelrows.push(excelrow)
+     		}
+
+        
+        conf.rows =excelrows;
+        var excel = nodeExcel.execute(conf);
+        var excelinfo={excel:excel,excelname:vendor.vednorname+vendor.transactiondate}
+        callback(excelinfo)
+}
+var getPayableRefundableExcelSheetForProvider=function(providerid,transactiondate,callback){
+	//to get all suborder for specific provider for specific date by Payment Online
+	var transactiondate=new Date(transactiondate);
+	var day=transactiondate.getDate();
+	var month=transactiondate.getMonth()+1;
+	var year=transactiondate.getFullYear();
+	ProductOrderModel.aggregate({$project:{orderid:1,suborder:1,payment:1,status:1,orderdate:{day:{$dayOfMonth:'$order_placeddate'},month:{$month:'$order_placeddate'},year:{$year:'$order_placeddate'}}}},{$unwind:"$suborder"},{$match:{status:{$ne:"waitforapproval"},"payment.mode":new RegExp("paytm","i"),"paytm.STATUS": new RegExp("txn_success","i"),"suborder.productprovider.providerid":providerid,"suborder.status":{$nin:["cancelled","rejected","cancelledbyconsumer"]}}},{$project:{orderid:1,orderdate:1,suborderid:"$suborder.suborderid",status:"$suborder.status",suborder_price:"$suborder.suborder_price",providername:"$suborder.productprovider.providername",providerid:"$suborder.productprovider.providerid"}},function(err,createdsuborders){
+		if(err){
+			callback({error:{code:"ED001",message:"Database Issue"}})
+		}else{
+			//to get refundable transaction details order cancelled by vendor,ordercancelledy user,order rejected by vendor
+			ProductOrderModel.aggregate({$project:{orderid:1,suborder:1,payment:1,status:1,order_placeddate:1}},{$unwind:"$suborder"},{$project:{orderid:1,payment:1,status:1,suborder:1,order_placeddate:1,cancelrejectdate:{day:{$dayOfMonth:'$suborder.cancelrejectdate'},month:{$month:'$suborder.cancelrejectdate'},year:{$year:'$suborder.cancelrejectdate'}}}},{$match:{status:{$ne:"waitforapproval"},"payment.mode":/paytm/i,"paytm.STATUS": new RegExp("txn_success","i"),"suborder.productprovider.providerid":providerid,"suborder.status":{$in:["cancelled","rejected","cancelledbyconsumer"]},"cancelrejectdate.day":day,"cancelrejectdate.month":month,"cancelrejectdate.year":year}},{$project:{orderid:1,orderdate:"$order_placeddate",cancelrejectdate:1,suborderid:"$suborder.suborderid",status:"$suborder.status",suborder_price:"$suborder.suborder_price",providername:"$suborder.productprovider.providername",providerid:"$suborder.productprovider.providerid"}},function(err,cancelledrjectedsuborder){
+				if(err){
+					callback({error:{code:"ED001",message:"Database Issue"}})
+				}else{
+					//to check provider have trial period or not
+					//call to get GlsPaymentPercent
+					getGlsPaymentPercent(providerid,function(err,productprovider){
+						if(err){
+							callback(err)
+						}else{
+								var glspercent=productprovider.glspercent;
+								//Restructure data
+									// 							{
+									// 	
+									// 	"orderid" : "ODR-4639031",
+									// 	"status" : "orderreceived",
+									// 	"orderdate" : {
+									// 		"day" : 3,
+									// 		"month" : 9,
+									// 		"year" : 2014
+									// 	},
+									// 	"suborderid" : "SODR-SSW002-59115482",
+									// 	"suborder_price" : 300,
+									// 	"providername" : "Cutting Edge Pvt. Ltd.",
+									// 	"providerid" : "1hloiwkm77n"
+									// }
+
+							var providerwise;
+							var createdandcancelledsuborders=[];	
+							var noofcreatedorders=0;
+
+							var totalcreatedordervalue=0;
+							var totaltransactioncost=0;
+							var totalcreatedordersettlementcost=0; 
+							var totalozfee=0;
+							var noofcancelledorders=0;
+							var totalrefundamount=0;
+							var totalrefundcost=0;
+							var totalsettlementamount=0;
+							var createdordersettlement=[];
+							var totalcancelledordersttlement=[]
+							console.log("CREATED ORDERS:"+JSON.stringify(createdsuborders))
+							console.log("Cancelled ORDERS:"+JSON.stringify(cancelledrjectedsuborder))
+							//for created order
+							for(var i=0;i<createdsuborders.length;i++){
+								var transactioncost=createdsuborders[i].suborder_price*(2.5/100);
+								var settlementamount=createdsuborders[i].suborder_price-transactioncost;
+								var ozfee=createdsuborders[i].suborder_price*(glspercent/100)
+								var status=createdsuborders[i].status;
+								var cancelledby="";
+								var paidtocustomer="";
+								var orderdate=createdsuborders[i].orderdate.day+"/"+createdsuborders[i].orderdate.month+"/"+createdsuborders[i].orderdate.year;
+								var suborderdetails={orderid:createdsuborders[i].orderid,suborderid:createdsuborders[i].suborderid,orderdate:orderdate,ordervalue:createdsuborders[i].suborder_price,transactioncost:transactioncost,settlementamount:settlementamount,status:""};
+								noofcreatedorders++;
+								totalcreatedordervalue+=createdsuborders[i].suborder_price;
+								totaltransactioncost+=transactioncost;
+								totalcreatedordersettlementcost+=settlementamount;
+								
+								createdandcancelledsuborders.push(suborderdetails);
+							}
+							createdordersettlement.push({noofcreatedorders:noofcreatedorders,totalcreatedordervalue:totalcreatedordervalue,totaltransactioncost:totaltransactioncost,totalsettlementcost:totalsettlementcost});
+							var nofocancelledorderbyconsumer=0;
+							var nofocancelledorderbyvendor=0;
+							var totalcancelledordervaluebyvendor=0;
+							var totalcancelledordervaluebyconsumer=0;
+							var totalcancelledtransactioncostbyvendor=0;
+							var totalcancelledtransactioncostbyconsumer=0;
+							var totalcancelledsettlementcostbyvendor=0;
+							var totalcancelledsettlementcostbyconsumer=0;
+							
+							//for cancelled,rejected and cancelledbyconsumer
+							for(var i=0;i<cancelledrjectedsuborder.length;i++){
+								var transactioncost=0;
+								if(cancelledrjectedsuborder[i].status=="cancelledbyconsumer"){
+									
+									transactioncost=cancelledrjectedsuborder[i].suborder_price*(2.5/100);
+								}else{
+									
+									transactioncost=(0-cancelledrjectedsuborder[i].suborder_price*(2.5/100));
+								}
+								var ordervalue=(0-cancelledrjectedsuborder[i].suborder_price);
+								
+								var settlementamount=ordervalue+transactioncost;
+								var ozfee=suborders[i].suborder_price*(glspercent/100)
+								var status=suborders[i].status;
+								var cancelledby="";
+								var paidtocustomer="";
+								var orderdate=createdsucancelledrjectedsuborder[i].orderdate.getDate()+"/"+(createdsucancelledrjectedsuborder[i].orderdate.getMonth()+1)+"/"+createdsucancelledrjectedsuborder[i].orderdate.getFullYear();
+								var cancelledordersttlement={orderid:cancelledrjectedsuborder[i].orderid,suborderid:cancelledrjectedsuborder[i].suborderid,orderdate:orderdate,ordervalue:ordervalue,transactioncost:transactioncost,settlementamount:settlementamount,status:cancelledrjectedsuborder[i].status};
+							
+								if(cancelledrjectedsuborder[i].status=="cancelledbyconsumer"){
+									nofocancelledorderbyconsumer++;
+									totalcancelledordervaluebyconsumer+=cancelledordersttlement.ordervalue;
+									totalcancelledtransactioncostbyconsumer+=cancelledordersttlement.transactioncost;
+									totalcancelledsettlementcostbyconsumer+=cancelledordersttlement.settlementamount;
+								}else{
+									nofocancelledorderbyvendor++;
+									totalcancelledordervaluebyvendor+=cancelledordersttlement.ordervalue;
+									totalcancelledtransactioncostbyvendor+=cancelledordersttlement.transactioncost;
+									totalcancelledsettlementcostbyvendor+=cancelledordersttlement.settlementamount;
+								}
+								
+								createdandcancelledsuborders.push(cancelledordersttlement);
+							}
+
+							//for push order cancelled by consumer
+							totalcancelledordersttlement.push({noofcancelledorders:nofocancelledorderbyconsumer,totalordervalue:totalcancelledordervaluebyconsumer,totaltransactioncost:totalcancelledtransactioncostbyconsumer,totalsettlementcost:totalcancelledsettlementcostbyconsumer})
+							//order cancelled by vendor
+							totalcancelledordersttlement.push({noofcancelledorders:nofocancelledorderbyvendor,totalordervalue:totalcancelledordervaluebyvendor,totaltransactioncost:totalcancelledtransactioncostbyvendor,totalsettlementcost:totalcancelledsettlementcostbyvendor})
+							
+							totalsettlementamount=totalcreatedordersettlementcost+totalcancelledsettlementcostbyvendor+totalcancelledsettlementcostbyconsumer;
+							//to get excelsheet
+
+							getExcelSheet(createdordersettlement,totalcancelledordersttlement,createdandcancelledsuborders,totalsettlementamount,productprovider,transactiondate,function(excelinfo){
+								if(err){
+									callback(err)
+								}else{
+									callback(null,excelinfo);
+								}
+							})
+						}
+					})
+				}
+
+			})
+		}
+	})
+}
+var _validateGetPayableRefundableExcelSheetForProvider=function(self,providerid,transactiondate){
+	var datecheck=new Date(transactiondate);
+	if(providerid==undefined){
+	  self.emit("failedgetPayableRefundableExcelSheetForProvider",{"error":{"message":"Please select provider"}});	
+	}else if(transactiondate==undefined){
+		self.emit("failedgetPayableRefundableExcelSheetForProvider",{"error":{"message":"Please select Transaction Date"}});	
+	}else if(!datecheck.getDate()){
+		self.emit("failedgetPayableRefundableExcelSheetForProvider",{"error":{"message":"Please pass proper transaction date"}});	
+	}else{
+		if(providerid.toLowerCase()=="all"){
+			////////////////////////////////
+			 _getExcelSheetForAllProvider(self,transactiondate)
+			 self.emit("failedgetPayableRefundableExcelSheetForProvider",{error:{message:"Currently No option Available For All Provider"}});		
+			///////////////////////////////
+		}else{
+			// getPayableRefundableExcelSheetForProvider(providerid,transactiondate,function(err,excelinfo){
+			// 	if(err){
+			// 		self.emit("failedgetPayableRefundableExcelSheetForProvider",err);		
+			// 	}else{
+			// 		sel.emit("successfulgetPayableRefundableExcelSheetForProvider",excelinfo)
+			// 	}			
+			// })	
+			var createdordersettlement;
+			var cancelledordersttlement;
+			var createdandcancelledsuborders;
+			var totalsettlementamount;
+			var productprovider={providername:"Copper Chocs"}
+			getExcelSheet(createdordersettlement,cancelledordersttlement,createdandcancelledsuborders,totalsettlementamount,productprovider,transactiondate,function(excelinfo){
+				self.emit("successfulgetPayableRefundableExcelSheetForProvider",excelinfo)
+			})
+			
+		}
+	}
 }

@@ -864,10 +864,14 @@ var _getCityInWhichProvidersProvidesService = function(self){
 							if(branchloccitydata>0){
 								branchcity = branchloccitydata[0].city;
 							}
+							console.log("deliverychargecitydata : "+JSON.stringify(deliverychargecitydata[0]));
+							console.log("branchloccitydata : "+JSON.stringify(branchloccitydata[0]));
+							console.log("deliverycity : "+deliverycity+" branchcity : "+branchcity);
 							var city1 = __.union(deliverycity,branchcity);
 							var city =__.uniq(city1,function(test_city){
 							 	return test_city.toLowerCase();
 							});
+							console.log("city : "+city)
 							_successfulGetCityInWhichProvidersProvidesService(self,city);
 						}
 					});

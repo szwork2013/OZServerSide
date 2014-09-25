@@ -1137,3 +1137,27 @@ exports.getSellersPayableInfo=function(req,res){
     productprovider.getSellersPayableInfo(req.user);
   }   
 }
+exports.getPayableRefundableExcelSheetForProvider=function(req,res){
+  var providerid = req.query.providerid;
+  var transactiondate=req.query.transactiondate;
+  var productprovider = new ProductProvider();
+  productprovider.removeAllListeners("failedgetPayableRefundableExcelSheetForProvider");
+  productprovider.on("failedgetPayableRefundableExcelSheetForProvider",function(err){
+    if(err.error.code!="ED001"){
+     logger.emit("error", err.error.message); 
+    }    
+    // //user.removeAllListeners();
+    res.send(err);
+  });
+  productprovider.removeAllListeners("successfulgetPayableRefundableExcelSheetForProvider");
+  productprovider.on("successfulgetPayableRefundableExcelSheetForProvider",function(result){
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats');
+    res.setHeader("Content-Disposition", "attachment; filename=" +result.excelname+".xlsx");
+    res.end(result.excel, 'binary');
+  });
+  if(req.user.isAdmin == false){
+    productprovider.emit("failedgetPayableRefundableExcelSheetForProvider",{error:{message:"Only OrderZapp admin user can get sellers payable details"}});
+  }else{
+    productprovider.getPayableRefundableExcelSheetForProvider(providerid,transactiondate);
+  }   
+}

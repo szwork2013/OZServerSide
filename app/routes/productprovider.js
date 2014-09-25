@@ -37,4 +37,5 @@ exports.init = function (app) {
  	app.get('/api/providerinfo/:providerid',api.productproviderapi.getProviderInfo);
 
  	app.post('/api/sellerspayable',api.productproviderapi.getSellersPayableInfo); 
+ 	app.get('/api/sellerspayablerefundable',api.productproviderapi.getPayableRefundableExcelSheetForProvider); 
 }

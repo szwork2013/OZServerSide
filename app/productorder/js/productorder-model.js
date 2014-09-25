@@ -77,7 +77,8 @@ var suborderSchema=mongoose.Schema({
     deliverytype:{type:String},//home or pickup if delivery type is pickup then no shipping_address
     status:{type:String},//accept,pick and pick up,delivery if suborder type is home,pickup for pickup order,delivered
     isinvoicegenerate:{type:Boolean,default:false},
-    reasontocancelreject:{type:String}
+    reasontocancelreject:{type:String},
+    cancelrejectdate:{type:Date}
 })
 var orderSchema = mongoose.Schema({
     orderid:{type:String},
