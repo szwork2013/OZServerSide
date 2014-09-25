@@ -1593,17 +1593,17 @@ ProductCatalog.prototype.addProductsForProviderByXLS = function(providerid,branc
 };
 
 var _csvToJson = function(self,data,providerid,branchid,user){
-	var Converter=require("csvtojson").core.Converter;
+	var Converter = require("csvtojson").core.Converter;
 
 	var csvFileName = data.filepath;
 	var fileStream = fs.createReadStream(csvFileName);
 	//new converter instance
-	var csvConverter=new Converter({constructResult:true});
-
+	var csvConverter = new Converter({constructResult:true});
+	// console.log("fileStream : "+JSON.stringify(fileStream));
 	//end_parsed will be emitted once parsing finished
 	csvConverter.on("end_parsed",function(jsonObj){
-	   // console.log("test"+JSON.stringify(jsonObj)); //here is your result json object
-	   _isValidProductdataToAddProductsByXLS(self,providerid,branchid,jsonObj);
+	   console.log("test"+JSON.stringify(jsonObj)); //here is your result json object
+	   // _isValidProductdataToAddProductsByXLS(self,providerid,branchid,jsonObj);
 	});
 	fileStream.pipe(csvConverter);
 }

@@ -480,7 +480,7 @@ exports.addProductsForProviderByXLS = function(req,res){
       res.send(result);
     }); 
     if(req.user.isAdmin == false){
-      productcatalog.emit("failedaddProductsForProviderByXLS",{error:{message:"You are not authorized to do delete product configuration"}});
+      productcatalog.emit("failedaddProductsForProviderByXLS",{error:{message:"You are not authorized to do this action"}});
     }else{
       productcatalog.addProductsForProviderByXLS(providerid,branchid,req.user);
     }

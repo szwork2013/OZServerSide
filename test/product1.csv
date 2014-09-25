@@ -1,0 +1,5 @@
+category,productname,productcode,price,uom,foodtype,leadtime,leadtimeunit,maxorderweight,minorderweight,usertags,description
+sweets,product1,P001,,no,veg,4,hours,1,1000,"namkeens, meetha , farsan",product1 description
+namkeens,product2,P002,200,lt,Non-veg,1,day,,10,Product 2,product2 description
+sweets,product3,,,,,45,min,1,12,Product 3,product3 description
+,product4,P004,100,no,veg,24,hours,,,Product 4,product4 description
