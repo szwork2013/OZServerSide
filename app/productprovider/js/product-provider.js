@@ -25,6 +25,7 @@ var s3bucket = new AWS.S3();
 var isNumeric = require("isnumeric");
 var nodeExcel = require('excel-export');
 var OrderProcessConfigModel=require('./order-process-config-model');
+var ProductOrderModel=require("../../productorder/js/productorder-model");
 var ProductProvider = function(productproviderdata) {
   this.productprovider=productproviderdata;
 };
@@ -3104,7 +3105,7 @@ ProductProvider.prototype.getPayableRefundableExcelSheetForProvider = function(p
 	_validateGetPayableRefundableExcelSheetForProvider(self,providerid,transactiondate)
 	////////////////////////////
 }
-function getGlsPaymentPercent(providerid,callback){
+function getGlsPaymentPercent(providerid,transactiondate,callback){
 		ProductProviderModel.findOne({providerid:providerid},{providerid:1,providername:1,providerbrandname:1,trial:1},function(err,productprovider){
 			if(err){
 				callback({error:{code:"ED001",message:"Database Issue"}})
@@ -3119,7 +3120,7 @@ function getGlsPaymentPercent(providerid,callback){
 				var transactiondateinms=Date.parse(transactiondate);
 				var startdateinms=Date.parse(startdate);
 				var expirydateinms=Date.parse(expirydate);
-				GlsPaymentPercentModel.findOne({providerid:1},function(err,providerglspayment){
+				GlsPaymentPercentModel.findOne({providerid:providerid},function(err,providerglspayment){
 					if(err){
 						callback({error:{code:"ED001",message:"Database Issue"}})
 					}else if(!providerglspayment){
@@ -3166,26 +3167,26 @@ var beforeCellWrite=function(){
   	return cellData;
 	} 
 }()
-var getExcelSheet=function(createdordersettlement,cancelledordersttlement,cancellandcreatedordersttlement,totalsettlement,vendor,transactiondate,callback){
+var getExcelSheet=function(createdordersettlement,cancelledordersttlement,cancellandcreatedordersttlement,totalsettlement,vendor,transactiondate,prevunsettledbal,totalsettlement,callback){
 	//this example for 4 order created,1 cancelled by vendor and 1 cancelled by conusmer(assumtion all order value:500)
 	//example for date 26/08/14
-			createdordersettlement=[{noofcreatedorders:4,totalordervalue:2000,totaltransactioncost:50,totalsettlementcost:1950}];
-			cancelledordersttlement=
-			[
-			{noofcancelledorders:1,totalordervalue:-500,totaltransactioncost:-12.5,totalsettlementcost:-512.5},
-			{noofcancelledorders:1,totalordervalue:-500,totaltransactioncost: 12.5,totalsettlementcost:-487.5},
-			];
-			cancellandcreatedordersttlement=[
-				{orderid:1,suborderid:12,orderdate:transactiondate,ordervalue:500,transactioncost:-12.5,settlementamount:487.5,status:""},
-				{orderid:2,suborderid:22,orderdate:transactiondate,ordervalue:500,transactioncost:-12.5,settlementamount:487.5,status:""},
-				{orderid:3,suborderid:32,orderdate:transactiondate,ordervalue:500,transactioncost:-12.5,settlementamount:487.5,status:""},
-				{orderid:4,suborderid:42,orderdate:transactiondate,ordervalue:500,transactioncost:-12.5,settlementamount:487.5,status:""},
-				{orderid:5,suborderid:52,orderdate:transactiondate,ordervalue:-500,transactioncost:-12.5,settlementamount:-512.5,status:"cancelled"},
-				{orderid:1,suborderid:12,orderdate:transactiondate,ordervalue:-500,transactioncost:12.5,settlementamount:-487.5,status:"cancelledbyconsumer"}
-			]
-			var prevunsettledbal=0;
-			totalsettlement=950;
-			vendor={vednorname:vendor.providername,transactiondate:transactiondate}
+			// createdordersettlement=[{noofcreatedorders:4,totalordervalue:2000,totaltransactioncost:50,totalsettlementcost:1950}];
+			// cancelledordersttlement=
+			// [
+			// {noofcancelledorders:1,totalordervalue:-500,totaltransactioncost:-12.5,totalsettlementcost:-512.5},
+			// {noofcancelledorders:1,totalordervalue:-500,totaltransactioncost: 12.5,totalsettlementcost:-487.5},
+			// ];
+			// cancellandcreatedordersttlement=[
+			// 	{orderid:1,suborderid:12,orderdate:transactiondate,ordervalue:500,transactioncost:-12.5,settlementamount:487.5,status:""},
+			// 	{orderid:2,suborderid:22,orderdate:transactiondate,ordervalue:500,transactioncost:-12.5,settlementamount:487.5,status:""},
+			// 	{orderid:3,suborderid:32,orderdate:transactiondate,ordervalue:500,transactioncost:-12.5,settlementamount:487.5,status:""},
+			// 	{orderid:4,suborderid:42,orderdate:transactiondate,ordervalue:500,transactioncost:-12.5,settlementamount:487.5,status:""},
+			// 	{orderid:5,suborderid:52,orderdate:transactiondate,ordervalue:-500,transactioncost:-12.5,settlementamount:-512.5,status:"cancelled"},
+			// 	{orderid:1,suborderid:12,orderdate:transactiondate,ordervalue:-500,transactioncost:12.5,settlementamount:-487.5,status:"cancelledbyconsumer"}
+			// ]
+			// var prevunsettledbal=0;
+			// totalsettlement=950;
+			// vendor={vednorname:vendor.providername,transactiondate:transactiondate}
 			var conf={};
 
 			conf.cols=[
@@ -3275,16 +3276,18 @@ var getPayableRefundableExcelSheetForProvider=function(providerid,transactiondat
 	var year=transactiondate.getFullYear();
 	ProductOrderModel.aggregate({$project:{orderid:1,suborder:1,payment:1,status:1,orderdate:{day:{$dayOfMonth:'$order_placeddate'},month:{$month:'$order_placeddate'},year:{$year:'$order_placeddate'}}}},{$unwind:"$suborder"},{$match:{status:{$ne:"waitforapproval"},"payment.mode":new RegExp("paytm","i"),"paytm.STATUS": new RegExp("txn_success","i"),"suborder.productprovider.providerid":providerid,"suborder.status":{$nin:["cancelled","rejected","cancelledbyconsumer"]}}},{$project:{orderid:1,orderdate:1,suborderid:"$suborder.suborderid",status:"$suborder.status",suborder_price:"$suborder.suborder_price",providername:"$suborder.productprovider.providername",providerid:"$suborder.productprovider.providerid"}},function(err,createdsuborders){
 		if(err){
-			callback({error:{code:"ED001",message:"Database Issue"}})
+			callback({error:{code:"ED001",message:"Database Issue"}});
+			console.log("Database Error"+err);
 		}else{
 			//to get refundable transaction details order cancelled by vendor,ordercancelledy user,order rejected by vendor
 			ProductOrderModel.aggregate({$project:{orderid:1,suborder:1,payment:1,status:1,order_placeddate:1}},{$unwind:"$suborder"},{$project:{orderid:1,payment:1,status:1,suborder:1,order_placeddate:1,cancelrejectdate:{day:{$dayOfMonth:'$suborder.cancelrejectdate'},month:{$month:'$suborder.cancelrejectdate'},year:{$year:'$suborder.cancelrejectdate'}}}},{$match:{status:{$ne:"waitforapproval"},"payment.mode":/paytm/i,"paytm.STATUS": new RegExp("txn_success","i"),"suborder.productprovider.providerid":providerid,"suborder.status":{$in:["cancelled","rejected","cancelledbyconsumer"]},"cancelrejectdate.day":day,"cancelrejectdate.month":month,"cancelrejectdate.year":year}},{$project:{orderid:1,orderdate:"$order_placeddate",cancelrejectdate:1,suborderid:"$suborder.suborderid",status:"$suborder.status",suborder_price:"$suborder.suborder_price",providername:"$suborder.productprovider.providername",providerid:"$suborder.productprovider.providerid"}},function(err,cancelledrjectedsuborder){
 				if(err){
-					callback({error:{code:"ED001",message:"Database Issue"}})
+					callback({error:{code:"ED001",message:"Database Issue"}});
+								console.log("Database Error"+err);
 				}else{
 					//to check provider have trial period or not
 					//call to get GlsPaymentPercent
-					getGlsPaymentPercent(providerid,function(err,productprovider){
+					getGlsPaymentPercent(providerid,transactiondate,function(err,productprovider){
 						if(err){
 							callback(err)
 						}else{
@@ -3338,7 +3341,7 @@ var getPayableRefundableExcelSheetForProvider=function(providerid,transactiondat
 								
 								createdandcancelledsuborders.push(suborderdetails);
 							}
-							createdordersettlement.push({noofcreatedorders:noofcreatedorders,totalcreatedordervalue:totalcreatedordervalue,totaltransactioncost:totaltransactioncost,totalsettlementcost:totalsettlementcost});
+							createdordersettlement.push({noofcreatedorders:noofcreatedorders,totalcreatedordervalue:totalcreatedordervalue,totaltransactioncost:totaltransactioncost,totalsettlementcost:totalcreatedordersettlementcost});
 							var nofocancelledorderbyconsumer=0;
 							var nofocancelledorderbyvendor=0;
 							var totalcancelledordervaluebyvendor=0;
@@ -3390,8 +3393,9 @@ var getPayableRefundableExcelSheetForProvider=function(providerid,transactiondat
 							
 							totalsettlementamount=totalcreatedordersettlementcost+totalcancelledsettlementcostbyvendor+totalcancelledsettlementcostbyconsumer;
 							//to get excelsheet
+							var prevunsettledbal=0;
 
-							getExcelSheet(createdordersettlement,totalcancelledordersttlement,createdandcancelledsuborders,totalsettlementamount,productprovider,transactiondate,function(excelinfo){
+							getExcelSheet(createdordersettlement,totalcancelledordersttlement,createdandcancelledsuborders,totalsettlementamount,productprovider,transactiondate,prevunsettledbal,totalsettlementamount,function(excelinfo){
 								if(err){
 									callback(err)
 								}else{
@@ -3421,21 +3425,21 @@ var _validateGetPayableRefundableExcelSheetForProvider=function(self,providerid,
 			 self.emit("failedgetPayableRefundableExcelSheetForProvider",{error:{message:"Currently No option Available For All Provider"}});		
 			///////////////////////////////
 		}else{
-			// getPayableRefundableExcelSheetForProvider(providerid,transactiondate,function(err,excelinfo){
-			// 	if(err){
-			// 		self.emit("failedgetPayableRefundableExcelSheetForProvider",err);		
-			// 	}else{
-			// 		sel.emit("successfulgetPayableRefundableExcelSheetForProvider",excelinfo)
-			// 	}			
-			// })	
-			var createdordersettlement;
-			var cancelledordersttlement;
-			var createdandcancelledsuborders;
-			var totalsettlementamount;
-			var productprovider={providername:"Copper Chocs"}
-			getExcelSheet(createdordersettlement,cancelledordersttlement,createdandcancelledsuborders,totalsettlementamount,productprovider,transactiondate,function(excelinfo){
-				self.emit("successfulgetPayableRefundableExcelSheetForProvider",excelinfo)
-			})
+			getPayableRefundableExcelSheetForProvider(providerid,transactiondate,function(err,excelinfo){
+				if(err){
+					self.emit("failedgetPayableRefundableExcelSheetForProvider",err);		
+				}else{
+					self.emit("successfulgetPayableRefundableExcelSheetForProvider",excelinfo)
+				}			
+			})	
+			// var createdordersettlement;
+			// var cancelledordersttlement;
+			// var createdandcancelledsuborders;
+			// var totalsettlementamount;
+			// var productprovider={providername:"Copper Chocs"}
+			// getExcelSheet(createdordersettlement,cancelledordersttlement,createdandcancelledsuborders,totalsettlementamount,productprovider,transactiondate,function(excelinfo){
+			// 	self.emit("successfulgetPayableRefundableExcelSheetForProvider",excelinfo)
+			// })
 			
 		}
 	}
