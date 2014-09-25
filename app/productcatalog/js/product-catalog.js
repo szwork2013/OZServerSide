@@ -59,7 +59,7 @@ var _validateServiceCatalogData=function(self,branchid,providerid,categoryid,pro
 		self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"price should be numeric"}});
 	}else if(productcatalog.price.uom==undefined || productcatalog.price.uom==""){
 		self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"Please enter unit of measurement"}})
-	}else  if(["kg","no","ltr","lb","gm"].indexOf(productcatalog.price.uom.toLowerCase())<0){
+	}else  if(["kg","no","lt","lb","gm"].indexOf(productcatalog.price.uom.toLowerCase())<0){
 		self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"unit of measurement should be kg,lt,lb,no,gm"}});
 	}else if(productcatalog.productdescription==undefined || productcatalog.productdescription==""){
 		self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"Please enter productdescription"}});
@@ -1602,47 +1602,117 @@ var _csvToJson = function(self,data,providerid,branchid,user){
 	// console.log("fileStream : "+JSON.stringify(fileStream));
 	//end_parsed will be emitted once parsing finished
 	csvConverter.on("end_parsed",function(jsonObj){
-	   console.log("test"+JSON.stringify(jsonObj)); //here is your result json object
-	   // _isValidProductdataToAddProductsByXLS(self,providerid,branchid,jsonObj);
+	   // console.log("test"+JSON.stringify(jsonObj)); //here is your result json object
+	   _isValidProductdataToAddProductsByXLS(self,providerid,branchid,jsonObj);
 	});
 	fileStream.pipe(csvConverter);
 }
 var _isValidProductdataToAddProductsByXLS = function(self,providerid,branchid,productdata){
 	if(productdata.length>0){
 	    var initialvalue=0;
+	    var result = [];
 	  	////////////////////////////////////////////////////////////////////////////////////
-		_getCategoryidToAddProductsByXLS(self,providerid,branchid,productdata,initialvalue);
+		_getCategoryidToAddProductsByXLS(self,providerid,branchid,productdata,initialvalue,result);
 	   	////////////////////////////////////////////////////////////////////////////////////
 	}else{
 	    self.emit("failedaddProductsForProviderByXLS",{error:{code:"AV001",message:"Please enter valid product details"}});
 	}			
 }
-var _getCategoryidToAddProductsByXLS=function(self,providerid,branchid,productdata,initialvalue){
+var _getCategoryidToAddProductsByXLS=function(self,providerid,branchid,productdata,initialvalue,result){	
 	var product = productdata[initialvalue];
 	if(productdata.length>initialvalue){
 		CategoryModel.findOne({$or:[{categoryname:product.category},{slug:product.category.toLowerCase()}]},{categoryid:1},function(err,category){
 			if(err){
 				logger.emit('error',"Database Error  _isValidProductsToChangePrice"+err);
 			}else if(!category){
-				logger.emit('error',"categoryname is wrong");
-				_getCategoryidToAddProductsByXLS(self,providerid,branchid,productdata,++initialvalue);
+				logger.emit('error',"categoryname is wrong ");
+				result.push({"error":"Incorrect category","product":product});
+				_getCategoryidToAddProductsByXLS(self,providerid,branchid,productdata,++initialvalue,result);
 			}else{
-				var productcatalog = {"productname":product.productname,"productdescription":product.description,"max_weight":{"value":product.maxorderweight},"min_weight":{"value":product.minorderweight},"productcode":product.productcode,"foodtype":product.foodtype,"price":{"value":product.price,"uom":product.uom},"leadtime":{"value":product.leadtime,"option":product.leadtimeunit}};
-				///////////////////////////////////////////////////////////////////////////////////////////////
-				_isValidProviderProductsForProviderByXLS(self,providerid,branchid,category.categoryid,productcatalog,productdata,initialvalue);
-				///////////////////////////////////////////////////////////////////////////////////////////////
+				var productcatalog = {"productname":product.productname,"productdescription":product.description,"max_weight":{"value":product.maxorderweight},"min_weight":{"value":product.minorderweight},"productcode":product.productcode,"foodtype":product.foodtype.toLowerCase(),"price":{"value":product.price,"uom":product.uom},"leadtime":{"value":product.leadtime,"option":product.leadtimeunit.toLowerCase()}};
+				if(productcatalog==undefined){
+					// self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"Please enter productcatalog- JSON FORMAT ERROR"}});
+					result.push({"error":"Please enter productcatalog","product":product});
+					_getCategoryidToAddProductsByXLS(self,providerid,branchid,productdata,++initialvalue,result);
+				}else if(productcatalog.productname==undefined || productcatalog.productname==""){
+					// self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"Please enter productname"}})
+					result.push({"error":"Please enter productname","product":product});
+					_getCategoryidToAddProductsByXLS(self,providerid,branchid,productdata,++initialvalue,result);
+				}else if(productcatalog.price==undefined || productcatalog.price==""){
+					// self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"Please enter product price key"}})
+					result.push({"error":"Please enter product price","product":product});
+					_getCategoryidToAddProductsByXLS(self,providerid,branchid,productdata,++initialvalue,result);
+				}else if(productcatalog.price.value==undefined || productcatalog.price.value==""){
+					// self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"Please enter value in price"}})
+					result.push({"error":"Please enter value in price","product":product});
+					_getCategoryidToAddProductsByXLS(self,providerid,branchid,productdata,++initialvalue,result);
+				}else if(!isNumber(S(productcatalog.price.value))){
+					// self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"price should be numeric"}});
+					result.push({"error":"price should be numeric","product":product});
+					_getCategoryidToAddProductsByXLS(self,providerid,branchid,productdata,++initialvalue,result);
+				}else if(productcatalog.price.uom==undefined || productcatalog.price.uom==""){
+					// self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"Please enter unit of measurement"}})
+					result.push({"error":"Please enter unit of measurement","product":product});
+					_getCategoryidToAddProductsByXLS(self,providerid,branchid,productdata,++initialvalue,result);
+				}else  if(["kg","no","lt","lb","gm"].indexOf(productcatalog.price.uom.toLowerCase())<0){
+					// self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"unit of measurement should be kg,lt,lb,no,gm"}});
+					result.push({"error":"unit of measurement should be kg,lt,lb,no,gm","product":product});
+					_getCategoryidToAddProductsByXLS(self,providerid,branchid,productdata,++initialvalue,result);
+				}else if(productcatalog.productdescription==undefined || productcatalog.productdescription==""){
+					// self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"Please enter productdescription"}});
+					result.push({"error":"Please enter productdescription","product":product});
+					_getCategoryidToAddProductsByXLS(self,providerid,branchid,productdata,++initialvalue,result);
+				}else if(productcatalog.productcode==undefined || productcatalog.productcode==""){
+					// self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"Please enter productcode"}});
+					result.push({"error":"Please enter productcode","product":product});
+					_getCategoryidToAddProductsByXLS(self,providerid,branchid,productdata,++initialvalue,result);
+				}else if(productcatalog.foodtype==undefined){
+					// self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"Please enter foodtype"}});
+					result.push({"error":"Please enter foodtype","product":product});
+					_getCategoryidToAddProductsByXLS(self,providerid,branchid,productdata,++initialvalue,result);
+				}else if(["veg","non-veg","both"].indexOf(productcatalog.foodtype.toLowerCase())<0){
+					// self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"foodtype must be veg, non-veg or both"}});
+					result.push({"error":"foodtype must be veg, non-veg or both","product":product});
+					_getCategoryidToAddProductsByXLS(self,providerid,branchid,productdata,++initialvalue,result);
+				}else if(productcatalog.leadtime==undefined){
+					// self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"Please enter lead time details"}});
+					result.push({"error":"Please enter lead time details","product":product});
+					_getCategoryidToAddProductsByXLS(self,providerid,branchid,productdata,++initialvalue,result);
+				}else if(productcatalog.leadtime.value == undefined || productcatalog.leadtime.value == ""){
+					// self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"Please enter lead time value"}});
+					result.push({"error":"Please enter lead time value","product":product});
+					_getCategoryidToAddProductsByXLS(self,providerid,branchid,productdata,++initialvalue,result);
+				}else if(!Number(productcatalog.leadtime.value)){
+					// self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"Lead time value should be numeric"}});
+					result.push({"error":"Lead time value should be numeric","product":product});
+					_getCategoryidToAddProductsByXLS(self,providerid,branchid,productdata,++initialvalue,result);
+				}else if(productcatalog.leadtime.option == undefined || productcatalog.leadtime.option == ""){
+					// self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"Please enter lead time option"}});
+					result.push({"error":"Please enter lead time option","product":product});
+					_getCategoryidToAddProductsByXLS(self,providerid,branchid,productdata,++initialvalue,result);
+				}else if(["minutes","hours","days","weeks"].indexOf(productcatalog.leadtime.option.toLowerCase())<0){
+					// self.emit("failedAddProductCatalog",{"error":{"code":"AV001","message":"option should be minutes, hours, days, weeks"}});
+					result.push({"error":"leadtimeunit should be minutes, hours, days, weeks","product":product});
+					_getCategoryidToAddProductsByXLS(self,providerid,branchid,productdata,++initialvalue,result);
+				}else{
+					//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+					_isValidProviderProductsForProviderByXLS(self,providerid,branchid,category.categoryid,productcatalog,productdata,initialvalue,result);
+					//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+				}				
 			}
 		});
 	}else{
        console.log("all product's added successfully");
-       _successfuladdProductsForProviderByXLS(self);
+       _successfuladdProductsForProviderByXLS(self,result);
 	}
 }
-var _isValidProviderProductsForProviderByXLS = function(self,providerid,branchid,categoryid,productcatalog,productdata,initialvalue){
+var _isValidProviderProductsForProviderByXLS = function(self,providerid,branchid,categoryid,productcatalog,productdata,initialvalue,result){
+	var invalidProduct = {"productname":productcatalog.productname,"productdescription":productcatalog.description,"max_weight":{"value":productcatalog.maxorderweight},"min_weight":{"value":productcatalog.minorderweight},"productcode":productcatalog.productcode,"foodtype":productcatalog.foodtype,"price":{"value":productcatalog.price,"uom":productcatalog.uom},"leadtime":{"value":productcatalog.leadtime,"option":productcatalog.leadtimeunit}};
 	ProductProviderModel.aggregate([{$unwind:"$branch"},{$match:{status:{$ne:"deactive"},"branch.branchid":branchid,providerid:providerid}}]).exec(function(err,productProvider){
 		if(err){
 			logger.emit("error","Database Error : _isValidProviderProductsForProviderByXLS " + err);
-			_getCategoryidToAddProductsByXLS(self,providerid,branchid,productdata,++initialvalue);
+			result.push({"error":"Database Error : "+err,"product":invalidProduct});
+			_getCategoryidToAddProductsByXLS(self,providerid,branchid,productdata,++initialvalue,result);
 		}else if(productProvider.length>0){
 			var loc = {address1:productProvider[0].branch.location.address1,address2:productProvider[0].branch.location.address2,address3:productProvider[0].branch.location.address3,area:productProvider[0].branch.location.area,geo:productProvider[0].branch.location.geo,city:productProvider[0].branch.location.city,district:productProvider[0].branch.location.district,state:productProvider[0].branch.location.state,country:productProvider[0].branch.location.country,zipcode:productProvider[0].branch.location.zipcode};
 			productcatalog.branch = {branchid:branchid,branchname:productProvider[0].branch.branchname,note:productProvider[0].branch.note,location:loc,contact_supports:productProvider[0].branch.contact_supports};
@@ -1681,6 +1751,7 @@ var _isValidProviderProductsForProviderByXLS = function(self,providerid,branchid
 			CategoryModel.find({status:{$ne:"deactive"},$or:[{"ancestors.categoryid":productProvider[0].category.categoryid},{categoryid:productProvider[0].category.categoryid}]},{categoryid:1,_id:0}).exec(function(err,doc){
 				if(err){
 					logger.emit("error","Database Error :  _isValidProviderProductsForProviderByXLS " + err);
+					result.push({"error":"Database Error :Category Validation "+err,"product":invalidProduct});
 				}else if(doc.length>0){
 					var categoryids=[];
 					for(var i=0;i<doc.length;i++){
@@ -1688,14 +1759,15 @@ var _isValidProviderProductsForProviderByXLS = function(self,providerid,branchid
 					}
 					if(categoryids.indexOf(categoryid)<0){
 						console.log("Category does not exist for this seller");
-						_getCategoryidToAddProductsByXLS(self,providerid,branchid,productdata,++initialvalue);
-						// self.emit("failedaddProductsForProviderByXLS",{"error":{"code":"AD001","message":"Category does not exist for this seller"}});	
+						result.push({"error":"Category does not exist/belongs for this seller","product":invalidProduct});
+						_getCategoryidToAddProductsByXLS(self,providerid,branchid,productdata,++initialvalue,result);
 					}else{
 						// getCategoryDataForProductCatalog
 						CategoryModel.findOne({status:{$ne:"deactive"},categoryid:categoryid},{categoryid:1,categoryname:1,ancestors:1,_id:0}).exec(function(err,doc){
 							if(err){
 								logger.emit("error","Database Error : _getCategoryDataForProductCatalog " + err);
-								_getCategoryidToAddProductsByXLS(self,providerid,branchid,productdata,++initialvalue);
+								result.push({"error":"Database Error :_getCategoryDataForProductCatalog  "+err,"product":invalidProduct});
+								_getCategoryidToAddProductsByXLS(self,providerid,branchid,productdata,++initialvalue,result);
 							}else if(doc){
 								productcatalog.category = {id:doc.categoryid,categoryname:doc.categoryname,ancestors:doc.ancestors};
 								
@@ -1722,54 +1794,58 @@ var _isValidProviderProductsForProviderByXLS = function(self,providerid,branchid
 								ProductCatalogModel.findOne({"branch.branchid":branchid,$or:[{productname:productcatalog.productname},{productname:productcatalog.productname.toLowerCase()}]},function (err,product) {
 									if(err){
 										logger.emit("error","Database Error : _isProductNameIsSame " + err);
-										_getCategoryidToAddProductsByXLS(self,providerid,branchid,productdata,++initialvalue);
+										result.push({"error":"Database Error _isProductNameIsSame : "+err,"product":invalidProduct});
+										_getCategoryidToAddProductsByXLS(self,providerid,branchid,productdata,++initialvalue,result);
 									}else if(product){
 										if(product.status=="deactive"){
 											logger.emit("error","Product name with "+productcatalog.productname+" already exists, please publish this product");
-											_getCategoryidToAddProductsByXLS(self,providerid,branchid,productdata,++initialvalue);
+											result.push({"error":"Product name with "+productcatalog.productname+" already exists, please publish this product","product":invalidProduct});
+											_getCategoryidToAddProductsByXLS(self,providerid,branchid,productdata,++initialvalue,result);
 										}else{
 											logger.emit("error","Product name already exists");
-											_getCategoryidToAddProductsByXLS(self,providerid,branchid,productdata,++initialvalue);
+											result.push({"error":"Product name already exists","product":invalidProduct});
+											_getCategoryidToAddProductsByXLS(self,providerid,branchid,productdata,++initialvalue,result);
 										}			
 									}else{
 										/////////////////////////////////////////////////////////////////////////////////
 										// Add Product In Database
-										console.log("@########### "+JSON.stringify(productcatalog));
+										// console.log("@########### "+JSON.stringify(productcatalog));
 										productcatalog.createdate = new Date();
 										var newProduct = new ProductCatalogModel(productcatalog);
 										newProduct.save(function(err,prod_catalog){
 											if(err){
 												logger.emit("error","Database Error:_addProductCatalog"+err,sessionuser.userid);
-												_getCategoryidToAddProductsByXLS(self,providerid,branchid,productdata,++initialvalue);
+												result.push({"error":"Database Error : _addProductCatalog : "+err,"product":invalidProduct});
+												_getCategoryidToAddProductsByXLS(self,providerid,branchid,productdata,++initialvalue,result);
 											}else{
 												logger.emit("success","Product added successfully");
-												_getCategoryidToAddProductsByXLS(self,providerid,branchid,productdata,++initialvalue);
+												_getCategoryidToAddProductsByXLS(self,providerid,branchid,productdata,++initialvalue,result);
 											}
 										})
 										/////////////////////////////////////////////////////////////////////////////////
 									}
 								})
 							}else{
-								logger.emit("error","Database Incorrect categoryid"+err);
-						  		// self.emit("failedAddProductCatalog",{"error":{"code":"AD001","message":"Wrong categoryid"}});
-						  		_getCategoryidToAddProductsByXLS(self,providerid,branchid,productdata,++initialvalue);
+								logger.emit("error","Incorrect categoryid ");
+								result.push({"error":"Incorrect categoryid","product":invalidProduct});
+						  		_getCategoryidToAddProductsByXLS(self,providerid,branchid,productdata,++initialvalue,result);
 						  	}
 						});
 					}
 				}else{
 					console.log("Incorrect categoryid");
-					_getCategoryidToAddProductsByXLS(self,providerid,branchid,productdata,++initialvalue);
+					result.push({"error":"Incorrect categoryid","product":invalidProduct});
+					_getCategoryidToAddProductsByXLS(self,providerid,branchid,productdata,++initialvalue,result);
 			  		// self.emit("failedaddProductsForProviderByXLS",{"error":{"code":"AD001","message":"Wrong categoryid"}});
 			  	}
 			});
 		}else{
 			logger.emit("error","Wrong branchid or seller id "+ err);
-			_getCategoryidToAddProductsByXLS(self,providerid,branchid,productdata,++initialvalue);
-	  		// self.emit("failedaddProductsForProviderByXLS",{"error":{"code":"AD001","message":"Wrong branchid or seller id"}});
+	  		self.emit("failedaddProductsForProviderByXLS",{"error":{"code":"AD001","message":"Incorrect branchid or seller id"}});
 	  	}
 	});
 }
 
 var _successfuladdProductsForProviderByXLS = function(self,doc){
-	self.emit("successfuladdProductsForProviderByXLS",{"success":{"message":"All Products Added Successfully","doc":doc}});
+	self.emit("successfuladdProductsForProviderByXLS",{"success":{"message":"Products Added Successfully, Following Products Not Added Because of Missing fields","result":doc}});
 }

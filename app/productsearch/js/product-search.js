@@ -857,11 +857,11 @@ var _getCityInWhichProvidersProvidesService = function(self){
 							self.emit("failedGetCityInWhichProvidersProvidesService",{"error":{"code":"ED001","message":"Error in db "+err}});
 						}else{
 							var deliverycity = [];
-							var branchcity =[];
+							var branchcity = [];
 							if(deliverychargecitydata.length>0){
 								deliverycity = 	deliverychargecitydata[0].city;
 							}
-							if(branchloccitydata>0){
+							if(branchloccitydata.length>0){
 								branchcity = branchloccitydata[0].city;
 							}
 							var city1 = __.union(deliverycity,branchcity);
