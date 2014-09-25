@@ -25,8 +25,11 @@ exports.init = function (app) {
  	app.get('/api/productconfig',auth,api.productconfigapi.getProductConfiguration);
  	app.delete('/api/productconfig/:configid',auth,api.productconfigapi.deleteProductConfiguration); 	
  	app.get('/api/productconfig/:categoryid',auth,api.productconfigapi.getProductConfigurationByCategory);
- 	app.post('/api/manageproductleadtime/:providerid/:branchid',auth,api.productcatalogapi.manageProductLeadTime)
- 	app.get('/api/productleadtime/:providerid/:branchid',auth,api.productcatalogapi.getProductLeadTime)
+ 	app.post('/api/manageproductleadtime/:providerid/:branchid',auth,api.productcatalogapi.manageProductLeadTime);
+ 	app.get('/api/productleadtime/:providerid/:branchid',auth,api.productcatalogapi.getProductLeadTime);
+
+ 	//Api's for admin
+ 	app.post('/api/addallproductsofprovider/:providerid/:branchid',auth,api.productcatalogapi.addProductsForProviderByXLS);
 }
 
 

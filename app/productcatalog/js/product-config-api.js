@@ -143,3 +143,4 @@ exports.deleteProductConfiguration=function(req,res){
       productconfig.deleteProductConfiguration(configid,req.user);
     }
 }
+

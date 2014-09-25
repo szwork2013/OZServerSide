@@ -1576,3 +1576,200 @@ var _getAllProductLeadTime=function(self,providerid,branchid){
 var _successfulGetProductLeadTime=function(self,result){
 	self.emit("successfullGetProductLeadTime",{success:{message:"Getting Product lead time Successfully",productleadtime:result}})
 }
+
+
+ProductCatalog.prototype.addProductsForProviderByXLS = function(providerid,branchid,user){
+	var self = this;
+	var data = this.productcatalog;
+	if(data == undefined){
+		self.emit("failedaddProductsForProviderByXLS",{"error":{"code":"AV001","message":"Please enter data"}});
+	}else if(data.filepath == undefined || data.filepath == ""){
+		self.emit("failedaddProductsForProviderByXLS",{"error":{"code":"AV001","message":"Please enter csv filepath"}});
+	}else{
+		/////////////////////////////////////
+		_csvToJson(self,data,providerid,branchid,user);
+		/////////////////////////////////////
+	}	
+};
+
+var _csvToJson = function(self,data,providerid,branchid,user){
+	var Converter=require("csvtojson").core.Converter;
+
+	var csvFileName = data.filepath;
+	var fileStream = fs.createReadStream(csvFileName);
+	//new converter instance
+	var csvConverter=new Converter({constructResult:true});
+
+	//end_parsed will be emitted once parsing finished
+	csvConverter.on("end_parsed",function(jsonObj){
+	   // console.log("test"+JSON.stringify(jsonObj)); //here is your result json object
+	   _isValidProductdataToAddProductsByXLS(self,providerid,branchid,jsonObj);
+	});
+	fileStream.pipe(csvConverter);
+}
+var _isValidProductdataToAddProductsByXLS = function(self,providerid,branchid,productdata){
+	if(productdata.length>0){
+	    var initialvalue=0;
+	  	////////////////////////////////////////////////////////////////////////////////////
+		_getCategoryidToAddProductsByXLS(self,providerid,branchid,productdata,initialvalue);
+	   	////////////////////////////////////////////////////////////////////////////////////
+	}else{
+	    self.emit("failedaddProductsForProviderByXLS",{error:{code:"AV001",message:"Please enter valid product details"}});
+	}			
+}
+var _getCategoryidToAddProductsByXLS=function(self,providerid,branchid,productdata,initialvalue){
+	var product = productdata[initialvalue];
+	if(productdata.length>initialvalue){
+		CategoryModel.findOne({$or:[{categoryname:product.category},{slug:product.category.toLowerCase()}]},{categoryid:1},function(err,category){
+			if(err){
+				logger.emit('error',"Database Error  _isValidProductsToChangePrice"+err);
+			}else if(!category){
+				logger.emit('error',"categoryname is wrong");
+				_getCategoryidToAddProductsByXLS(self,providerid,branchid,productdata,++initialvalue);
+			}else{
+				var productcatalog = {"productname":product.productname,"productdescription":product.description,"max_weight":{"value":product.maxorderweight},"min_weight":{"value":product.minorderweight},"productcode":product.productcode,"foodtype":product.foodtype,"price":{"value":product.price,"uom":product.uom},"leadtime":{"value":product.leadtime,"option":product.leadtimeunit}};
+				///////////////////////////////////////////////////////////////////////////////////////////////
+				_isValidProviderProductsForProviderByXLS(self,providerid,branchid,category.categoryid,productcatalog,productdata,initialvalue);
+				///////////////////////////////////////////////////////////////////////////////////////////////
+			}
+		});
+	}else{
+       console.log("all product's added successfully");
+       _successfuladdProductsForProviderByXLS(self);
+	}
+}
+var _isValidProviderProductsForProviderByXLS = function(self,providerid,branchid,categoryid,productcatalog,productdata,initialvalue){
+	ProductProviderModel.aggregate([{$unwind:"$branch"},{$match:{status:{$ne:"deactive"},"branch.branchid":branchid,providerid:providerid}}]).exec(function(err,productProvider){
+		if(err){
+			logger.emit("error","Database Error : _isValidProviderProductsForProviderByXLS " + err);
+			_getCategoryidToAddProductsByXLS(self,providerid,branchid,productdata,++initialvalue);
+		}else if(productProvider.length>0){
+			var loc = {address1:productProvider[0].branch.location.address1,address2:productProvider[0].branch.location.address2,address3:productProvider[0].branch.location.address3,area:productProvider[0].branch.location.area,geo:productProvider[0].branch.location.geo,city:productProvider[0].branch.location.city,district:productProvider[0].branch.location.district,state:productProvider[0].branch.location.state,country:productProvider[0].branch.location.country,zipcode:productProvider[0].branch.location.zipcode};
+			productcatalog.branch = {branchid:branchid,branchname:productProvider[0].branch.branchname,note:productProvider[0].branch.note,location:loc,contact_supports:productProvider[0].branch.contact_supports};
+
+			if(productProvider[0].providerlogo == undefined){
+				productcatalog.provider = {provideremail:productProvider[0].provideremail,providerid:productProvider[0].providerid,providerbrandname:productProvider[0].providerbrandname,providername:productProvider[0].providername,providercode:productProvider[0].providercode,paymentmode:productProvider[0].paymentmode};
+			}else{
+				productcatalog.provider = {provideremail:productProvider[0].provideremail,providerid:productProvider[0].providerid,providername:productProvider[0].providername,providerbrandname:productProvider[0].providerbrandname,providerlogo:productProvider[0].providerlogo.image,providercode:productProvider[0].providercode,paymentmode:productProvider[0].paymentmode};
+			}
+
+			/************Add Tags*************/
+			var providertags_arr;
+			if(S(productProvider[0].providername).contains(" ")){
+                providertags_arr=productProvider[0].providername.split(" ");
+				providertags_arr.push(productProvider[0].providername);
+			}else{
+				providertags_arr=[productProvider[0].providername];
+			}
+			var providertags=providertags_arr;
+			productcatalog.providertags = providertags;
+
+			var producttags_array;
+			if(S(productcatalog.productname).contains(" ")){
+                producttags_array=productcatalog.productname.split(" ");
+				producttags_array.push(productcatalog.productname);
+			}else{
+				producttags_array=[productcatalog.productname];
+			}
+			var producttags=producttags_array;
+			productcatalog.producttags = producttags;
+
+			var locationtags = [productProvider[0].branch.location.area];
+			productcatalog.locationtags = locationtags;
+
+			// Category Validation
+			CategoryModel.find({status:{$ne:"deactive"},$or:[{"ancestors.categoryid":productProvider[0].category.categoryid},{categoryid:productProvider[0].category.categoryid}]},{categoryid:1,_id:0}).exec(function(err,doc){
+				if(err){
+					logger.emit("error","Database Error :  _isValidProviderProductsForProviderByXLS " + err);
+				}else if(doc.length>0){
+					var categoryids=[];
+					for(var i=0;i<doc.length;i++){
+						categoryids.push(doc[i].categoryid);
+					}
+					if(categoryids.indexOf(categoryid)<0){
+						console.log("Category does not exist for this seller");
+						_getCategoryidToAddProductsByXLS(self,providerid,branchid,productdata,++initialvalue);
+						// self.emit("failedaddProductsForProviderByXLS",{"error":{"code":"AD001","message":"Category does not exist for this seller"}});	
+					}else{
+						// getCategoryDataForProductCatalog
+						CategoryModel.findOne({status:{$ne:"deactive"},categoryid:categoryid},{categoryid:1,categoryname:1,ancestors:1,_id:0}).exec(function(err,doc){
+							if(err){
+								logger.emit("error","Database Error : _getCategoryDataForProductCatalog " + err);
+								_getCategoryidToAddProductsByXLS(self,providerid,branchid,productdata,++initialvalue);
+							}else if(doc){
+								productcatalog.category = {id:doc.categoryid,categoryname:doc.categoryname,ancestors:doc.ancestors};
+								
+								var categorytags = [];
+								categorytags.push(doc.categoryname);
+								for(var i=0;i<doc.ancestors.length;i++){
+									if(S(doc.ancestors[i].categoryname).contains(" ")){
+						                var categorytags1=doc.ancestors[i].categoryname.split(" ");
+										categorytags.push(doc.ancestors[i].categoryname);
+										categorytags=categorytags.concat(categorytags1);					
+									}else{
+										categorytags.push(doc.ancestors[i].categoryname);
+									}
+								}
+								if(S(doc.categoryname).contains(" ")){
+						            var categorytags2=doc.categoryname.split(" ");
+									categorytags=categorytags.concat(categorytags2);
+								}else{
+									categorytags.push(doc.categoryname);
+								}
+								productcatalog.categorytags = categorytags;
+								// var newProduct = productcatalog;
+								// isProductNameIsSame
+								ProductCatalogModel.findOne({"branch.branchid":branchid,$or:[{productname:productcatalog.productname},{productname:productcatalog.productname.toLowerCase()}]},function (err,product) {
+									if(err){
+										logger.emit("error","Database Error : _isProductNameIsSame " + err);
+										_getCategoryidToAddProductsByXLS(self,providerid,branchid,productdata,++initialvalue);
+									}else if(product){
+										if(product.status=="deactive"){
+											logger.emit("error","Product name with "+productcatalog.productname+" already exists, please publish this product");
+											_getCategoryidToAddProductsByXLS(self,providerid,branchid,productdata,++initialvalue);
+										}else{
+											logger.emit("error","Product name already exists");
+											_getCategoryidToAddProductsByXLS(self,providerid,branchid,productdata,++initialvalue);
+										}			
+									}else{
+										/////////////////////////////////////////////////////////////////////////////////
+										// Add Product In Database
+										console.log("@########### "+JSON.stringify(productcatalog));
+										productcatalog.createdate = new Date();
+										var newProduct = new ProductCatalogModel(productcatalog);
+										newProduct.save(function(err,prod_catalog){
+											if(err){
+												logger.emit("error","Database Error:_addProductCatalog"+err,sessionuser.userid);
+												_getCategoryidToAddProductsByXLS(self,providerid,branchid,productdata,++initialvalue);
+											}else{
+												logger.emit("success","Product added successfully");
+												_getCategoryidToAddProductsByXLS(self,providerid,branchid,productdata,++initialvalue);
+											}
+										})
+										/////////////////////////////////////////////////////////////////////////////////
+									}
+								})
+							}else{
+								logger.emit("error","Database Incorrect categoryid"+err);
+						  		// self.emit("failedAddProductCatalog",{"error":{"code":"AD001","message":"Wrong categoryid"}});
+						  		_getCategoryidToAddProductsByXLS(self,providerid,branchid,productdata,++initialvalue);
+						  	}
+						});
+					}
+				}else{
+					console.log("Incorrect categoryid");
+					_getCategoryidToAddProductsByXLS(self,providerid,branchid,productdata,++initialvalue);
+			  		// self.emit("failedaddProductsForProviderByXLS",{"error":{"code":"AD001","message":"Wrong categoryid"}});
+			  	}
+			});
+		}else{
+			logger.emit("error","Wrong branchid or seller id "+ err);
+			_getCategoryidToAddProductsByXLS(self,providerid,branchid,productdata,++initialvalue);
+	  		// self.emit("failedaddProductsForProviderByXLS",{"error":{"code":"AD001","message":"Wrong branchid or seller id"}});
+	  	}
+	});
+}
+
+var _successfuladdProductsForProviderByXLS = function(self,doc){
+	self.emit("successfuladdProductsForProviderByXLS",{"success":{"message":"All Products Added Successfully","doc":doc}});
+}

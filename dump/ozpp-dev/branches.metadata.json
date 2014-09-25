@@ -1,0 +1,1 @@
+{ "indexes" : [ { "v" : 1, "key" : { "_id" : 1 }, "ns" : "ozpp-dev.branches", "name" : "_id_" }, { "v" : 1, "key" : { "random" : "2dsphere" }, "ns" : "ozpp-dev.branches", "name" : "random_2dsphere", "background" : true, "safe" : null } ] }

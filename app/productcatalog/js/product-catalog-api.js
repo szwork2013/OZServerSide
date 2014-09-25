@@ -455,5 +455,33 @@ exports.getProductLeadTime=function(req,res){
     }); 
     
       productcatalog.getProductLeadTime(sessionuserid,providerid,branchid,category);
-    
+}
+
+exports.addProductsForProviderByXLS = function(req,res){
+  var providerid = req.params.providerid;
+  var branchid = req.params.branchid;
+  var data = req.body;
+  var productcatalog = new ProductCatalog(data);
+  productcatalog.removeAllListeners("failedaddProductsForProviderByXLS");
+    productcatalog.on("failedaddProductsForProviderByXLS",function(err){
+      if(err.error.code!="ED001"){
+       logger.emit("error", err.error.message);
+      }
+      
+      // //user.removeAllListeners();
+      res.send(err);
+    });
+    productcatalog.removeAllListeners("successfuladdProductsForProviderByXLS");
+    productcatalog.on("successfuladdProductsForProviderByXLS",function(result){
+      // if(err.error.code!="ED001"){
+      //  logger.emit("error", err.error.message); 
+      // }
+      // user.removeAllListeners();
+      res.send(result);
+    }); 
+    if(req.user.isAdmin == false){
+      productcatalog.emit("failedaddProductsForProviderByXLS",{error:{message:"You are not authorized to do delete product configuration"}});
+    }else{
+      productcatalog.addProductsForProviderByXLS(providerid,branchid,req.user);
+    }
 }

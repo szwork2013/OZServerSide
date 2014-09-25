@@ -1,0 +1,1 @@
+{ "indexes" : [ { "v" : 1, "key" : { "_id" : 1 }, "ns" : "ozpp-dev.locations", "name" : "_id_" }, { "v" : 1, "key" : { "zipcode" : 1 }, "unique" : true, "ns" : "ozpp-dev.locations", "name" : "zipcode_1", "background" : true } ] }

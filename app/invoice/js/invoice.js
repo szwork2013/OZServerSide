@@ -473,6 +473,3 @@ var _saveInvoiceDataIntoCollection=function(inoviceobject,invoicedata,callback){
 var _successfullInvoiceCreation=function(invoicepdf,callback){
   callback(null,{success:{message:"Invoice Created Successfully",invoice:invoicepdf}})
 }
-
-      ////////////////////////////////////////////////////////////////////////////
-     

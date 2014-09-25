@@ -1,12 +1,11 @@
 var node_xls = require("xls-to-json");
-  node_xls('zipcodelist.xls', function(err, result) {
+  node_xls({input: __dirname + '/zipcodelist.xls',output: __dirname + '/test.json'},function(err,result) {
     if(err) {
       console.error(err);
-    } else {
+    }else{
       console.log(result);
       // result output:
       // example:
-      // 
       // [{ A1: { ixfe: 63, XF: [Object], v: 1, t: 'n' },
       // A2: { ixfe: 63, XF: [Object], v: 1, t: 'n' },
       // A3: { ixfe: 63, XF: [Object], v: 10, t: 'n' },

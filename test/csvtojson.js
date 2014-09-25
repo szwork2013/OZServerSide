@@ -1,7 +1,7 @@
 var Converter=require("csvtojson").core.Converter;
 var fs=require("fs");
 
-var csvFileName="./zipcodelist.csv";
+var csvFileName="./products.csv";
 var fileStream=fs.createReadStream(csvFileName);
 //new converter instance
 var csvConverter=new Converter({constructResult:true});

@@ -1,0 +1,1 @@
+{ "indexes" : [ { "v" : 1, "key" : { "_id" : 1 }, "ns" : "ozpp-dev.productcategories", "name" : "_id_" }, { "v" : 1, "key" : { "categoryid" : 1 }, "unique" : true, "ns" : "ozpp-dev.productcategories", "name" : "categoryid_1", "background" : true } ] }

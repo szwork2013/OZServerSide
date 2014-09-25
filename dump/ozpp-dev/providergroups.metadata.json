@@ -1,0 +1,1 @@
+{ "indexes" : [ { "v" : 1, "key" : { "_id" : 1 }, "ns" : "ozpp-dev.providergroups", "name" : "_id_" }, { "v" : 1, "key" : { "usergrp.groupid" : 1 }, "unique" : true, "ns" : "ozpp-dev.providergroups", "name" : "usergrp.groupid_1", "background" : true } ] }

@@ -1,0 +1,1 @@
+{ "indexes" : [ { "v" : 1, "key" : { "_id" : 1 }, "ns" : "ozpp-dev.users", "name" : "_id_" }, { "v" : 1, "key" : { "userid" : 1 }, "unique" : true, "ns" : "ozpp-dev.users", "name" : "userid_1", "background" : true }, { "v" : 1, "key" : { "mobileno" : 1 }, "unique" : true, "ns" : "ozpp-dev.users", "name" : "mobileno_1", "background" : true } ] }

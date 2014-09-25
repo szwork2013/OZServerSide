@@ -1,0 +1,1 @@
+{ "indexes" : [ { "v" : 1, "key" : { "_id" : 1 }, "ns" : "ozpp-dev.invoices", "name" : "_id_" }, { "v" : 1, "key" : { "invoiceno" : 1 }, "unique" : true, "ns" : "ozpp-dev.invoices", "name" : "invoiceno_1", "background" : true } ] }
