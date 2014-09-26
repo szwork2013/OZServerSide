@@ -3252,8 +3252,7 @@ var getExcelSheet=function(createdordersettlement,cancelledordersttlement,cancel
         		excelrows.push([cancelledordersttlement[j].noofcancelledorders,cancelledordersttlement[j].totalordervalue,cancelledordersttlement[j].totaltransactioncost,cancelledordersttlement[j].totalsettlementcost,"Cancelled BY Vendor","",""]); 
         	}
         }
-      
-     		excelrows.push(["","","","","","",""]);
+      	excelrows.push(["","","","","","",""]);
      		excelrows.push(["","","","","","",""]);
      		excelrows.push(["","","","","","",""]);
      		excelrows.push(["Details Wise Report","","","","","",""]);
