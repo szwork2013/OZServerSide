@@ -976,7 +976,7 @@ var _criteriawiseSuborders=function(self,userid,providerid,branchid,criteriastat
 		if(["recieved","approved","packing","delivery","past"].indexOf(criteriastatus)<0){
 			self.emit("failedGetMySubOrders",{"error":{"message":"criteriastatus should be approved, packing, delivery, recieved, past"}});
 		}else{
-			var statusarray={recieved:["orderreceived"],past:["ordercomplete","cancelled","rejected"],approved:["accepted"],packing:["inproduction","packing","factorytostore"],delivery:["indelivery"]};
+			var statusarray={recieved:["orderreceived"],past:["ordercomplete","cancelled","rejected","cancelledbyconsumer"],approved:["accepted"],packing:["inproduction","packing","factorytostore"],delivery:["indelivery"]};
 			var query=[];
 			if(criteriastatus=="recieved"){
 				query.push({$match:{"suborder.productprovider.providerid":providerid,status:{$ne:"waitforapproval"}}})
@@ -1466,6 +1466,9 @@ var _manageOrder=function(self,action,user,suborder,status,order){
 	// tracking.status
     console.log("remark___________________________-"+suborder.reasontocancelreject)
 	var suborderdata={"suborder.$.status":status,"suborder.$.deliverydate":new Date(suborder.deliverydate)}
+	if(["rejected","cancelled","cancelledbyconsumer"].indexOf(status)>=0){
+		suborderdata["suborder.$.cancelrejectdate"]=new Date();
+	}
 	if(suborder.reasontocancelreject!=undefined){
 		suborderdata["suborder.$.reasontocancelreject"]=suborder.reasontocancelreject
 	}
@@ -2768,7 +2771,7 @@ var _checkSuborderIsValidOrder=function(self,orderid,suborderids){
 }
 var _cancelOrderByConsumer=function(self,suborders,index){
 	if(suborders.length>index){
-		OrderModel.update({"suborder.suborderid":suborders[index].suborderid},{$set:{"suborder.$.status":"cancelledbyconsumer"}},function(err,suborderupdatestatus){
+		OrderModel.update({"suborder.suborderid":suborders[index].suborderid},{$set:{"suborder.$.status":"cancelledbyconsumer","suborder.$.cancelrejectdate":new Date()}},function(err,suborderupdatestatus){
 			if(err){
 				logger.emit("error","Database Issue :_cancelOrderByConsumer "+err)
 				self.emit("failedCancelOrderByConsumer",{error:{code:"ED001",message:"Database Error"}})
