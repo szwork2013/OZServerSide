@@ -766,14 +766,14 @@ exports.getAllNewProductProviders=function(req,res){
   }
 }
 exports.manageDeliveryCharges=function(req,res){
-  var sessionuserid=req.user.userid;
+  var sessionuserid = req.user.userid;
   var productprovider = new ProductProvider();
-  var deliverychargedata=req.body.deliverychargedata;
-  var branchid=req.params.branchid;
+  var deliverychargedata = req.body.deliverychargedata;
+  var branchid = req.params.branchid;
   productprovider.removeAllListeners("failedManageDeliveryCharges");
   productprovider.on("failedManageDeliveryCharges",function(err){
     if(err.error.code!="ED001"){
-     logger.emit("error", err.error.message); 
+      logger.emit("error", err.error.message); 
     }
     
     // user.removeAllListeners();
@@ -783,9 +783,9 @@ exports.manageDeliveryCharges=function(req,res){
   productprovider.on("successfulManageDeliveryCharges",function(result){
     res.send(result);
   });
-  ///////////////////////////////////////////////////////////////////////// 
+  /////////////////////////////////////////////////////////////////////////////////
   productprovider.manageDeliveryCharges(sessionuserid,branchid,deliverychargedata);
-  ///////////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////////
 }
 
 exports.sellersAgreementUpload=function(req,res){

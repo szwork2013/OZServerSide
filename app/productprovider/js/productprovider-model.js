@@ -53,7 +53,7 @@ var branchSchema = mongoose.Schema(
       
     },//in this case charge or percent any of this
     //if fixedcharge is true then value means 100 and fixed charge false means value in percentage
-    deliverycharge:[{value:{type:Number},coverage:{area:String,zipcode:String,city:String}}],//if isProvideHomeDelivery is true
+    deliverycharge:[{value:{type:Number},minorderamt:{type:Number},maxorderamt:{type:Number},coverage:{area:String,zipcode:String,city:String}}],//if isProvideHomeDelivery is true
     deliverytimingslots:[{from:Number,to:Number}],//in hours,
     contact_supports:[{type:String}],
     branch_images:[{bucket:{type:String},key:String,image:{type:String}}],

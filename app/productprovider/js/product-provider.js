@@ -2006,7 +2006,7 @@ ProductProvider.prototype.manageDeliveryCharges = function(userid,branchid,deliv
 var _validateDeliveryChargeData=function(self,userid,branchid,deliverychargedata){
 	if(deliverychargedata==undefined){
 		self.emit("failedManageDeliveryCharges",{error:{code:"AV001",message:"Please enter deliverychargedata"}})
-	}else if( !isArray(deliverychargedata)){
+	}else if(!isArray(deliverychargedata)){
 		self.emit("failedManageDeliveryCharges",{error:{code:"AV001",message:"deliverychargedata should be JSON Array"}})	
 	}else if( deliverychargedata.length<=0){
 		self.emit("failedManageDeliveryCharges",{error:{code:"AV001",message:"deliverychargedata should not be empty"}})	
@@ -2016,8 +2016,7 @@ var _validateDeliveryChargeData=function(self,userid,branchid,deliverychargedata
 		///////////////////////////////////////
 	}
 }
-var _isAuthorizedUserAddDeliveryCharges=function(self,userid,branchid,deliverychargedata){
-	
+var _isAuthorizedUserAddDeliveryCharges=function(self,userid,branchid,deliverychargedata){	
 	UserModel.findOne({userid:userid,"provider.branchid":branchid,"provider.isOwner":true},function(err,usersp){
 		if(err){
 			logger.emit('error',"Database Error  _isAuthorizedUserToDeleteBranch"+err,user.userid)
@@ -2039,7 +2038,7 @@ var _checkValueInPercentOrAmount=function(self,userid,branchid,deliverychargedat
 		}else if(branch.length==0){
 			self.emit("failedManageDeliveryCharges",{"error":{"message":"Incorrect branchid"}});
 		}else{
-			logger.emit("log","braddddnch"+JSON.stringify(branch[0]))
+			// logger.emit("log","braddddnch"+JSON.stringify(branch[0]))
 			branch=branch[0].branch;
 			var isdeliverychargeinpercent=branch.delivery.isdeliverychargeinpercent;
 			////////////////////////////////////////////
@@ -2054,24 +2053,24 @@ var _checkDeliveryChargeData=function(self,userid,branchid,deliverychargedata,is
 	var deletedzipcodearray=[];
 	var deletareaarray=[];
 	for(var i=0;i<deliverychargedata.length;i++){
-		if(deliverychargedata[i].value!=undefined && S(deliverychargedata[i].value).isNumeric() && deliverychargedata[i].coverage.area!=undefined && deliverychargedata[i].coverage.city!=undefined  && deliverychargedata[i].coverage.zipcode!=undefined){
+		if(deliverychargedata[i].value!=undefined && deliverychargedata[i].minorderamt!=undefined && deliverychargedata[i].maxorderamt!=undefined && S(deliverychargedata[i].value).isNumeric() && deliverychargedata[i].coverage.area!=undefined && deliverychargedata[i].coverage.city!=undefined  && deliverychargedata[i].coverage.zipcode!=undefined){
 				if(deliverychargedata[i].available){//add or update deilvery area and charge//delete
-					validated_data.push({value:deliverychargedata[i].value,coverage:{area:deliverychargedata[i].coverage.area.toLowerCase(),city:deliverychargedata[i].coverage.city.toLowerCase(),zipcode:deliverychargedata[i].coverage.zipcode}})
-				  coveragearray.push({area:deliverychargedata[i].coverage.area.toLowerCase(),city:deliverychargedata[i].coverage.city.toLowerCase(),zipcode:deliverychargedata[i].coverage.zipcode})	
+					validated_data.push({value:deliverychargedata[i].value,minorderamt:deliverychargedata[i].minorderamt,maxorderamt:deliverychargedata[i].maxorderamt,coverage:{area:deliverychargedata[i].coverage.area.toLowerCase(),city:deliverychargedata[i].coverage.city.toLowerCase(),zipcode:deliverychargedata[i].coverage.zipcode}})
+				  	coveragearray.push({area:deliverychargedata[i].coverage.area.toLowerCase(),city:deliverychargedata[i].coverage.city.toLowerCase(),zipcode:deliverychargedata[i].coverage.zipcode})	
 				}else{//delete
 					deletedzipcodearray.push(deliverychargedata[i].coverage.zipcode);
-					deletareaarray.push(deliverychargedata[i].coverage.area);
-						
+					deletareaarray.push(deliverychargedata[i].coverage.area);						
 				}
 		}
 	}
 	if(validated_data.length==0){
-		///////////////////////////////////////
-			_removeBranchDeliveryCharges(branchid,deletedzipcodearray,deletareaarray);
-			////////////////////////////////////
-			//////////////////////////////////////////
-	 		_successfullManageDeliveryCharges(self)
-			////////////////////////////////////////	
+		console.log("validated_data.length : "+validated_data.length);
+		//////////////////////////////////////////////////////////////////////////
+		_removeBranchDeliveryCharges(branchid,deletedzipcodearray,deletareaarray);
+		//////////////////////////////////////////////////////////////////////////
+		////////////////////////////////////////
+	 	_successfullManageDeliveryCharges(self);
+		////////////////////////////////////////	
 		// self.emit("failedManageDeliveryCharges",{"error":{"message":"Please enter valid deliverychargedata"}});
 	}else{
 		/////////////////////////////////
@@ -2087,12 +2086,11 @@ var _checkDeliveryChargesAlreadyApplied=function(self,userid,branchid,validated_
 		}else{
 			var validappliedareas=[];
 			var alreadyappliedareas=[];
-			console.log("deliverycharges"+JSON.stringify(deliverycharges));
+			// console.log("deliverycharges"+JSON.stringify(deliverycharges));
 			var alreadyaplliedcovergaearray=[];
 			for(var j=0;j<deliverycharges.length;j++){
-					alreadyaplliedcovergaearray.push(JSON.stringify({area:deliverycharges[j].coverage.area,city:deliverycharges[j].coverage.city,zipcode:deliverycharges[j].coverage.zipcode}))
+				alreadyaplliedcovergaearray.push(JSON.stringify({area:deliverycharges[j].coverage.area,city:deliverycharges[j].coverage.city,zipcode:deliverycharges[j].coverage.zipcode}))
 			}
-			// console.log('')
 
 			// var validcoverageareas=__.difference(coveragearray,alreadyaplliedcovergaearray)
 		 // console.log("alreadyappliedareas"+JSON.stringify(alreadyappliedareas))
@@ -2106,18 +2104,18 @@ var _checkDeliveryChargesAlreadyApplied=function(self,userid,branchid,validated_
 			///////////////////////////////////////
 			_removeBranchDeliveryCharges(branchid,deletedzipcodearray,deletareaarray);
 			////////////////////////////////////
-			console.log("validappliedareas"+JSON.stringify(validappliedareas))
+			// console.log("validappliedareas"+JSON.stringify(validappliedareas))
 			// console.log("alreadyappliedareas"+JSON.stringify(alreadyappliedareas))
 			if(validappliedareas.length==0){
 				///////////////////////////////////
-				 _updateAlreadyAppliedChargesAreas(self,branchid,alreadyappliedareas,0)
+				_updateAlreadyAppliedChargesAreas(self,branchid,alreadyappliedareas,0);
 				/////////////////////////////////
 				/////////////////////////////////
 				// self.emit("failedManageDeliveryCharges",{error:{message:"Given area provide already applied delivery charges"}})
 				/////////////////////////////////////////////////////////////
 			}else{
 				///////////////////////////////
-				_addDeliveryCharges(self,validappliedareas,alreadyappliedareas,userid,branchid)
+				_addDeliveryCharges(self,validappliedareas,alreadyappliedareas,userid,branchid);
 				//////////////////////////////
 			}
 		}
@@ -2129,9 +2127,9 @@ var _removeBranchDeliveryCharges=function(branchid,deletedzipcodearray,deletarea
 			logger.emit("error","Database Error :deletareaarray"+err)
 			// self.emit("failedManageDeliveryCharges",{error:{code:"ED001",message:"Database Error"}})		
  		}else if(deletedeliveryareastatus==0){
- 			logger.emit("error","Branch id is wrong for _removeBranchDeliveryCharges")
+ 			logger.emit("error","Branch id is wrong for _removeBranchDeliveryCharges");
  		}else{
- 			logger.emit("info","deliverycharge area removed from branch"+branchid)
+ 			logger.emit("info","deliverycharge area removed from branch"+branchid);
  		}
  	})
 }
@@ -2146,8 +2144,8 @@ var _addDeliveryCharges=function(self,validappliedareas,alreadyappliedareas,user
 		}else{
 			if(alreadyappliedareas.length==0){
 				//////////////////////////////////////////
-		 	_successfullManageDeliveryCharges(self,alreadyappliedareas)
-			////////////////////////////////////////	
+			 	_successfullManageDeliveryCharges(self,alreadyappliedareas)
+				////////////////////////////////////////	
 			}else{
 
 				///////////////////////////////////
@@ -2173,7 +2171,7 @@ var _updateAlreadyAppliedChargesAreas=function(self,branchid,alreadyappliedareas
  	ProductProviderModel.update({"branch.branchid":branchid},{$push:{"branch.$.deliverycharge":{$each:alreadyappliedareas}}},function(err,updatedeliverychargestatus){
 		if(err){
 			logger.emit("error","Database Error :_updateAlreadyAppliedChargesAreas"+err)
-	    self.emit("failedManageDeliveryCharges",{error:{code:"ED001",message:"Database Error"}})	
+	    	self.emit("failedManageDeliveryCharges",{error:{code:"ED001",message:"Database Error"}})	
 		}else if(updatedeliverychargestatus==0){
 			self.emit("failedManageDeliveryCharges",{error:{message:"Incorrect Branch id"}})	
 		}else{

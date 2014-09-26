@@ -1056,13 +1056,13 @@ var _getMySubOrders=function(self,userid,providerid,branchid,query,criteriastatu
 var _successfullgetMySubOrders=function(self,suborders){
 	self.emit("successfulGetMySubOrders",{success:{message:"Getting suborders successfully",suborders:suborders}});
 }
-Order.prototype.getDeliveryCharges = function(city,area,branchdata){
+Order.prototype.getDeliveryCharges = function(city,area,branchdata,branchordervalue){
 	var self = this;
 	///////////////////////////////
-	_validateDeliveryChargeData(self,city,area,branchdata);
+	_validateDeliveryChargeData(self,city,area,branchdata,branchordervalue);
 	/////////////////////////////
 }
-var _validateDeliveryChargeData=function(self,city,area,branchdatas){
+var _validateDeliveryChargeData=function(self,city,area,branchdatas,branchordervalue){
 	console.log("branchdatas"+branchdatas)
 	if(city==undefined || city==""){
 		self.emit("failedGetDeliveryCharges",{"error":{"code":"AV001","message":"please select city"}});
@@ -1077,9 +1077,14 @@ var _validateDeliveryChargeData=function(self,city,area,branchdatas){
 		// branchdatas.city=branchdatas.city.toLowerCase();
 		city=city.toLowerCase();
 		area=area.toLowerCase();
-		//////////////////////////////
-	  _getDeliveryCharges(self,city,area,branchdatas)
-	  //////////////////////////////
+		if(branchordervalue == undefined){
+			////////////////////////////////////////////////
+	  		_getDeliveryCharges(self,city,area,branchdatas);
+	  		////////////////////////////////////////////////
+		}else{
+
+		}
+		
 	}
 }
 var _getDeliveryCharges=function(self,city,area,branchids){

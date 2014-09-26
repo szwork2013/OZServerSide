@@ -171,6 +171,7 @@ exports.getDeliveryCharges=function(req,res){
   var area=req.body.area;
 
   var branchids=req.body.branchids;
+  var branchordervalue = req.body.branchordervalue;
   logger.emit("log","getDeliveryCharges:city:"+city+",area:"+area)
   // logger.emit("log","getMySubOrders /providerid:"+providerid+" /branchid:"+branchid);
   order.removeAllListeners("failedGetDeliveryCharges");
@@ -185,7 +186,7 @@ exports.getDeliveryCharges=function(req,res){
       // order.removeAllListeners();
       res.send(result);
     });
-    order.getDeliveryCharges(city,area,branchids);
+    order.getDeliveryCharges(city,area,branchids,branchordervalue);
     }
 exports.getLatestProductPrices=function(req,res){
    var order = new Order();
