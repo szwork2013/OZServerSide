@@ -3274,13 +3274,13 @@ var getPayableRefundableExcelSheetForProvider=function(providerid,transactiondat
 	var day=transactiondate.getDate();
 	var month=transactiondate.getMonth()+1;
 	var year=transactiondate.getFullYear();
-	ProductOrderModel.aggregate({$project:{orderid:1,suborder:1,payment:1,status:1,orderdate:{day:{$dayOfMonth:'$order_placeddate'},month:{$month:'$order_placeddate'},year:{$year:'$order_placeddate'}}}},{$unwind:"$suborder"},{$match:{status:{$ne:"waitforapproval"},"payment.mode":new RegExp("paytm","i"),"payment.STATUS": new RegExp("txn_success","i"),"suborder.productprovider.providerid":providerid,"suborder.status":{$nin:["cancelled","rejected","cancelledbyconsumer"]}}},{$project:{orderid:1,orderdate:1,suborderid:"$suborder.suborderid",status:"$suborder.status",suborder_price:"$suborder.suborder_price",providername:"$suborder.productprovider.providername",providerid:"$suborder.productprovider.providerid"}},function(err,createdsuborders){
+	ProductOrderModel.aggregate({$project:{orderdate:{$add:[orderdate,60*60*1000*5.5]},orderid:1,suborder:1,payment:1,status:1}},{{$project:{orderid:1,suborder:1,payment:1,status:1,orderdate:{day:{$dayOfMonth:'$order_placeddate'},month:{$month:'$order_placeddate'},year:{$year:'$order_placeddate'}}}},{$unwind:"$suborder"},{$match:{status:{$ne:"waitforapproval"},"payment.mode":new RegExp("paytm","i"),"payment.STATUS": new RegExp("txn_success","i"),"suborder.productprovider.providerid":providerid,"suborder.status":{$nin:["cancelled","rejected","cancelledbyconsumer"]}}},{$project:{orderid:1,orderdate:1,suborderid:"$suborder.suborderid",status:"$suborder.status",suborder_price:"$suborder.suborder_price",providername:"$suborder.productprovider.providername",providerid:"$suborder.productprovider.providerid"}},function(err,createdsuborders){
 		if(err){
 			callback({error:{code:"ED001",message:"Database Issue"}});
 			console.log("Database Error"+err);
 		}else{
 			//to get refundable transaction details order cancelled by vendor,ordercancelledy user,order rejected by vendor
-			ProductOrderModel.aggregate({$project:{orderid:1,suborder:1,payment:1,status:1,order_placeddate:1}},{$unwind:"$suborder"},{$match:{"suborder.cancelrejectdate":{$ne:null}}}, {$project:{orderid:1,payment:1,status:1,suborder:1,order_placeddate:1,cancelrejectdate:{day:{$dayOfMonth:'$suborder.cancelrejectdate'},month:{$month:'$suborder.cancelrejectdate'},year:{$year:'$suborder.cancelrejectdate'}}}},{$match:{status:{$ne:"waitforapproval"},"payment.mode":/paytm/i,"paytm.STATUS": new RegExp("txn_success","i"),"suborder.productprovider.providerid":providerid,"suborder.status":{$in:["cancelled","rejected","cancelledbyconsumer"]},"cancelrejectdate.day":day,"cancelrejectdate.month":month,"cancelrejectdate.year":year}},{$project:{orderid:1,orderdate:"$order_placeddate",cancelrejectdate:1,suborderid:"$suborder.suborderid",status:"$suborder.status",suborder_price:"$suborder.suborder_price",providername:"$suborder.productprovider.providername",providerid:"$suborder.productprovider.providerid"}},function(err,cancelledrjectedsuborder){
+			ProductOrderModel.aggregate({$project:{orderid:1,suborder:1,payment:1,status:1,order_placeddate:1}},{$unwind:"$suborder"},{$match:{"suborder.cancelrejectdate":{$ne:null}}}, {$project:{cancelrejectdate:{$add:["$suborder.cancelrejectdate",60*60*1000*5.5]},orderid:1,payment:1,status:1,suborder:1,order_placeddate:1}},{$project:{orderid:1,payment:1,status:1,suborder:1,order_placeddate:1,cancelrejectdate:{day:{$dayOfMonth:'$suborder.cancelrejectdate'},month:{$month:'$suborder.cancelrejectdate'},year:{$year:'$suborder.cancelrejectdate'}}}},{$match:{status:{$ne:"waitforapproval"},"payment.mode":/paytm/i,"payment.STATUS": new RegExp("txn_success","i"),"suborder.productprovider.providerid":providerid,"suborder.status":{$in:["cancelled","rejected","cancelledbyconsumer"]},"cancelrejectdate.day":day,"cancelrejectdate.month":month,"cancelrejectdate.year":year}},{$project:{orderid:1,orderdate:"$order_placeddate",cancelrejectdate:1,suborderid:"$suborder.suborderid",status:"$suborder.status",suborder_price:"$suborder.suborder_price",providername:"$suborder.productprovider.providername",providerid:"$suborder.productprovider.providerid"}},function(err,cancelledrjectedsuborder){
 				if(err){
 					callback({error:{code:"ED001",message:"Database Issue"}});
 								console.log("Database Error"+err);
@@ -3364,11 +3364,11 @@ var getPayableRefundableExcelSheetForProvider=function(providerid,transactiondat
 								var ordervalue=(0-cancelledrjectedsuborder[i].suborder_price);
 								
 								var settlementamount=ordervalue+transactioncost;
-								var ozfee=suborders[i].suborder_price*(glspercent/100)
-								var status=suborders[i].status;
+								var ozfee=cancelledrjectedsuborder[i].suborder_price*(glspercent/100)
+								var status=cancelledrjectedsuborder[i].status;
 								var cancelledby="";
 								var paidtocustomer="";
-								var orderdate=createdsucancelledrjectedsuborder[i].orderdate.getDate()+"/"+(createdsucancelledrjectedsuborder[i].orderdate.getMonth()+1)+"/"+createdsucancelledrjectedsuborder[i].orderdate.getFullYear();
+								var orderdate=cancelledrjectedsuborder[i].orderdate.getDate()+"/"+(cancelledrjectedsuborder[i].orderdate.getMonth()+1)+"/"+cancelledrjectedsuborder[i].orderdate.getFullYear();
 								var cancelledordersttlement={orderid:cancelledrjectedsuborder[i].orderid,suborderid:cancelledrjectedsuborder[i].suborderid,orderdate:orderdate,ordervalue:ordervalue,transactioncost:transactioncost,settlementamount:settlementamount,status:cancelledrjectedsuborder[i].status};
 							
 								if(cancelledrjectedsuborder[i].status=="cancelledbyconsumer"){
