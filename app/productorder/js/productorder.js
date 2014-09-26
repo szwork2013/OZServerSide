@@ -1082,7 +1082,9 @@ var _validateDeliveryChargeData=function(self,city,area,branchdatas,branchorderv
 	  		_getDeliveryCharges(self,city,area,branchdatas);
 	  		////////////////////////////////////////////////
 		}else{
-
+			////////////////////////////////////////////////
+	  		_getDeliveryCharges(self,city,area,branchdatas);
+	  		////////////////////////////////////////////////
 		}
 		
 	}
