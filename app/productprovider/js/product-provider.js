@@ -2400,33 +2400,27 @@ var _isAuthorizedUserToChangeSellersAgreement=function(self,providerid,user,agre
 	})
 }
 ProductProvider.prototype.GetBranchDeliveryCharges = function(sessionuserid,branchid,zipcode,city) {
-	var self=this;
-	
-			////////////////////////////////////////////////////////////////////
+	var self=this;	
+		//////////////////////////////////////////////////////////////////////////////
 	   _isAuthorizedUserToGetDeliveryBranch(self,sessionuserid,branchid,zipcode,city);
-	    ////////////////////////////////////////////////////////////////////		
-		
-	}
-	
+	    //////////////////////////////////////////////////////////////////////////////
+	}	
 
 var _isAuthorizedUserToGetDeliveryBranch=function(self,sessionuserid,branchid,zipcode,city){
 	UserModel.findOne({userid:sessionuserid,"provider.branchid":branchid},{provider:1},function(err,userprovider){
 		if(err){
 			logger.emit('error',"Database Error fun:_checkUserHaveProviderBranches"+err,user.userid)
-		  self.emit("failedGetBranchDeiliveryCharges",{"error":{"code":"ED001","message":"Database Error"}});			
+		  	self.emit("failedGetBranchDeiliveryCharges",{"error":{"code":"ED001","message":"Database Error"}});			
 		}else if(!userprovider){
 			self.emit("failedGetBranchDeiliveryCharges",{"error":{"message":"User does not belong to seller"}});			
-		}else{
-			
-  		////////////////////////////////////////
-  		_GetBranchDeliveryCharges(self,sessionuserid,branchid,zipcode,city);
-  		/////////////////////////////////
-
-		}
+		}else{			
+	  		////////////////////////////////////////////////////////////////////
+	  		_GetBranchDeliveryCharges(self,sessionuserid,branchid,zipcode,city);
+	  		////////////////////////////////////////////////////////////////////
+	  	}
 	})
 }
 var _GetBranchDeliveryCharges=function(self,sessionuserid,branchid,zipcode,city){
-
 	var query;
 	if(zipcode==undefined && city==undefined){
 		query={$match:{}}
@@ -2441,7 +2435,7 @@ var _GetBranchDeliveryCharges=function(self,sessionuserid,branchid,zipcode,city)
 		query={$match:{"coverage.city":city}}
 	}
 	
-	ProductProviderModel.aggregate({$match:{"branch.branchid":branchid}},{$unwind:"$branch"},{$match:{"branch.branchid":branchid}},{$unwind:"$branch.deliverycharge"},{$project:{value:"$branch.deliverycharge.value",coverage:"$branch.deliverycharge.coverage",id:"$branch.deliverycharge._id",_id:0}},query,function(err,branchdeliverycharges){
+	ProductProviderModel.aggregate({$match:{"branch.branchid":branchid}},{$unwind:"$branch"},{$match:{"branch.branchid":branchid}},{$unwind:"$branch.deliverycharge"},{$project:{value:"$branch.deliverycharge.value",minorderamt:"$branch.deliverycharge.minorderamt",maxorderamt:"$branch.deliverycharge.maxorderamt",coverage:"$branch.deliverycharge.coverage",id:"$branch.deliverycharge._id",_id:0}},query,function(err,branchdeliverycharges){
 		if(err){
 			logger.emit('error',"Database Error fun:_checkUserHaveProviderBranches"+err,user.userid)
 		  self.emit("failedGetBranchDeiliveryCharges",{"error":{"code":"ED001","message":"Database Error"}});			
