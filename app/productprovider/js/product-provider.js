@@ -3198,7 +3198,7 @@ var getExcelSheet=function(createdordersettlement,cancelledordersttlement,cancel
         },{
         	caption:'',
         	type:'string',
-        	width:20,
+        	width:24,
         	beforeCellWrite:beforeCellWrite
         },{
         	caption:'',
@@ -3332,7 +3332,7 @@ var getPayableRefundableExcelSheetForProvider=function(providerid,transactiondat
 								var status=createdsuborders[i].status;
 								var cancelledby="";
 								var paidtocustomer="";
-								var orderdate=createdsuborders[i].orderdate.day+"/"+createdsuborders[i].orderdate.month+"/"+createdsuborders[i].orderdate.year;
+								var orderdate=createdsuborders[i].orderdate.year+"/"+createdsuborders[i].orderdate.month+"/"+createdsuborders[i].orderdate.day;
 								var suborderdetails={orderid:createdsuborders[i].orderid,suborderid:createdsuborders[i].suborderid,orderdate:orderdate,ordervalue:createdsuborders[i].suborder_price,transactioncost:transactioncost,settlementamount:settlementamount,status:""};
 								noofcreatedorders++;
 								totalcreatedordervalue+=createdsuborders[i].suborder_price;
@@ -3368,7 +3368,7 @@ var getPayableRefundableExcelSheetForProvider=function(providerid,transactiondat
 								var status=cancelledrjectedsuborder[i].status;
 								var cancelledby="";
 								var paidtocustomer="";
-								var orderdate=cancelledrjectedsuborder[i].orderdate.getDate()+"/"+(cancelledrjectedsuborder[i].orderdate.getMonth()+1)+"/"+cancelledrjectedsuborder[i].orderdate.getFullYear();
+								var orderdate=cancelledrjectedsuborder[i].orderdate.getFullYear()+"/"+(cancelledrjectedsuborder[i].orderdate.getMonth()+1)+"/"+cancelledrjectedsuborder[i].orderdate.getDate();
 								var cancelledordersttlement={orderid:cancelledrjectedsuborder[i].orderid,suborderid:cancelledrjectedsuborder[i].suborderid,orderdate:orderdate,ordervalue:ordervalue,transactioncost:transactioncost,settlementamount:settlementamount,status:cancelledrjectedsuborder[i].status};
 							
 								if(cancelledrjectedsuborder[i].status=="cancelledbyconsumer"){
