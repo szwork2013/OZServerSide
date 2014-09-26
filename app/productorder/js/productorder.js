@@ -2415,7 +2415,7 @@ var _getProviderSubOrderStatusWiseCount=function(self,userid,providerid){
 	 		logger.emit("error","Database Error _getSubOrderStatusWiseCount"+err)
 			self.emit("failedgetPrviderOrderStatusWiseCount",{"error":{"code":"ED001","message":"Database Error"}});
 	 	}else{
-	 		var statusarray={past:["ordercomplete","cancelled","rejected"],recieved:["orderreceived"],approved:["accepted"],packing:["inproduction","packing","factorytostore"],delivery:["indelivery"]};
+	 		var statusarray={past:["cancelledbyconsumer","ordercomplete","cancelled","rejected"],recieved:["orderreceived"],approved:["accepted"],packing:["inproduction","packing","factorytostore"],delivery:["indelivery"]};
 	 		var statuswisecountarray=[];
 	 		console.log("teset"+JSON.stringify(statuswisecount))
 	 		for(var i in statusarray){
