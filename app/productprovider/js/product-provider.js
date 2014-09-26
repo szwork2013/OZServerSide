@@ -3246,7 +3246,11 @@ var getExcelSheet=function(createdordersettlement,cancelledordersttlement,cancel
         excelrows.push(["","","","","","",""]);
         excelrows.push(["Cancelled Orders","Order Value","Transaction Cost(2.5%)","Settlement Cost","","",""]);
         for(var j=0;j<cancelledordersttlement.length;j++){
-        	excelrows.push([cancelledordersttlement[j].noofcancelledorders,cancelledordersttlement[j].totalordervalue,cancelledordersttlement[j].totaltransactioncost,cancelledordersttlement[j].totalsettlementcost,"","",""]); 
+        	if(j==0){
+        		excelrows.push([cancelledordersttlement[j].noofcancelledorders,cancelledordersttlement[j].totalordervalue,cancelledordersttlement[j].totaltransactioncost,cancelledordersttlement[j].totalsettlementcost,"Cancelled By Consumer","",""]); 
+        	}else{
+        		excelrows.push([cancelledordersttlement[j].noofcancelledorders,cancelledordersttlement[j].totalordervalue,cancelledordersttlement[j].totaltransactioncost,cancelledordersttlement[j].totalsettlementcost,"Cancelled BY Vendor","",""]); 
+        	}
         }
       
      		excelrows.push(["","","","","","",""]);
