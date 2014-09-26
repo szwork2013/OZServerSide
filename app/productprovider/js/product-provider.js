@@ -3186,7 +3186,7 @@ var getExcelSheet=function(createdordersettlement,cancelledordersttlement,cancel
 			// ]
 			// var prevunsettledbal=0;
 			// totalsettlement=950;
-			// vendor={vednorname:vendor.providername,transactiondate:transactiondate}
+			vendor={vednorname:vendor.providername,transactiondate:transactiondate}
 			var conf={};
 
 			conf.cols=[
@@ -3198,7 +3198,7 @@ var getExcelSheet=function(createdordersettlement,cancelledordersttlement,cancel
         },{
         	caption:'',
         	type:'string',
-        	width:14,
+        	width:20,
         	beforeCellWrite:beforeCellWrite
         },{
         	caption:'',
@@ -3235,10 +3235,10 @@ var getExcelSheet=function(createdordersettlement,cancelledordersttlement,cancel
         excelrows.push(["","","","","","",""]);
         excelrows.push(["Created Orders","Order Value","Transaction Cost(2.5%)","Settlement Cost","Previous Balance","Final Settlement",""]);
         for(var j=0;j<createdordersettlement.length;j++){
-          if(j=0){
-          	excelrows.push([createdordersettlement[j].noofcreatedorders,createdordersettlement[j].totalordervalue,createdordersettlement[j].totaltransactioncost,createdordersettlement[j].totalsettlementcost,prevunsettledbal,totalsettlement,""]); 
+          if(j==0){
+          	excelrows.push([createdordersettlement[j].noofcreatedorders,createdordersettlement[j].totalcreatedordervalue,createdordersettlement[j].totaltransactioncost,createdordersettlement[j].totalsettlementcost,prevunsettledbal,totalsettlement,""]); 
           }else{
- 						excelrows.push([createdordersettlement[j].noofcreatedorders,createdordersettlement[j].totalordervalue,createdordersettlement[j].totaltransactioncost,createdordersettlement[j].totalsettlementcost,"","",""]);          	
+ 						excelrows.push([createdordersettlement[j].noofcreatedorders,createdordersettlement[j].totalcreatedordervalue,createdordersettlement[j].totaltransactioncost,createdordersettlement[j].totalsettlementcost,"","",""]);          	
           }    	
         	
         }
@@ -3274,13 +3274,13 @@ var getPayableRefundableExcelSheetForProvider=function(providerid,transactiondat
 	var day=transactiondate.getDate();
 	var month=transactiondate.getMonth()+1;
 	var year=transactiondate.getFullYear();
-	ProductOrderModel.aggregate({$project:{orderid:1,suborder:1,payment:1,status:1,orderdate:{day:{$dayOfMonth:'$order_placeddate'},month:{$month:'$order_placeddate'},year:{$year:'$order_placeddate'}}}},{$unwind:"$suborder"},{$match:{status:{$ne:"waitforapproval"},"payment.mode":new RegExp("paytm","i"),"paytm.STATUS": new RegExp("txn_success","i"),"suborder.productprovider.providerid":providerid,"suborder.status":{$nin:["cancelled","rejected","cancelledbyconsumer"]}}},{$project:{orderid:1,orderdate:1,suborderid:"$suborder.suborderid",status:"$suborder.status",suborder_price:"$suborder.suborder_price",providername:"$suborder.productprovider.providername",providerid:"$suborder.productprovider.providerid"}},function(err,createdsuborders){
+	ProductOrderModel.aggregate({$project:{orderid:1,suborder:1,payment:1,status:1,orderdate:{day:{$dayOfMonth:'$order_placeddate'},month:{$month:'$order_placeddate'},year:{$year:'$order_placeddate'}}}},{$unwind:"$suborder"},{$match:{status:{$ne:"waitforapproval"},"payment.mode":new RegExp("paytm","i"),"payment.STATUS": new RegExp("txn_success","i"),"suborder.productprovider.providerid":providerid,"suborder.status":{$nin:["cancelled","rejected","cancelledbyconsumer"]}}},{$project:{orderid:1,orderdate:1,suborderid:"$suborder.suborderid",status:"$suborder.status",suborder_price:"$suborder.suborder_price",providername:"$suborder.productprovider.providername",providerid:"$suborder.productprovider.providerid"}},function(err,createdsuborders){
 		if(err){
 			callback({error:{code:"ED001",message:"Database Issue"}});
 			console.log("Database Error"+err);
 		}else{
 			//to get refundable transaction details order cancelled by vendor,ordercancelledy user,order rejected by vendor
-			ProductOrderModel.aggregate({$project:{orderid:1,suborder:1,payment:1,status:1,order_placeddate:1}},{$unwind:"$suborder"},{$project:{orderid:1,payment:1,status:1,suborder:1,order_placeddate:1,cancelrejectdate:{day:{$dayOfMonth:'$suborder.cancelrejectdate'},month:{$month:'$suborder.cancelrejectdate'},year:{$year:'$suborder.cancelrejectdate'}}}},{$match:{status:{$ne:"waitforapproval"},"payment.mode":/paytm/i,"paytm.STATUS": new RegExp("txn_success","i"),"suborder.productprovider.providerid":providerid,"suborder.status":{$in:["cancelled","rejected","cancelledbyconsumer"]},"cancelrejectdate.day":day,"cancelrejectdate.month":month,"cancelrejectdate.year":year}},{$project:{orderid:1,orderdate:"$order_placeddate",cancelrejectdate:1,suborderid:"$suborder.suborderid",status:"$suborder.status",suborder_price:"$suborder.suborder_price",providername:"$suborder.productprovider.providername",providerid:"$suborder.productprovider.providerid"}},function(err,cancelledrjectedsuborder){
+			ProductOrderModel.aggregate({$project:{orderid:1,suborder:1,payment:1,status:1,order_placeddate:1}},{$unwind:"$suborder"},{$match:{"suborder.cancelrejectdate":{$ne:null}}}, {$project:{orderid:1,payment:1,status:1,suborder:1,order_placeddate:1,cancelrejectdate:{day:{$dayOfMonth:'$suborder.cancelrejectdate'},month:{$month:'$suborder.cancelrejectdate'},year:{$year:'$suborder.cancelrejectdate'}}}},{$match:{status:{$ne:"waitforapproval"},"payment.mode":/paytm/i,"paytm.STATUS": new RegExp("txn_success","i"),"suborder.productprovider.providerid":providerid,"suborder.status":{$in:["cancelled","rejected","cancelledbyconsumer"]},"cancelrejectdate.day":day,"cancelrejectdate.month":month,"cancelrejectdate.year":year}},{$project:{orderid:1,orderdate:"$order_placeddate",cancelrejectdate:1,suborderid:"$suborder.suborderid",status:"$suborder.status",suborder_price:"$suborder.suborder_price",providername:"$suborder.productprovider.providername",providerid:"$suborder.productprovider.providerid"}},function(err,cancelledrjectedsuborder){
 				if(err){
 					callback({error:{code:"ED001",message:"Database Issue"}});
 								console.log("Database Error"+err);
@@ -3387,9 +3387,15 @@ var getPayableRefundableExcelSheetForProvider=function(providerid,transactiondat
 							}
 
 							//for push order cancelled by consumer
-							totalcancelledordersttlement.push({noofcancelledorders:nofocancelledorderbyconsumer,totalordervalue:totalcancelledordervaluebyconsumer,totaltransactioncost:totalcancelledtransactioncostbyconsumer,totalsettlementcost:totalcancelledsettlementcostbyconsumer})
+							if(nofocancelledorderbyconsumer>0){
+								totalcancelledordersttlement.push({noofcancelledorders:nofocancelledorderbyconsumer,totalordervalue:totalcancelledordervaluebyconsumer,totaltransactioncost:totalcancelledtransactioncostbyconsumer,totalsettlementcost:totalcancelledsettlementcostbyconsumer})		
+							}
+							
 							//order cancelled by vendor
-							totalcancelledordersttlement.push({noofcancelledorders:nofocancelledorderbyvendor,totalordervalue:totalcancelledordervaluebyvendor,totaltransactioncost:totalcancelledtransactioncostbyvendor,totalsettlementcost:totalcancelledsettlementcostbyvendor})
+							if(nofocancelledorderbyvendor>0){
+								totalcancelledordersttlement.push({noofcancelledorders:nofocancelledorderbyvendor,totalordervalue:totalcancelledordervaluebyvendor,totaltransactioncost:totalcancelledtransactioncostbyvendor,totalsettlementcost:totalcancelledsettlementcostbyvendor})	
+							}
+							
 							
 							totalsettlementamount=totalcreatedordersettlementcost+totalcancelledsettlementcostbyvendor+totalcancelledsettlementcostbyconsumer;
 							//to get excelsheet
