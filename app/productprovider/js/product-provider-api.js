@@ -7,7 +7,12 @@ var commonapi=require("../../common/js/common-api")
 var SMSTemplateModel=require("../../common/js/sms-template-model");
 var SMSFormatModel=require("../../common/js/sms-format-model");
 var S=require("string");
-
+function base64_encode(file) {
+    // read binary data
+    var bitmap = fs.readFileSync(file);
+    // convert binary data to base64 encoded string
+    return new Buffer(bitmap).toString('base64');
+}
 function IsJsonString(str) {
     try {
         JSON.parse(str);
@@ -1151,9 +1156,9 @@ exports.getPayableRefundableExcelSheetForProvider=function(req,res){
   });
   productprovider.removeAllListeners("successfulgetPayableRefundableExcelSheetForProvider");
   productprovider.on("successfulgetPayableRefundableExcelSheetForProvider",function(result){
-    res.setHeader('Content-Type', 'application/vnd.openxmlformats');
-    res.setHeader("Content-Disposition", "attachment; filename=" +result.excelname+".xlsx");
-    res.end(result.excel, 'binary');
+    // res.setHeader('Content-Type', 'application/vnd.openxmlformats');
+    // res.setHeader("Content-Disposition", "attachment; filename=" +result.excelname+".xls");
+    res.send(base64_encode(result.excel));
   });
   if(req.user.isAdmin == false){
     productprovider.emit("failedgetPayableRefundableExcelSheetForProvider",{error:{message:"Only OrderZapp admin user can get sellers payable details"}});

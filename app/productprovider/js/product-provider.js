@@ -36,6 +36,7 @@ module.exports = ProductProvider;
 function isArray(what) {
     return Object.prototype.toString.call(what) === '[object Array]';
 }
+
 var _updateProductProviderDetails=function(providerid){
 	logger.emit("log","_updateProductProviderDetails")
 	ProductProviderModel.findOne({providerid:providerid},{providerid:1,provideremail:1,providername:1,providerbrandname:1,providerlogo:1,providercode:1,_id:0,paymentmode:1},function(err,provider){
@@ -3265,7 +3266,7 @@ var getExcelSheet=function(createdordersettlement,cancelledordersttlement,cancel
      			excelrows.push(excelrow)
      		}
 
-        
+       
         conf.rows =excelrows;
         var excel = nodeExcel.execute(conf);
         var excelinfo={excel:excel,excelname:vendor.vednorname+vendor.transactiondate}
