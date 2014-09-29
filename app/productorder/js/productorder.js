@@ -378,9 +378,19 @@ var _ProviderBranchSpecificCartsProducts=function(self,orderdata,validproductids
 								if(branchproducts[i].productcatalog[j].productlogo!=undefined){
 									productlogo=branchproducts[i].productcatalog[j].productlogo.image
 								}
-								suborderproducts.push({baseprice:branchproducts[i].productcatalog[j].price.value,productconfiguration:orderdata.cart[indexofproduct].productconfiguration,messageonproduct:orderdata.cart[indexofproduct].messageonproduct,tax:branchproducts[i].productcatalog[j].tax.percent,currency:branchproducts[i].productcatalog[j].price.currency,productid:branchproducts[i].productcatalog[j].productid,productname:branchproducts[i].productcatalog[j].productname,productcode:branchproducts[i].productcatalog[j].productcode,productlogo:productlogo,qty:parseFloat(orderdata.cart[indexofproduct].qty),uom:branchproducts[i].productcatalog[j].price.uom,orderprice:parseFloat(orderdata.cart[indexofproduct].orderprice)})
-								suborderprice+=parseFloat(orderdata.cart[indexofproduct].orderprice);
-								suborderprice=Math.round(suborderprice*100)/100;
+								var orderprice=0;
+								if(orderdata.cart[x].discount){
+									if(orderdata.cart[x].discount.code.toLowerCase()!="none" && orderdata.cart[x].discount.percent){
+										orderprice=parseFloat(orderdata.cart[indexofproduct].orderprice*(1-orderdata.cart[x].discount.percent/100))
+									}else{
+										orderprice=parseFloat(orderdata.cart[indexofproduct].orderprice)
+									}
+								}else{
+									orderprice=parseFloat(orderdata.cart[indexofproduct].orderprice)
+								}
+								suborderproducts.push({discount:orderdata.cart[x].discount,baseprice:branchproducts[i].productcatalog[j].price.value,productconfiguration:orderdata.cart[indexofproduct].productconfiguration,messageonproduct:orderdata.cart[indexofproduct].messageonproduct,tax:branchproducts[i].productcatalog[j].tax.percent,currency:branchproducts[i].productcatalog[j].price.currency,productid:branchproducts[i].productcatalog[j].productid,productname:branchproducts[i].productcatalog[j].productname,productcode:branchproducts[i].productcatalog[j].productcode,productlogo:productlogo,qty:parseFloat(orderdata.cart[indexofproduct].qty),uom:branchproducts[i].productcatalog[j].price.uom,orderprice:orderprice})
+								suborderprice+=parseFloat(orderprice);
+								suborderprice=Math.round(orderprice*100)/100;
 							  // console.log("messageonproduct"+orderdata.cart[indexofproduct].messageonproduct)
 							}
 						}//end to check same product added

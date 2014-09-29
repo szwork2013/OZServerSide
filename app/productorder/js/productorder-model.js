@@ -16,7 +16,7 @@ var suborderSchema=mongoose.Schema({
    suborderid:{type:String},
   
    orderinstructions:{type:String},//conusmer gave special instruction for suborder
-   products:[{baseprice:{type:Number},productid:{type:String},productlogo:{type:String},orderprice:{type:Number},qty:{type:Number},uom:{type:String},productname:{type:String},productcode:String,productlogo:{type:String},currency:{type:String},messageonproduct:{type:String},tax:Number,productconfiguration:[{prod_configtype:String,prod_configname:String,data:{type:Object},prod_configprice:{value:Number,uom:String}}]}],
+   products:[{baseprice:{type:Number},productid:{type:String},discount:{code:String,percent:Number},productlogo:{type:String},orderprice:{type:Number},qty:{type:Number},uom:{type:String},productname:{type:String},productcode:String,productlogo:{type:String},currency:{type:String},messageonproduct:{type:String},tax:Number,productconfiguration:[{prod_configtype:String,prod_configname:String,data:{type:Object},prod_configprice:{value:Number,uom:String}}]}],
    //message on product if it is cake
    productprovider:{providerid:{type:String,ref:"Productprovider"},branchid:{type:String,ref:"Branch"},providerbrandname:String,providername:{type:String},provideremail:String,location:{type:Object},providerlogo:{type:String},contact_supports:[{type:String}]},
    deliverycharge:{type:Number},
