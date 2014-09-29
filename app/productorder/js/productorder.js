@@ -1063,11 +1063,11 @@ Order.prototype.getDeliveryCharges = function(city,area,branchdata,branchorderva
 	/////////////////////////////
 }
 var _validateDeliveryChargeData=function(self,city,area,branchdatas,branchordervalue){
-	console.log("branchdatas"+branchdatas)
+	console.log("branchdatas"+branchdatas);
 	if(city==undefined || city==""){
-		self.emit("failedGetDeliveryCharges",{"error":{"code":"AV001","message":"please select city"}});
+		self.emit("failedGetDeliveryCharges",{"error":{"code":"AV001","message":"Please enter city"}});
 	}else if(area==undefined || area==""){
-		self.emit("failedGetDeliveryCharges",{"error":{"code":"AV001","message":"please select area"}});
+		self.emit("failedGetDeliveryCharges",{"error":{"code":"AV001","message":"Please enter area"}});
 	}else if(!isArray(branchdatas)){
 		self.emit("failedGetDeliveryCharges",{"error":{"code":"AV001","message":"branchids should be JSON array"}});
 	}else if(branchdatas.length==0){
@@ -1082,70 +1082,158 @@ var _validateDeliveryChargeData=function(self,city,area,branchdatas,branchorderv
 	  		_getDeliveryCharges(self,city,area,branchdatas);
 	  		////////////////////////////////////////////////
 		}else{
-			////////////////////////////////////////////////
-	  		_getDeliveryCharges(self,city,area,branchdatas);
-	  		////////////////////////////////////////////////
-		}
-		
+			///////////////////////////////////////////////////////////////
+	  		_getDeliveryChargesByOrderAmt(self,city,area,branchordervalue);
+	  		///////////////////////////////////////////////////////////////
+		}		
 	}
 }
 var _getDeliveryCharges=function(self,city,area,branchids){
-	var branchids_array=branchids;
-
-	branchids_array=__.uniq(branchids_array);
-	console.log("branchids"+branchids);
+	var branchids_array = branchids;
+	console.log("_getDeliveryCharges");
+	branchids_array = __.uniq(branchids_array);
+	// console.log("branchids"+branchids);
    // if(S(branchids).contains(",")){
    // 	branchids_array=branchids.split(",")
    // }else{
    // 	branchids_array.push(branchids)
    // }
-	ProductProviderModel.aggregate({$match:{"branch.branchid":{$in:branchids_array}}},{$unwind:"$branch"},{$match:{"branch.branchid":{$in:branchids_array}}},{$unwind:"$branch.deliverycharge"},{$project:{_id:0,branchid:"$branch.branchid",charge:"$branch.deliverycharge.value",coverage:"$branch.deliverycharge.coverage",isdeliverychargeinpercent:"$branch.delivery.isdeliverychargeinpercent"}},{$match:{"coverage.area":area,"coverage.city":city}},function(err,deliverycharges){
+	ProductProviderModel.aggregate({$match:{"branch.branchid":{$in:branchids_array}}},{$unwind:"$branch"},{$match:{"branch.branchid":{$in:branchids_array}}},{$unwind:"$branch.deliverycharge"},{$project:{_id:0,branchid:"$branch.branchid",charge:"$branch.deliverycharge.value",minorderamt:"$branch.deliverycharge.minorderamt",maxorderamt:"$branch.deliverycharge.maxorderamt",coverage:"$branch.deliverycharge.coverage",isdeliverychargeinpercent:"$branch.delivery.isdeliverychargeinpercent"}},{$match:{"coverage.area":area,"coverage.city":city}},function(err,deliverycharges){
 		if(err){
-          logger.emit("error","Database Error _getDeliveryCharges"+err)
+          logger.emit("error","Database Error _getDeliveryCharges"+err);
 		  self.emit("failedGetDeliveryCharges",{"error":{"code":"ED001","message":"Database Error"}});
 		}else{
-			var delivery_charges_array=[];
-			var validbranchids=[];
-			logger.emit("log",'deliverycharges'+JSON.stringify(deliverycharges))
-			for(var i=0;i<deliverycharges.length;i++){
+			var delivery_charges_array = [];
+			var validbranchids = [];
 			
-				validbranchids.push(deliverycharges[i].branchid);
-				deliverycharges[i].delivery=true;
-				delivery_charges_array.push(deliverycharges[i])
+			for(var i=0;i<deliverycharges.length;i++){
+				logger.emit("log",'deliverycharges i'+JSON.stringify(deliverycharges[i]));
+				if(deliverycharges[i].minorderamt == deliverycharges[i].maxorderamt){
+					console.log("FirstCase");
+					deliverycharges[i].delivery=true;
+			     	delivery_charges_array.push(deliverycharges[i]);	
+			     	validbranchids.push(deliverycharges[i].branchid);
+				}
 			}
-			var notdeliverybranches=__.difference(branchids,validbranchids)
+			var notdeliverybranches = __.difference(branchids,validbranchids);
+			console.log("notdeliverybranches : "+notdeliverybranches);
 
 			ProductProviderModel.aggregate({$unwind:"$branch"},{$match:{"branch.branchid":{$in:notdeliverybranches}}},{$project:{_id:0,branchid:"$branch.branchid",providername:1,location:"$branch.location",deliverytimingsinstructions:1}},function(err,branches){
 				if(err){
-					logger.emit("error","Database Error _getDeliveryCharges"+err)
-		      self.emit("failedGetDeliveryCharges",{"error":{"code":"ED001","message":"Database Error"}});
+					logger.emit("error","Database Error _getDeliveryCharges"+err);
+		      		self.emit("failedGetDeliveryCharges",{"error":{"code":"ED001","message":"Database Error"}});
 				}else{
 					if(branches.length!=0){
 					  for(var i=0;i<branches.length;i++){
-					  	delivery_charges_array.push({branchid:branches[i].branchid,delivery:false})
+					  	delivery_charges_array.push({branchid:branches[i].branchid,delivery:false});
 					  }	
 					}
 				  	//////////////////////////////////
 			        _successfullGetDeliveryCharges(self,delivery_charges_array);
 			        //////////////////////////////////
 				}
-			})
-			
+			})			
+		}
+	})
+}
+var _getDeliveryChargesByOrderAmt = function(self,city,area,branchordervalue){
+	console.log("_getDeliveryChargesByOrderAmt");
+	var branchids = [];
+	for(var i = 0;i<branchordervalue.length;i++){
+		branchids.push(branchordervalue[i].branchid);
+	}
+	var branchids_array = branchids;
+
+	branchids_array = __.uniq(branchids_array);
+	// console.log("branchids_array : "+branchids_array);
+   // if(S(branchids).contains(",")){
+   // 	branchids_array=branchids.split(",")
+   // }else{
+   // 	branchids_array.push(branchids)
+   // }
+	ProductProviderModel.aggregate({$match:{"branch.branchid":{$in:branchids_array}}},{$unwind:"$branch"},{$match:{"branch.branchid":{$in:branchids_array}}},{$unwind:"$branch.deliverycharge"},{$project:{_id:0,branchid:"$branch.branchid",charge:"$branch.deliverycharge.value",minorderamt:"$branch.deliverycharge.minorderamt",maxorderamt:"$branch.deliverycharge.maxorderamt",coverage:"$branch.deliverycharge.coverage",isdeliverychargeinpercent:"$branch.delivery.isdeliverychargeinpercent"}},{$match:{"coverage.area":area,"coverage.city":city}},function(err,deliverycharges){
+		if(err){
+          logger.emit("error","Database Error _getDeliveryChargesByOrderAmt"+err);
+		  self.emit("failedGetDeliveryCharges",{"error":{"code":"ED001","message":"Database Error"}});
+		}else{
+			var delivery_charges_array = [];
+			var validbranchids = [];
+			logger.emit("log",'deliverycharges'+JSON.stringify(deliverycharges));
+			for(var i=0;i<deliverycharges.length;i++){
+				if(deliverycharges[i].minorderamt==undefined && deliverycharges[i].maxorderamt==undefined){
+					deliverycharges[i].delivery=true;
+			     	delivery_charges_array.push(deliverycharges[i]);	
+			     	validbranchids.push(deliverycharges[i].branchid);
+				}else{
+					var branchordervaluedata = __.find(branchordervalue, function(obj) { return obj.branchid == deliverycharges[i].branchid });
+					var ordervalue = branchordervaluedata.ordervalue;
+					if(deliverycharges[i].maxorderamt == 0 || deliverycharges[i].maxorderamt > deliverycharges[i].minorderamt){
+						if(deliverycharges[i].minorderamt <= ordervalue && deliverycharges[i].maxorderamt >= ordervalue){
+							console.log("firstcase");
+							deliverycharges[i].delivery=true;
+							delivery_charges_array.push(deliverycharges[i]);
+				     		validbranchids.push(deliverycharges[i].branchid);
+						}else if(deliverycharges[i].minorderamt == deliverycharges[i].maxorderamt){
+							console.log("secondcase");
+							deliverycharges[i].delivery=true;
+							delivery_charges_array.push(deliverycharges[i]);
+				     		validbranchids.push(deliverycharges[i].branchid);
+						}else if(deliverycharges[i].minorderamt > ordervalue && deliverycharges[i].maxorderamt < ordervalue){
+							console.log("thirdcase");
+						}else if(deliverycharges[i].minorderamt < deliverycharges[i].maxorderamt && deliverycharges[i].maxorderamt < ordervalue){
+							console.log("fourthcase");
+							deliverycharges[i].delivery=true;
+							deliverycharges[i].charge=0;
+							delivery_charges_array.push(deliverycharges[i]);
+							validbranchids.push(deliverycharges[i].branchid);
+						}else if(ordervalue < deliverycharges[i].minorderamt && ordervalue > deliverycharges[i].maxorderamt){
+							console.log("fifthcase");
+							deliverycharges[i].delivery=true;
+							delivery_charges_array.push(deliverycharges[i]);
+				     		validbranchids.push(deliverycharges[i].branchid);
+						}else if(deliverycharges[i].minorderamt <= ordervalue && deliverycharges[i].maxorderamt == 0){
+							console.log("sixthcase");
+							deliverycharges[i].delivery=true;
+							delivery_charges_array.push(deliverycharges[i]);
+				     		validbranchids.push(deliverycharges[i].branchid);
+						}
+					}					
+				}				
+			}
+			var notdeliverybranches = __.difference(branchids,validbranchids);
+			console.log("notdeliverybranches : "+notdeliverybranches);
+			ProductProviderModel.aggregate({$unwind:"$branch"},{$match:{"branch.branchid":{$in:notdeliverybranches}}},{$project:{_id:0,branchid:"$branch.branchid",providername:1,location:"$branch.location",deliverytimingsinstructions:1}},function(err,branches){
+				if(err){
+					logger.emit("error","Database Error _getDeliveryCharges"+err);
+		      		self.emit("failedGetDeliveryCharges",{"error":{"code":"ED001","message":"Database Error"}});
+				}else{
+					if(branches.length!=0){
+					  for(var i=0;i<branches.length;i++){
+					  	// var data = __.find(branchordervalue, function(obj) { return obj.branchid == deliverycharges[i].branchid });
+					  	console.log("Data : "+JSON.stringify(data));
+					  	delivery_charges_array.push({branchid:branches[i].branchid,delivery:false});
+					  }	
+					}
+				  	//////////////////////////////////
+			        _successfullGetDeliveryCharges(self,delivery_charges_array);
+			        //////////////////////////////////
+				}
+			})			
 		}
 	})
 }
 var _successfullGetDeliveryCharges=function(self,deliverycharges){
-	self.emit("successfulGetDeliveryCharges",{success:{message:"",deliverycharge:deliverycharges}})
+	self.emit("successfulGetDeliveryCharges",{success:{message:"",deliverycharge:deliverycharges}});
 }
 Order.prototype.getLatestProductPrices = function(productcart){
 	var self = this;
 	if(productcart==undefined){
-		self.emit("failedGetLatestProductPrices",{error:{message:"Please enter productcart"}})
+		self.emit("failedGetLatestProductPrices",{error:{message:"Please enter productcart"}});
 	}else if(!isArray(productcart)){
-		self.emit("failedGetLatestProductPrices",{error:{message:"productcart should be an JSON Array"}})
+		self.emit("failedGetLatestProductPrices",{error:{message:"productcart should be an JSON Array"}});
 	}else{
 		///////////////////////////////
-			_getLatestProductPrice(self,productcart)
+		_getLatestProductPrice(self,productcart);
 		/////////////////////////////
 	}
 

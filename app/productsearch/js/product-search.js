@@ -259,7 +259,7 @@ var _applyDiscountCodesToProductCatalog=function(doc,callback){
 				console.log("discountcodes : "+JSON.stringify(discountcodes));
 				for(var i=0;i<doc.length;i++){
 					for(var j=0;j<doc[i].productcatalog.length;j++){
-						discount = __.find(discountcodes, function(obj) { return obj.products == doc[i].productcatalog[j].productid }); 
+						discount = __.find(discountcodes, function(obj) { return obj.products == doc[i].productcatalog[j].productid });
                         if(discount != undefined){
                             doc[i].productcatalog[j].discount = {code:discount.discountcode,percent:discount.percent}; 
                         }else{
